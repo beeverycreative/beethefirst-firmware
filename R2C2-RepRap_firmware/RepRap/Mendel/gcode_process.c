@@ -182,7 +182,10 @@ static void zero_x(void)
 
   // this is our home point
   tTarget new_pos = startpoint;
-  new_pos.x = config.home_pos_x;
+
+  //R2C2: XICO B3.1 HOT FIX
+  //new_pos.x = config.home_pos_x;
+  new_pos.x = -97.0;
   plan_set_current_position (&new_pos);
 }
 
@@ -214,7 +217,10 @@ static void zero_y(void)
 
   // this is our home point
   tTarget new_pos = startpoint;
-  new_pos.y = config.home_pos_y;
+
+  //R2C2: XICO B3.1 HOT FIX
+  //new_pos.y = config.home_pos_y;
+  new_pos.y = -70;
   plan_set_current_position (&new_pos);
 }
 
@@ -237,12 +243,33 @@ static void zero_z(void)
   SpecialMoveZ(startpoint.z + dir * max_travel, config.homing_feedrate_z);  
   synch_queue();
 
+
+  /**
+   * Normal move Z
+   **/
+
+    tTarget next_targetd = startpoint;
+      next_targetd.x = startpoint.x;
+      next_targetd.y = startpoint.y;
+      next_targetd.z = startpoint.z - dir * 10;
+      next_targetd.e = startpoint.e;
+      next_targetd.feed_rate =  config.homing_feedrate_z;
+      enqueue_moved(&next_targetd);
+      synch_queue();
+  /*
+   * end
+   */
   // move forward a bit
-  SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
-  synch_queue();
+  //SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
+  //synch_queue();
+
+
+
+
+
 
   // move back in to endstop slowly
-  SpecialMoveZ(startpoint.z + dir * 6, config.search_feedrate_z);
+  SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
   synch_queue();
 
   // this is our home point
@@ -1162,6 +1189,36 @@ eParseResult process_gcode_command()
       case 601:
       {
         write_config();
+      }
+      break;
+
+      //set home position absolute
+      case 604:
+      {
+        if (next_target.seen_X)
+        {
+          config.home_pos_x = next_target.target.x;
+          axisSelected = 1;
+        }//no need for else
+
+        if (next_target.seen_Y)
+        {
+          config.home_pos_y = next_target.target.y;
+          axisSelected = 1;
+        }//no need for else
+
+        if (next_target.seen_Z)
+        {
+          config.home_pos_z = next_target.target.z;
+          axisSelected = 1;
+        }//no need for else
+
+        if(!axisSelected)
+        {
+          config.home_pos_x = 0.0;
+          config.home_pos_y = 0.0;
+          config.home_pos_z = 0.0;
+        }//no need for else
       }
       break;
 
