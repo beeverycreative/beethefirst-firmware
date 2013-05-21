@@ -27,8 +27,25 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include        "core_cm3.h"
+//#include "core_cm3.h"
+#include "lpc17xx_nvic.h"
+#include "spi.h"
+#include "ff.h"
+#include "debug.h"
 
+/**
+ * @brief  Initiate a system reset request.
+ *
+ * Initiate a system reset request to reset the MCU
+ */
+static __INLINE void reset(void)
+{
+  SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
+                 (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
+                 SCB_AIRCR_SYSRESETREQ_Msk);                   /* Keep priority group unchanged */
+  __DSB();                                                     /* Ensure completion of memory access */
+  while(1);                                                    /* wait until reset */
+}
 
 /* Activa modo bootloader. É criado um ficheiro com nome "boot" no uSDCard. O bootloader irá verificar a existência deste
  * ficheiro para entrar em bootloader. */
@@ -39,7 +56,7 @@ unsigned int go_to_bootloader (void)
 
   /* necessário para a FAT */
   FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file;       /* file object */
+  FIL file_boot;       /* file object */
   FRESULT res;    /* FatFs function common result code */
 
   /* Register a work area for logical drive 0 */
@@ -50,7 +67,7 @@ unsigned int go_to_bootloader (void)
   }//no need for else
 
   /* Abre o ficheiro "boot". Caso não exista, é criado. */
-  res = f_open(&file, "boot", FA_WRITE|FA_OPEN_ALWAYS);
+  res = f_open(&file_boot, "boot", FA_WRITE|FA_OPEN_ALWAYS);
   if (res){
       debug("Error opening/creating boot\n");
 
@@ -58,7 +75,7 @@ unsigned int go_to_bootloader (void)
       return 2;
   }//no need for else
 
-  res = f_close(&file);
+  res = f_close(&file_boot);
   if (res){
       debug("Error closing boot\n");
 
@@ -68,7 +85,7 @@ unsigned int go_to_bootloader (void)
 
   f_mount(0, NULL); // desmonta
 
-  NVIC_SystemReset(); // reset ao sistema
+  reset(); // reset ao sistema
 
   return 0; // tudo bem, sem erro
 }

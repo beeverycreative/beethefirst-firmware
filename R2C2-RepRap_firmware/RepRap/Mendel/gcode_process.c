@@ -44,6 +44,7 @@
 #include "planner.h"
 #include "stepper.h"
 #include "geometry.h"
+#include "bootloader.h"
 
 FIL       file;
 uint32_t  filesize = 0;
@@ -1255,6 +1256,11 @@ eParseResult process_gcode_command()
       // M606 - wait for empty movement queue
       case 606:
       enqueue_wait();
+      break;
+
+      // M610 - switch to USB bootloader
+      case 610:
+      go_to_bootloader (); // vai para o modo bootloader, reiniciando a placa.
       break;
 
       // unknown mcode: spit an error

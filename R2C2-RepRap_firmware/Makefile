@@ -141,6 +141,7 @@ APPSRC = \
 	$(APPDIR)/config.c \
 	$(APPDIR)/endstops.c \
 	$(APPDIR)/geometry.c \
+	$(APPDIR)/bootloader.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
 
