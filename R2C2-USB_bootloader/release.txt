@@ -1,3 +1,6 @@
+v2.2.0 -- R2C2 USB bootloader
+* O bootloader verifica agora se existe o ficheiro "boot" no uSDCard e se existir executa-se. O firmware cria o ficheiro "boot" no uSDCard e reinicia o sistema quando quer entrar no modo bootloader.
+
 v2.1.1 -- R2C2 USB bootloader
 * Turned to ON state all the stepper motors LEDs. The stepper motors are disable while on bootloader mode but the LEDs are ON. R2C2 boards shipped after 21 February 2012 uses R2C2 USB bootloader v2.1.1.
 
