@@ -165,6 +165,24 @@ int main() {
             }
 #endif
 
+            /* Verifica se existe o ficheiro "boot". Se existir, entra em modo bootloader. */
+            if ((r = f_mount(0, &fatfs)) == FR_OK)
+            {
+              if ((r = f_open(&f, "/boot", FA_OPEN_EXISTING)) == FR_OK) // verifica se existe o ficheiro "boot"
+              {
+                r = f_close(&f); // fecha o ficheiro
+                r = f_unlink("/boot"); // apaga o ficheiro, para que de futuro não entre novamente no bootloader
+
+                init_usb_msc_device();
+
+                for (;usb_msc_not_ejected();)
+                  USBHwISR();
+
+                USBHwConnect(FALSE);
+                spi_close();
+              }
+            }
+
             if (bootloader_button_pressed()) {
                 DBG("entering bootloader");
                 init_usb_msc_device();

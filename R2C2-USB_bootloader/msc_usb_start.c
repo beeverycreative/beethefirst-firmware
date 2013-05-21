@@ -123,7 +123,7 @@ static const U8 abDescriptors[] = {
 
 	12,
 	DESC_STRING,
-	'2', 0, '.', 0, '1', 0, '.', 0, '1', 0,/* bootloader version 2.1.1 */
+	'2', 0, '.', 0, '2', 0, '.', 0, '0', 0,/* bootloader version 2.2.0 */
 
 // terminating zero
 	0
