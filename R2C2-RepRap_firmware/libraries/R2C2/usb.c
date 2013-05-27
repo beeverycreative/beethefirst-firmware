@@ -234,7 +234,7 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
   if (_fifo_avail(&txfifo) == 0)
   {
     // no more data, disable further NAK interrupts until next USB frame
-    USBHwNakIntEnable(0);
+    USBHwNakIntEnable(0); // não é gerada nenhuma interrupção sempre que o host tenta ler/escrever nos EPs mas este estão cheios/vazios.
     return;
   }
 
@@ -295,6 +295,12 @@ static void USBFrameHandler(U16 wFrame)
   if (_fifo_avail(&txfifo) > 0)
   {
     // data available, enable NAK interrupt on bulk in
+    //
+    // Caso esta interrupção não seja ligada, não há transmissão de dados, uma vez que a interrupão sobre o EP IN só
+    // acontece após transferência com sucesso. É necessário activar esta interrupção para que seja chamada a BulkIn()
+    // e acontecer a transferência.
+    // Caso haja um RTOS, uma task pode ver regularmente quando o EP IN está vazio e fazer a transferência, em vez de
+    // este USBFrame Interrupt.
     USBHwNakIntEnable(INACK_BI);
   }
 }
@@ -332,7 +338,7 @@ void USBSerial_Init(void)
   USBHwRegisterFrameHandler(USBFrameHandler);
 
   // enable bulk-in interrupts on NAKs
-  USBHwNakIntEnable(INACK_BI);
+  USBHwNakIntEnable(INACK_BI); // é gerada uma interrupção sempre que o host tenta ler do EP IN mas este está vazio.
 
   // initialise VCOM
   fifo_init(&rxfifo, rxbuf);
