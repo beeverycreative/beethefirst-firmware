@@ -1,3 +1,7 @@
+V1.1.0
+Versão para a BEE THE FIRST.
+Esta versão foi testado com o bootloader "BEE_THE_FIRST-Bootloader_USB-v2.2.0.bin" e com o software BEE SOFT v1.0.0-beta.
+
 V1.0.3
 - Added M601 - saves the current configuration to config.txt
 - Updated temperature table and code, so current measures are very good with bitBOX R2C2 sensors
