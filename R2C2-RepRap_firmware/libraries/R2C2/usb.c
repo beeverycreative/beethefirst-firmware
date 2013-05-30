@@ -96,7 +96,7 @@ static const U8 abDescriptors[] = {
 // configuration descriptor
   0x09,
   DESC_CONFIGURATION,
-  LE_WORD(155),               // wTotalLength
+  LE_WORD(165),               // wTotalLength
   0x02,                       // bNumInterfaces
   0x01,                       // bConfigurationValue
   0x00,                       // iConfiguration
@@ -171,19 +171,17 @@ static const U8 abDescriptors[] = {
   DESC_STRING,
   LE_WORD(0x0409),
 
-  14,
+  32,
   DESC_STRING,
-  'b', 0, 'i', 0, 't', 0, 'B', 0, 'O', 0, 'X', 0,
+  'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
 
-  58,
+  50,
   DESC_STRING,
-  'R', 0, '2', 0, 'C', 0, '2', 0, ' ', 0, '-', 0, ' ', 0,
-  '3', 0, 'D', 0, ' ', 0, 'P', 0, 'r', 0, 'i', 0, 'n', 0, 't', 0, 'e', 0, 'r', 0, ' ', 0, 'C', 0, 'o', 0, 'n', 0,'t', 0,'r', 0,'o', 0,'l', 0,'l', 0,'e', 0,'r', 0, //42
+  'B', 0, 'E', 0, 'E', 0, ' ', 0, 'T', 0, 'H', 0, 'E', 0, ' ', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'f', 0, 'i', 0, 'r', 0, 'm', 0, 'w', 0, 'a', 0, 'r', 0, 'e', 0,
 
   12,
   DESC_STRING,
-  // Version 1.1.0
-  '1', 0, '.', 0, '1', 0, '.', 0, '0', 0,
+  '1', 0, '.', 0, '1', 0, '.', 0, '0', 0, // Version 1.1.0
 
 // terminating zero
   0
