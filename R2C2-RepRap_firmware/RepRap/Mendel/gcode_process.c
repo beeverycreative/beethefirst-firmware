@@ -848,9 +848,9 @@ eParseResult process_gcode_command()
       reply_sent = true;
       break;
 
-      // M115- report firmware version
+      // M115 - report firmware version
       case 115:
-      sersendf("FIRMWARE_NAME:Teacup_R2C2 FIRMWARE_URL:http%%3A//github.com/bitboxelectronics/R2C2 PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel\r\n");
+      sersendf("1.1.0\r\n");
       break;
 
       // M116 - Wait for all temperatures and other slowly-changing variables to arrive at their set values.
@@ -1261,6 +1261,11 @@ eParseResult process_gcode_command()
       // M610 - switch to USB bootloader
       case 610:
       go_to_bootloader (); // vai para o modo bootloader, reiniciando a placa.
+      break;
+
+      // M620 - devolve a versão/nome da impressora
+      case 620:
+      sersendf("BEE THE FIRST\r\n");
       break;
 
       // unknown mcode: spit an error
