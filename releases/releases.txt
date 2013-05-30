@@ -1,6 +1,9 @@
 V1.1.0
 Versão para a BEE THE FIRST.
 Esta versão foi testado com o bootloader "BEE_THE_FIRST-Bootloader_USB-v2.2.0.bin" e com o software BEE SOFT v1.0.0-beta.
+- o comando M115 responde agora com a versão do firmware
+- foi adicionado comando M620 para retornar o nome e versão da impressora
+- foi adicionado comando M610 para que o sistema entre em modo bootloader
 
 V1.0.3
 - Added M601 - saves the current configuration to config.txt
