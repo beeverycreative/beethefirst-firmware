@@ -35,7 +35,7 @@
 //#include "settings.h"
 //#include "config.h"
 
-#include "RepRap/Mendel/config.h"
+#include "bee_the_first/config.h"
 
 // The number of linear motions that can be in the plan at any give time
 

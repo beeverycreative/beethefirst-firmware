@@ -101,7 +101,7 @@ uint8_t temps_achieved (void)
 
 void temp_print()
 {
-  sersendf("ok T:%u.0 B:%u.0\r\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0]); /* for RepRap software */
+  sersendf("ok T:%u.0 B:%u.0\r\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0]);
 }
 
 void temp_tick(void)

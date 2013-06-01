@@ -132,11 +132,11 @@ OUTDIR = $(RUN_MODE)
 TARGET = project
 
 # application dir and source
-APPDIR = RepRap/Mendel
+APPDIR = bee_the_first
 APPSRC = \
 	$(APPDIR)/gcode_parse.c \
 	$(APPDIR)/gcode_process.c \
-	$(APPDIR)/mendel.c \
+	$(APPDIR)/bee_the_first.c \
 	$(APPDIR)/temp.c \
 	$(APPDIR)/config.c \
 	$(APPDIR)/endstops.c \
