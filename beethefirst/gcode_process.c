@@ -850,7 +850,7 @@ eParseResult process_gcode_command()
 
       // M115 - report firmware version
       case 115:
-      sersendf("1.1.0\r\n");
+      sersendf("ok 1.2.0\r\n");
       break;
 
       // M116 - Wait for all temperatures and other slowly-changing variables to arrive at their set values.
@@ -1265,7 +1265,7 @@ eParseResult process_gcode_command()
 
       // M620 - devolve a versão/nome da impressora
       case 620:
-      sersendf("BEE THE FIRST\r\n");
+      sersendf("ok BEETHEFIRST\r\n");
       break;
 
       // unknown mcode: spit an error

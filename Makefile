@@ -132,11 +132,11 @@ OUTDIR = $(RUN_MODE)
 TARGET = project
 
 # application dir and source
-APPDIR = bee_the_first
+APPDIR = beethefirst
 APPSRC = \
 	$(APPDIR)/gcode_parse.c \
 	$(APPDIR)/gcode_process.c \
-	$(APPDIR)/bee_the_first.c \
+	$(APPDIR)/beethefirst.c \
 	$(APPDIR)/temp.c \
 	$(APPDIR)/config.c \
 	$(APPDIR)/endstops.c \
