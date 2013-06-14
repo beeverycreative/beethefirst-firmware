@@ -1,7 +1,7 @@
 /*
         LPCUSB, an USB device driver for LPC microcontrollers
         Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
-        Copyright (c) 2011 Jorge Pinto - casainho@gmail.com
+        Copyright (c) 2011, 2013 Jorge Pinto - casainho@gmail.com
 
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions are met:
@@ -36,9 +36,6 @@
 #include "usbdebug.h"
 #include "serial_fifo.h"
 
-#define BAUD_RATE   115200
-
-#define INT_IN_EP       0x81
 #define BULK_OUT_EP     0x05
 #define BULK_IN_EP      0x82
 
@@ -46,29 +43,12 @@
 
 #define LE_WORD(x)      ((x)&0xFF),((x)>>8)
 
-// CDC definitions
-#define CS_INTERFACE            0x24
-#define CS_ENDPOINT             0x25
-
-#define SET_LINE_CODING         0x20
-#define GET_LINE_CODING         0x21
-#define SET_CONTROL_LINE_STATE  0x22
-
-// data structure for GET_LINE_CODING / SET_LINE_CODING class requests
-typedef struct {
-    U32     dwDTERate;
-    U8      bCharFormat;
-    U8      bParityType;
-    U8      bDataBits;
-} TLineCoding;
-
 fifo_t txfifo;
 fifo_t rxfifo;
 
 static unsigned char txbuf[SERIAL_FIFO_SIZE];
 static unsigned char rxbuf[SERIAL_FIFO_SIZE];
 
-static TLineCoding LineCoding = {115200, 0, 0, 8};
 static U8 abBulkBuf[64];
 static U8 abClassReqData[8];
 
@@ -81,7 +61,7 @@ static const U8 abDescriptors[] = {
   0x12,
   DESC_DEVICE,
   LE_WORD(0x0101),            // bcdUSB
-  0x02,                       // bDeviceClass
+  0xFF,                       // bDeviceClass
   0x00,                       // bDeviceSubClass
   0x00,                       // bDeviceProtocol
   MAX_PACKET_SIZE0,           // bMaxPacketSize
@@ -96,58 +76,20 @@ static const U8 abDescriptors[] = {
 // configuration descriptor
   0x09,
   DESC_CONFIGURATION,
-  LE_WORD(165),               // wTotalLength
-  0x02,                       // bNumInterfaces
+  LE_WORD(126),                // wTotalLength
+  0x01,                       // bNumInterfaces
   0x01,                       // bConfigurationValue
   0x00,                       // iConfiguration
-  0xC0,                       // bmAttributes
-  0x32,                       // bMaxPower
-// control class interface
+  0x40,                       // bmAttributes
+  0x32,                       // bMaxPower -- 0X32 ==> 100mA
+
+// generic class interface descriptor
   0x09,
   DESC_INTERFACE,
   0x00,                       // bInterfaceNumber
   0x00,                       // bAlternateSetting
-  0x01,                       // bNumEndPoints
-  0x02,                       // bInterfaceClass
-  0x02,                       // bInterfaceSubClass
-  0x01,                       // bInterfaceProtocol, linux requires value of 1 for the cdc_acm module
-  0x00,                       // iInterface
-// header functional descriptor
-  0x05,
-  CS_INTERFACE,
-  0x00,
-  LE_WORD(0x0110),
-// call management functional descriptor
-  0x05,
-  CS_INTERFACE,
-  0x01,
-  0x01,                       // bmCapabilities = device handles call management
-  0x01,                       // bDataInterface
-// ACM functional descriptor
-  0x04,
-  CS_INTERFACE,
-  0x02,
-  0x02,                       // bmCapabilities
-// union functional descriptor
-  0x05,
-  CS_INTERFACE,
-  0x06,
-  0x00,                       // bMasterInterface
-  0x01,                       // bSlaveInterface0
-// notification EP
-  0x07,
-  DESC_ENDPOINT,
-  INT_IN_EP,                  // bEndpointAddress
-  0x03,                       // bmAttributes = intr
-  LE_WORD(8),                 // wMaxPacketSize
-  0x0A,                       // bInterval
-// data class interface descriptor
-  0x09,
-  DESC_INTERFACE,
-  0x01,                       // bInterfaceNumber
-  0x00,                       // bAlternateSetting
   0x02,                       // bNumEndPoints
-  0x0A,                       // bInterfaceClass = data
+  0xFF,                       // bInterfaceClass = generic
   0x00,                       // bInterfaceSubClass
   0x00,                       // bInterfaceProtocol
   0x00,                       // iInterface
@@ -175,13 +117,13 @@ static const U8 abDescriptors[] = {
   DESC_STRING,
   'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
 
-  50,
+  46,
   DESC_STRING,
-  'B', 0, 'E', 0, 'E', 0, ' ', 0, 'T', 0, 'H', 0, 'E', 0, ' ', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'f', 0, 'i', 0, 'r', 0, 'm', 0, 'w', 0, 'a', 0, 'r', 0, 'e', 0,
+  'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'f', 0, 'i', 0, 'r', 0, 'm', 0, 'w', 0, 'a', 0, 'r', 0, 'e', 0,
 
   12,
   DESC_STRING,
-  '1', 0, '.', 0, '1', 0, '.', 0, '0', 0, // Version 1.1.0
+  '1', 0, '.', 0, '2', 0, '.', 0, '0', 0, // Version 1.2.0
 
 // terminating zero
   0
@@ -197,15 +139,18 @@ static const U8 abDescriptors[] = {
 static void BulkOut(U8 bEP, U8 bEPStatus)
 {
   int i, iLen;
+  int result = 0;
 
-  if (_fifo_free(&rxfifo) < MAX_PACKET_SIZE)
+  result = _fifo_free(&rxfifo);
+
+  if (result < MAX_PACKET_SIZE)
   {
-    // may not fit into fifo
     return;
   }
 
   // get data from USB into intermediate buffer
   iLen = USBHwEPRead(bEP, abBulkBuf, sizeof(abBulkBuf));
+
   for (i = 0; i < iLen; i++)
   {
     // put into FIFO
@@ -229,6 +174,7 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
 {
   int i, iLen;
 
+  // Verifica se não há data para enviar ao PC
   if (_fifo_avail(&txfifo) == 0)
   {
     // no more data, disable further NAK interrupts until next USB frame
@@ -241,7 +187,7 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
   {
     if (!_fifo_get(&txfifo, &abBulkBuf[i]))
     {
-      break;
+      break; // sai do ciclo quando o fifo fica vazio, terminando a transferência de informação do &txfifo para &abBulkBuf[].
     }
   }
   iLen = i;
@@ -253,44 +199,9 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
   }
 }
 
-
-/**
-    Local function to handle the USB-CDC class requests
-
-    @param [in] pSetup
-    @param [out] piLen
-    @param [out] ppbData
- */
-static BOOL HandleClassRequest(TSetupPacket *pSetup, int *piLen, U8 **ppbData)
-{
-  switch (pSetup->bRequest)
-  {
-    // set line coding
-    case SET_LINE_CODING:
-    memcpy((U8 *)&LineCoding, *ppbData, 7);
-    *piLen = 7;
-    break;
-
-    // get line coding
-    case GET_LINE_CODING:
-    *ppbData = (U8 *)&LineCoding;
-    *piLen = 7;
-    break;
-
-    // set control line state
-    case SET_CONTROL_LINE_STATE:
-    // bit0 = DTR, bit = RTS
-    break;
-
-    default:
-    return FALSE;
-  }
-  return TRUE;
-}
-
 static void USBFrameHandler(U16 wFrame)
 {
-  if (_fifo_avail(&txfifo) > 0)
+  if (_fifo_avail(&txfifo) > 0) // Se há data no fifo de tx...
   {
     // data available, enable NAK interrupt on bulk in
     //
@@ -324,11 +235,7 @@ void USBSerial_Init(void)
   // register descriptors
   USBRegisterDescriptors(abDescriptors);
 
-  // register class request handler
-  USBRegisterRequestHandler(REQTYPE_TYPE_CLASS, HandleClassRequest, abClassReqData);
-
   // register endpoint handlers
-  USBHwRegisterEPIntHandler(INT_IN_EP, NULL);
   USBHwRegisterEPIntHandler(BULK_IN_EP, BulkIn);
   USBHwRegisterEPIntHandler(BULK_OUT_EP, BulkOut);
 
