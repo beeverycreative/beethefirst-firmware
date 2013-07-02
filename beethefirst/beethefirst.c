@@ -219,8 +219,9 @@ int app_main (void)
       // give priority to user commands
       if (serial_line_buf.seen_lf)
       {
-	sersendf("%s",serial_line_buf.data);
-        //parse_result = gcode_parse_line (&serial_line_buf);
+	//echo off
+	//sersendf("%s",serial_line_buf.data);
+        parse_result = gcode_parse_line (&serial_line_buf);
         serial_line_buf.len = 0;
         serial_line_buf.seen_lf = 0;
       }
