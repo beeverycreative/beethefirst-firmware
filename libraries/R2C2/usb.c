@@ -80,7 +80,7 @@ static const U8 abDescriptors[] = {
   0x01,                       // bNumInterfaces
   0x01,                       // bConfigurationValue
   0x00,                       // iConfiguration
-  0x40,                       // bmAttributes
+  0xC0,                       // bmAttributes
   0x32,                       // bMaxPower -- 0X32 ==> 100mA
 
 // generic class interface descriptor
