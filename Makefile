@@ -162,6 +162,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/NXP/Drivers/include \
 	 $(APPLIBDIR)/FatFs/src \
 	 $(APPLIBDIR)/R2C2/ \
+	 $(APPLIBDIR)/iap/ \
 	 app/grbl/ \
 	 $(APPDIR)
 
@@ -186,6 +187,7 @@ SRC = \
 	$(APPLIBDIR)/R2C2/sdcard.c \
 	$(APPLIBDIR)/R2C2/buzzer.c \
 	$(APPLIBDIR)/R2C2/uart.c \
+	$(APPLIBDIR)/iap/sbl_iap.c \
 	$(APPSRC) \
 	main.c
 	

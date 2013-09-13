@@ -850,7 +850,7 @@ eParseResult process_gcode_command()
 
       // M115 - report firmware version
       case 115:
-      sersendf("ok 1.2.0\r\n");
+      sersendf("ok 1.200.2\r\n");
       break;
 
       // M116 - Wait for all temperatures and other slowly-changing variables to arrive at their set values.

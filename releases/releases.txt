@@ -1,3 +1,6 @@
+V1.200.2
+Esta versão tem o USB Descriptor correcto.
+
 V1.1.0
 Versão para a BEE THE FIRST.
 Esta versão foi testado com o bootloader "BEE_THE_FIRST-Bootloader_USB-v2.2.0.bin" e com o software BEE SOFT v1.0.0-beta.
