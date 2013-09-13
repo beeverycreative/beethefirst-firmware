@@ -57,76 +57,76 @@ void USBIntHandler(void);
 
 static const U8 abDescriptors[] = {
 
-// device descriptor
-  0x12,
-  DESC_DEVICE,
-  LE_WORD(0x0101),            // bcdUSB
-  0xFF,                       // bDeviceClass
-  0x00,                       // bDeviceSubClass
-  0x00,                       // bDeviceProtocol
-  MAX_PACKET_SIZE0,           // bMaxPacketSize
-  LE_WORD(0xFFFF),            // idVendor
-  LE_WORD(334),               // idProduct
-  LE_WORD(0x0100),            // bcdDevice
-  0x01,                       // iManufacturer
-  0x02,                       // iProduct
-  0x03,                       // iSerialNumber
-  0x01,                       // bNumConfigurations
+    // device descriptor
+      0x12,
+      DESC_DEVICE,
+      LE_WORD(0x0101),            // bcdUSB
+      0xFF,                       // bDeviceClass
+      0x00,                       // bDeviceSubClass
+      0x00,                       // bDeviceProtocol
+      MAX_PACKET_SIZE0,           // bMaxPacketSize
+      LE_WORD(0xFFFF),            // idVendor
+      LE_WORD(333),               // idProduct
+      LE_WORD(0x0100),            // bcdDevice
+      0x01,                       // iManufacturer
+      0x02,                       // iProduct
+      0x03,                       // iSerialNumber
+      0x01,                       // bNumConfigurations
 
-// configuration descriptor
-  0x09,
-  DESC_CONFIGURATION,
-  LE_WORD(126),                // wTotalLength
-  0x01,                       // bNumInterfaces
-  0x01,                       // bConfigurationValue
-  0x00,                       // iConfiguration
-  0xC0,                       // bmAttributes
-  0x32,                       // bMaxPower -- 0X32 ==> 100mA
+    // configuration descriptor
+      0x09,
+      DESC_CONFIGURATION,
+      LE_WORD(142),                // wTotalLength
+      0x01,                       // bNumInterfaces
+      0x01,                       // bConfigurationValue
+      0x00,                       // iConfiguration
+      0xC0,                       // bmAttributes
+      0x32,                       // bMaxPower -- 0X32 ==> 100mA
 
-// generic class interface descriptor
-  0x09,
-  DESC_INTERFACE,
-  0x00,                       // bInterfaceNumber
-  0x00,                       // bAlternateSetting
-  0x02,                       // bNumEndPoints
-  0xFF,                       // bInterfaceClass = generic
-  0x00,                       // bInterfaceSubClass
-  0x00,                       // bInterfaceProtocol
-  0x00,                       // iInterface
-// data EP OUT
-  0x07,
-  DESC_ENDPOINT,
-  BULK_OUT_EP,                // bEndpointAddress
-  0x02,                       // bmAttributes = bulk
-  LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
-  0x00,                       // bInterval
-// data EP in
-  0x07,
-  DESC_ENDPOINT,
-  BULK_IN_EP,                 // bEndpointAddress
-  0x02,                       // bmAttributes = bulk
-  LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
-  0x00,                       // bInterval
+    // generic class interface descriptor
+      0x09,
+      DESC_INTERFACE,
+      0x00,                       // bInterfaceNumber
+      0x00,                       // bAlternateSetting
+      0x02,                       // bNumEndPoints
+      0xFF,                       // bInterfaceClass = generic
+      0x00,                       // bInterfaceSubClass
+      0x00,                       // bInterfaceProtocol
+      0x00,                       // iInterface
+    // data EP OUT
+      0x07,
+      DESC_ENDPOINT,
+      BULK_OUT_EP,                // bEndpointAddress
+      0x02,                       // bmAttributes = bulk
+      LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
+      0x00,                       // bInterval
+    // data EP in
+      0x07,
+      DESC_ENDPOINT,
+      BULK_IN_EP,                 // bEndpointAddress
+      0x02,                       // bmAttributes = bulk
+      LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
+      0x00,                       // bInterval
 
-// string descriptors
-  0x04,
-  DESC_STRING,
-  LE_WORD(0x0409),
+    // string descriptors122
+      0x04,
+      DESC_STRING,
+      LE_WORD(0x0409),
 
-  32,
-  DESC_STRING,
-  'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
+      32,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
 
-  46,
-  DESC_STRING,
-  'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'f', 0, 'i', 0, 'r', 0, 'm', 0, 'w', 0, 'a', 0, 'r', 0, 'e', 0,
+      50,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'b', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0, 'a', 0, 'd', 0, 'e', 0, 'r', 0,
 
-  12,
-  DESC_STRING,
-  '1', 0, '.', 0, '2', 0, '.', 0, '0', 0, // Version 1.2.0
+      24,
+      DESC_STRING,
+      '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,/* bootloader version 3.x.x */
 
-// terminating zero
-  0
+    // terminating zero
+      0
 };
 
 
