@@ -35,6 +35,7 @@
 #include "usbapi.h"
 #include "usbdebug.h"
 #include "serial_fifo.h"
+#include "sbl_config.h"
 
 #define BULK_OUT_EP     0x05
 #define BULK_IN_EP      0x82
@@ -55,7 +56,7 @@ static U8 abClassReqData[8];
 // forward declaration of interrupt handler
 void USBIntHandler(void);
 
-static const U8 abDescriptors[] = {
+static U8 abDescriptors[] = {
 
     // device descriptor
       0x12,
@@ -229,28 +230,52 @@ void enable_USB_interrupts(void);
 
 void USBSerial_Init(void)
 {
-  // initialise stack
-  USBInit();
+    char serialnumber[10] = {0};
+    char *pmem117;
 
-  // register descriptors
-  USBRegisterDescriptors(abDescriptors);
+    pmem117 = SECTOR_14_START;
+    int serialnumber_present = 0;
+    for (int i = 0; i < 10; i++) {
+        serialnumber[9 - i] = *pmem117;
+        pmem117++;
+        if(*pmem117 != 0xFF)
+            serialnumber_present = 1;
+    }
+    if(serialnumber_present == 1){
+            abDescriptors[138] = serialnumber[0];
+            abDescriptors[140] = serialnumber[1];
+            abDescriptors[142] = serialnumber[2];
+            abDescriptors[144] = serialnumber[3];
+            abDescriptors[146] = serialnumber[4];
+            abDescriptors[148] = serialnumber[5];
+            abDescriptors[150] = serialnumber[6];
+            abDescriptors[152] = serialnumber[7];
+            abDescriptors[154] = serialnumber[8];
+            abDescriptors[156] = serialnumber[9];
+    }
 
-  // register endpoint handlers
-  USBHwRegisterEPIntHandler(BULK_IN_EP, BulkIn);
-  USBHwRegisterEPIntHandler(BULK_OUT_EP, BulkOut);
+    // initialise stack
+    USBInit();
 
-  // register frame handler
-  USBHwRegisterFrameHandler(USBFrameHandler);
+    // register descriptors
+    USBRegisterDescriptors(abDescriptors);
 
-  // enable bulk-in interrupts on NAKs
-  USBHwNakIntEnable(INACK_BI); // é gerada uma interrupção sempre que o host tenta ler do EP IN mas este está vazio.
+    // register endpoint handlers
+    USBHwRegisterEPIntHandler(BULK_IN_EP, BulkIn);
+    USBHwRegisterEPIntHandler(BULK_OUT_EP, BulkOut);
 
-  // initialise VCOM
-  fifo_init(&rxfifo, rxbuf);
-  fifo_init(&txfifo, txbuf);
+    // register frame handler
+    USBHwRegisterFrameHandler(USBFrameHandler);
 
-  NVIC_EnableIRQ(USB_IRQn);
+    // enable bulk-in interrupts on NAKs
+    USBHwNakIntEnable(INACK_BI); // é gerada uma interrupção sempre que o host tenta ler do EP IN mas este está vazio.
 
-  // connect to bus
-  USBHwConnect(TRUE);
+    // initialise VCOM
+    fifo_init(&rxfifo, rxbuf);
+    fifo_init(&txfifo, txbuf);
+
+    NVIC_EnableIRQ(USB_IRQn);
+
+    // connect to bus
+    USBHwConnect(TRUE);
 }
