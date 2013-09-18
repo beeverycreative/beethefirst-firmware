@@ -174,7 +174,8 @@ int app_main (void)
   // main loop
   for (;;)
   {
-
+      if((plan_queue_empty()) && (config.status != 0))
+          config.status = 3;
     // process characters from the serial port
     while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
     {

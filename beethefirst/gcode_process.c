@@ -186,7 +186,7 @@ static void zero_x(void)
 
   //R2C2: XICO B3.1 HOT FIX
   //new_pos.x = config.home_pos_x;
-  new_pos.x = -97.0;
+  new_pos.x = -96.0;
   plan_set_current_position (&new_pos);
 }
 
@@ -221,7 +221,7 @@ static void zero_y(void)
 
   //R2C2: XICO B3.1 HOT FIX
   //new_pos.y = config.home_pos_y;
-  new_pos.y = -70;
+  new_pos.y = -74.5;
   plan_set_current_position (&new_pos);
 }
 
@@ -263,11 +263,6 @@ static void zero_z(void)
   // move forward a bit
   //SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
   //synch_queue();
-
-
-
-
-
 
   // move back in to endstop slowly
   SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
@@ -485,6 +480,7 @@ eParseResult process_gcode_command()
         next_targetd.e = startpoint.e + d * extruder_1_speed / next_targetd.feed_rate * 24.0;
       }
       enqueue_moved(&next_targetd);
+      config.status = 4;
       break;
 
       //	G2 - Arc Clockwise
@@ -500,25 +496,29 @@ eParseResult process_gcode_command()
 
       // delay
       delay_ms(next_target.P);
+      config.status = 4;
       break;
 
       //	G20 - inches as units
       case 20:
       next_target.option_inches = 1;
+      config.status = 3;
       break;
 
       //	G21 - mm as units
       case 21:
       next_target.option_inches = 0;
+      config.status = 3;
       break;
 
       //	G30 - go home via point
       case 30:
       enqueue_moved(&next_targetd);
       // no break here, G30 is move and then go home
-
+      config.status = 4;
       //	G28 - go home
       case 28:
+      config.status = 4;
       if (next_target.seen_X)
       {
         zero_x();
@@ -566,17 +566,20 @@ eParseResult process_gcode_command()
 
       // G90 - absolute positioning
       case 90:
+      config.status = 3;
       next_target.option_relative = 0;
       break;
 
       // G91 - relative positioning
       case 91:
+      config.status = 3;
       next_target.option_relative = 1;
       break;
 
       //	G92 - set current position
       case 92:
       {
+        config.status = 4;
         tTarget new_pos;
 
         // must have no moves pending if changing position
@@ -622,6 +625,7 @@ eParseResult process_gcode_command()
 
       // unknown gcode: spit an error
       default:
+        config.status = 0;
       serial_writestr("E: Bad G-code ");
       serwrite_uint8(next_target.G);
       serial_writestr("\r\n");
@@ -633,6 +637,7 @@ eParseResult process_gcode_command()
     {
       // SD File functions
       case 20: // M20 - list SD Card files
+      config.status = 5;
       serial_writestr("Begin file list\r\n");
       // list files in root folder
       sd_list_dir();
@@ -653,6 +658,7 @@ eParseResult process_gcode_command()
       break;
 
       case 23: // M23 <filename> - Select file
+
       if (!sd_active)
       {
         sd_initialise();
@@ -676,6 +682,7 @@ eParseResult process_gcode_command()
       break;
 
       case 24: //M24 - Start SD print
+      config.status = 5;
       if(sd_active)
       {
         sd_printing = true;
@@ -686,10 +693,13 @@ eParseResult process_gcode_command()
       if(sd_printing)
       {
         sd_printing = false;
+
       }
+      config.status = 3;
       break;
 
       case 26: //M26 - Set SD file pos
+      config.status = 5;
       if(sd_active && next_target.seen_S)
       {
         sd_pos = next_target.S;  // 16 bit
@@ -700,10 +710,12 @@ eParseResult process_gcode_command()
       case 27: //M27 - Get SD status
       if(sd_active)
       {
+        config.status = 5;
         sersendf("SD printing byte %d/%d\r\n", sd_pos, filesize);
       }
       else
       {
+        config.status = 3;
         serial_writestr("Not SD printing\r\n");
       }
       break;
@@ -711,19 +723,24 @@ eParseResult process_gcode_command()
       case 28: //M28 <filename> - Start SD write
       if (!sd_active)
       {
-        sd_initialise();
+          sd_initialise();
       }
       if(sd_active)
       {
+
         sd_close(&file);
         sd_printing = false;
 
         if (!sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE))
         {
+            config.status = 3;
+
           sersendf("open failed, File: %s.\r\n", next_target.filename);
         }
         else
         {
+            config.status = 5;
+
           sd_writing_file = true;
           sersendf("Writing to file: %s\r\n", next_target.filename);
         }
@@ -731,11 +748,15 @@ eParseResult process_gcode_command()
       break;
 
       case 29: //M29 - Stop SD write
+        config.status = 0;
+
       // processed in gcode_parse_char()
       break;
 
       case 82: // M82 - use absolute distance for extrusion
       // no-op, we always do absolute
+        config.status = 0;
+
       break;
 
       // M101- extruder on
@@ -745,6 +766,7 @@ eParseResult process_gcode_command()
       {
         SpecialMoveE ((double)auto_prime_steps / auto_prime_factor, auto_prime_feed_rate);
       }
+      config.status = 4;
 
       break;
 
@@ -757,6 +779,8 @@ eParseResult process_gcode_command()
       {
         SpecialMoveE (-(double)auto_reverse_steps / auto_reverse_factor, auto_reverse_feed_rate);
       }
+      config.status = 4;
+
       break;
 
       // M104- set temperature
@@ -770,23 +794,30 @@ eParseResult process_gcode_command()
           enqueue_wait_temp();
         }
       }
+      config.status = 4;
 
       break;
 
       // M105- get temperature
       case 105:
       temp_print();
+      config.status = 3;
+
       reply_sent = true;
       break;
 
       // M106- fan on
       case 106:
+      config.status = 4;
+
       extruder_fan_on();
       break;
 
       // M107- fan off
       case 107:
       extruder_fan_off();
+      config.status = 4;
+
       break;
 
       // M108 - set extruder speed
@@ -796,6 +827,8 @@ eParseResult process_gcode_command()
       {
         extruder_1_speed = (double)next_target.S / 10.0;
       }
+      config.status = 3;
+
       break;
 
       // M109- set temp and wait
@@ -805,20 +838,28 @@ eParseResult process_gcode_command()
         temp_set(next_target.S, EXTRUDER_0);
         enqueue_wait_temp();
       }
+      config.status = 4;
+
       break;
 
       // M110- set line number
       case 110:
       next_target.N_expected = next_target.S - 1;
+      config.status = 3;
+
       break;
 
       // M111- set debug level
       case 111:
+        config.status = 0;
+
       //debug_flags = next_target.S;
       break;
 
       // M112- immediate stop
       case 112:
+        config.status = 0;
+
       disableHwTimer(0); // disable stepper ?
       //queue_flush(); // error: " undefined reference to `queue_flush'" ??
 
@@ -831,6 +872,8 @@ eParseResult process_gcode_command()
 
       // M113- extruder PWM
       case 113:
+      config.status = 0;
+
       break;
 
       /* M114- report XYZE to host */
@@ -846,11 +889,14 @@ eParseResult process_gcode_command()
         sersendf("ok C: X:%g Y:%g Z:%g E:%g\r\n", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
       }
       reply_sent = true;
+      config.status = 3;
+
       break;
 
       // M115 - report firmware version
       case 115:
       sersendf("ok 1.200.2\r\n");
+      config.status = 3;
       break;
 
       // M116 - Wait for all temperatures and other slowly-changing variables to arrive at their set values.
@@ -859,6 +905,7 @@ eParseResult process_gcode_command()
       {
         enqueue_wait();
       }
+      config.status = 4;
       break;
 
       case 119:
@@ -876,47 +923,56 @@ eParseResult process_gcode_command()
       serial_writestr ( z_min() ? "H ":"L ");
 #endif
       serial_writestr ("\r\n");
+      config.status = 3;
       break;
 
       // M130- heater P factor
       case 130:
+      config.status = 0;
       //if (next_target.seen_S)
       //p_factor = next_target.S;
       break;
       // M131- heater I factor
       case 131:
+        config.status = 0;
       //if (next_target.seen_S)
       //i_factor = next_target.S;
       break;
 
       // M132- heater D factor
       case 132:
+      config.status = 0;
       //if (next_target.seen_S)
       //d_factor = next_target.S;
       break;
 
       // M133- heater I limit
       case 133:
+      config.status = 0;
       //if (next_target.seen_S)
       //i_limit = next_target.S;
       break;
 
       // M134- save PID settings to eeprom
       case 134:
+      config.status = 0;
       //heater_save_settings();
       break;
 
       /* M140 - Bed Temperature (Fast) */
       case 140:
       temp_set(next_target.S, HEATED_BED_0);
+      config.status = 4;
       break;
 
       /* M141 - Chamber Temperature (Fast) */
       case 141:
+      config.status = 0;
       break;
 
       /* M142 - Bed Holding Pressure */
       case 142:
+      config.status = 0;
       break;
 
       // M190- power on
@@ -927,6 +983,7 @@ eParseResult process_gcode_command()
       z_enable();
       e_enable();
       steptimeout = 0;
+      config.status = 4;
       break;
 
       // M191- power off
@@ -936,6 +993,7 @@ eParseResult process_gcode_command()
       z_disable();
       e_disable();
       power_off();
+      config.status = 4;
       break;
 
       // M200 - set steps per mm
@@ -949,6 +1007,7 @@ eParseResult process_gcode_command()
             config.steps_per_mm_z,
             config.steps_per_mm_e
         );
+        config.status = 3;
       }
       else
       {
@@ -970,6 +1029,7 @@ eParseResult process_gcode_command()
         }
 
         gcode_parse_init();
+        config.status = 4;
       }
       break;// M551 - Prime extruder 1
       // P : number of steps
@@ -979,6 +1039,7 @@ eParseResult process_gcode_command()
       case 202:
       if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0)
       {
+          config.status = 3;
         reply_sent = true;
         sersendf ("ok X%d Y%d Z%d E%d\r\n",
             config.maximum_feedrate_x,
@@ -1005,6 +1066,7 @@ eParseResult process_gcode_command()
         {
           config.maximum_feedrate_e = next_target.target.e;
         }
+        config.status = 4;
       }
       break;
 
@@ -1016,11 +1078,16 @@ eParseResult process_gcode_command()
         sersendf ("ok X%g\r\n",
             config.acceleration
         );
+        config.status = 3;
       }
       else
       {
         if (next_target.seen_X)
-          config.acceleration = next_target.target.x;
+          {
+            config.acceleration = next_target.target.x;
+
+            config.status = 4;
+          }
       }
       break;
 
@@ -1032,6 +1099,7 @@ eParseResult process_gcode_command()
       {
         auto_prime_steps = next_target.S;
         auto_reverse_steps = next_target.P;
+        config.status = 3;
       }
       break;
 
@@ -1039,6 +1107,7 @@ eParseResult process_gcode_command()
       case 228:
       auto_prime_steps = 0;
       auto_reverse_steps = 0;
+      config.status = 3;
       break;
 
       // M229 - Enable Auto-prime/reverse
@@ -1049,6 +1118,7 @@ eParseResult process_gcode_command()
       {
         auto_prime_steps = next_target.S * config.steps_per_revolution_e;
         auto_reverse_steps = next_target.P * config.steps_per_revolution_e;
+        config.status = 3;
       }
       break;
 
@@ -1071,6 +1141,7 @@ eParseResult process_gcode_command()
 
         buzzer_wait ();
         buzzer_play (frequency, duration);
+        config.status = 4;
       }
       break;
 
@@ -1081,14 +1152,17 @@ eParseResult process_gcode_command()
       if (next_target.seen_S && next_target.seen_P)
       {
         temp_set_table_entry (EXTRUDER_0, next_target.S, next_target.P);
+        config.status = 3;
       }
       else if (next_target.seen_S)
       {
+          config.status = 3;
         reply_sent = true;
         sersendf ("ok [%d] = %d\r\n", next_target.S, temp_get_table_entry (EXTRUDER_0, next_target.S));
       }
       else
       {
+          config.status = 3;
         serial_writestr ("E: bad param\r\n");
       }
       break;
@@ -1097,6 +1171,7 @@ eParseResult process_gcode_command()
       // S: temperature (degrees C, 0-300)
       // P: ADC val
       case 501:
+        config.status = 3;
       if (next_target.seen_S && next_target.seen_P)
       {
         temp_set_table_entry (HEATED_BED_0, next_target.S, next_target.P);
@@ -1114,6 +1189,7 @@ eParseResult process_gcode_command()
 
       // M542 - nozzle wipe/move to rest location
       case 542:
+        config.status = 4;
       // TODO: this depends on current origin being same as home position
       if (config.have_rest_pos || config.have_wipe_pos)
       {
@@ -1149,6 +1225,7 @@ eParseResult process_gcode_command()
 
       // M543 - exit nozzle wipe/no op
       case 543:
+        config.status = 4;
       if (config.have_wipe_pos)
       {
         // move out of wipe area
@@ -1171,6 +1248,7 @@ eParseResult process_gcode_command()
       // P : number of steps
       // S : RPM * 10
       case 551:
+        config.status = 4;
       if (next_target.seen_S && next_target.seen_P)
       {
         // calc E distance, use approximate conversion to get distance, not critical
@@ -1183,12 +1261,14 @@ eParseResult process_gcode_command()
       // M600 print the values read from the config file
       case 600:
       {
+        config.status = 3;
         print_config();
       }
       break;
 
       case 601:
       {
+        config.status = 3;
         write_config();
       }
       break;
@@ -1256,20 +1336,43 @@ eParseResult process_gcode_command()
       // M606 - wait for empty movement queue
       case 606:
       enqueue_wait();
+      config.status = 4;
       break;
 
       // M610 - switch to USB bootloader
       case 610:
+        config.status = 0;
       go_to_bootloader (); // vai para o modo bootloader, reiniciando a placa.
       break;
 
       // M620 - devolve a versão/nome da impressora
       case 620:
+        config.status = 3;
       sersendf("ok BEETHEFIRST\r\n");
       break;
 
+      case 625:
+     {
+         //sends ok message
+         serial_writestr("ok Q:");
+         serwrite_uint32(plan_queue_size());
+         serial_writestr(" N:");
+         serwrite_uint32(next_target.N);
+
+         sersendf(" S:");
+         serwrite_uint32(config.status);
+         serial_writestr("\r\n");
+
+         if(config.status == 0)
+             config.status = 3;
+
+         reply_sent = true;
+     }
+     break;
+
       // unknown mcode: spit an error
       default:
+        config.status = 0;
       serial_writestr("E: Bad M-code ");
       serwrite_uint8(next_target.M);
       serial_writestr("\r\n");
