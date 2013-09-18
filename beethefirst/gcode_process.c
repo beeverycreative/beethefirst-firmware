@@ -895,7 +895,7 @@ eParseResult process_gcode_command()
 
       // M115 - report firmware version
       case 115:
-      sersendf("ok 1.200.2\r\n");
+      sersendf("ok 1.201.0\r\n");
       config.status = 3;
       break;
 
