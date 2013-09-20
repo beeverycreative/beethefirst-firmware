@@ -39,7 +39,8 @@
 #include "debug.h"
 #include "gcode_parse.h"
 #include "uart.h"
-
+#include "sbl_config.h"
+#include "system_LPC17xx.h"
 
 /* values reflecting the gearing of your machine
  * numbers are integers or double
@@ -282,283 +283,87 @@ void print_config (void)
 
 void read_config (void)
 {
-  char line[80];
-  char *pToken;
-  char *pLine;
-  unsigned j;
+    unsigned j;
 
-  // first set defaults
-  for (j=0; j < NUM_TOKENS; j++)
-    {
-      switch (config_lookup[j].type)
-      {
-      case TYPE_INT:
-        {
-          int32_t *pVal = config_lookup[j].pValue;
-          *pVal = config_lookup[j].val_i;
-          break;
-        }
-      case TYPE_DOUBLE:
-        {
-          double *pVal = config_lookup[j].pValue;
-          *pVal = config_lookup[j].val_d;
-          break;
-        }
-      }
-    }
-
-  /* initialize SPI for SDCard */
-  spi_init();
-
-  /* access to "config.txt" file on SDCard */
-
-  FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file;       /* file object */
-  FRESULT res;    /* FatFs function common result code */
-
-  /* Register a work area for logical drive 0 */
-  res = f_mount(0, &fs);
-  if(res)
-    debug("Err mount fs\n");
-
-  /* Open config.txt file */
-  res = f_open(&file, "config.txt", FA_OPEN_EXISTING | FA_READ);
-  if (res)
-    debug("File config.txt not found\n");
-  else
-    {
-      bool    found;
-
-      pLine = f_gets(line, sizeof(line), &file); /* read one line */
-
-      while (pLine)
-        {
-          pToken = get_token (pLine);
-          if (pToken && *pToken != '#')
+    // first set defaults
+    for (j=0; j < NUM_TOKENS; j++){
+        switch (config_lookup[j].type){
+            case TYPE_INT:
             {
-              found = false;
-              for (j=0; (j < NUM_TOKENS) && !found; j++)
-                {
-                  if (stricmp (pToken, config_lookup[j].name) == 0)
-                    {
-                      found = true;
-                      pToken = get_token (NULL);
-                      if (pToken && (*pToken == '='))
-                        {
-                          // get value
-                          pToken = get_token (NULL);
-
-                          if (pToken)
-                            {
-                              switch (config_lookup[j].type)
-                              {
-                              case TYPE_INT:
-                                {
-                                  int32_t *pVal = config_lookup[j].pValue;
-                                  *pVal = atoi (pToken);
-                                  break;
-                                }
-                              case TYPE_DOUBLE:
-                                {
-                                  double *pVal = config_lookup[j].pValue;
-                                  *pVal = atod(pToken);
-                                  break;
-                                }
-                              }
-                              // debug
-                              //sersendf ("Found: %s = %d\r\n", config_lookup[j].name, *config_lookup[j].pValue);
-                            }
-                          else
-                            sersendf ("Missing value for %s\r\n", config_lookup[j].name);
-
-                        }
-                      else
-                        sersendf ("Expected '='%s\r\n", line);
-                    }
-                }
-
-              if (!found)
-                sersendf ("Unknown config: %s\r\n", pToken);
+                int32_t *pVal = config_lookup[j].pValue;
+                *pVal = config_lookup[j].val_i;
+                break;
             }
-
-          pLine = f_gets(line, sizeof(line), &file); /* read next line */
+            case TYPE_DOUBLE:
+            {
+                double *pVal = config_lookup[j].pValue;
+                *pVal = config_lookup[j].val_d;
+                break;
+            }
         }
-
-      /* Close config.txt file */
-      res = f_close(&file);
-      if (res)
-        debug("Error closing config.txt\n");
     }
 
 
-  //
-  //read_gcode_file ("autoexec.g");
+    char sector[FLASH_BUF_SIZE];
+    char *pmem = SECTOR_12_START;
+    size_t bytes = sizeof(config);
+    char* pConfig = &config;
 
-  res = f_open(&file, "autoexec.g", FA_OPEN_EXISTING | FA_READ);
-  if (res == FR_OK)
-    {
-      tLineBuffer line_buf;
+    if(*pmem != 0xFF){
+        memcpy(pConfig, pmem, bytes);
+    }else{
+        memcpy(&sector, pConfig, bytes);
 
-      pLine = f_gets(line_buf.data, sizeof(line_buf.data), &file); /* read one line */
-      while (pLine)
-        {
-          line_buf.len = strlen(pLine);
-          gcode_parse_line (&line_buf);
-          pLine = f_gets(line_buf.data, sizeof(line_buf.data), &file); /* read next line */
+        while (bytes < FLASH_BUF_SIZE) {
+            sector[bytes] = 255;
+            bytes++;
         }
 
-      /* Close file */
-      res = f_close(&file);
-      if (res)
-        debug("Error closing autoexec.g\n");
+        prepare_sector(12, 12, SystemCoreClock);
+        erase_sector(12, 12, SystemCoreClock);
+
+        prepare_sector(12, 12, SystemCoreClock);
+        write_data(   (unsigned)(SystemCoreClock/1000),
+                                (unsigned)(SECTOR_12_START),
+                                (unsigned)sector,
+                                (unsigned)FLASH_BUF_SIZE);
+
+        compare_data((unsigned)(SystemCoreClock/1000),
+                                (unsigned)(SECTOR_12_START),
+                                (unsigned)sector,
+                                (unsigned)FLASH_BUF_SIZE);
     }
 
-  // 
-
-  /* Initialize using values read from "config.txt" file */
-  gcode_parse_init();
+    /* Initialize using values read from "config.txt" file */
+    gcode_parse_init();
 
 }
 
 
 void write_config (void)
 {
-  char line[80];
-  char bLine[80];
-  char *pToken;
-  char *pLine;
-  unsigned j;
-  unsigned len;
+    char sector[FLASH_BUF_SIZE];
+    size_t bytes = sizeof(config);
+    char* pConfig = &config;
 
-  /* initialize SPI for SDCard */
-  spi_init();
+    memcpy(&sector, pConfig, bytes);
 
-  /* access to "config.txt" file on SDCard */
-
-  FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file_in;       /* file object */
-  FIL file_out;       /* file object */
-  FRESULT res;    /* FatFs function common result code */
-
-  /* Register a work area for logical drive 0 */
-  res = f_mount(0, &fs);
-  if(res){
-      debug("Err mount fs\n");
-  }//no need for else
-
-
-  //delete the old backup and make a new one
-  res = f_unlink ("config.bck");
-  if(res){
-      debug("Err deleting file.\n");
-  }//no need for else
-  res = f_rename("config.txt","config.bck");
-  if(res){
-      debug("Err renaming file.\n");
-  }//no need for else
-
-
-  /* Open in file */
-  res = f_open(&file_in, "config.bck", FA_OPEN_EXISTING | FA_READ);
-  if (res){
-      debug("Error opening config.bck\n");
-  }//no need for else
-
-  /* Open out file */
-  res = f_open(&file_out, "config.txt", FA_WRITE|FA_OPEN_ALWAYS);
-  if (res){
-      debug("Error opening config.txt\n");
-  }//no need for else
-
-
-  /*
-   * Read/Write/Backup Loop Start
-   * */
-  bool    found;
-
-  pLine = f_gets(line, sizeof(line), &file_in); /* read one line */
-
-  strcpy(bLine, pLine);
-
-
-  while (pLine)
-    {
-
-      if (strlen(pLine)==0)
-        {
-          f_printf(&file_out, "%s","\n");
-
-        }else{
-            pToken = get_token (pLine);
-
-            if (*pToken == '#')
-              {
-                f_printf(&file_out, "%s",bLine);
-              }else{
-                  for (j=0; (j < NUM_TOKENS) && !found; j++)
-                    {
-                      if (stricmp (pToken, config_lookup[j].name) == 0)
-                        {
-                          switch (config_lookup[j].type)
-                          {
-                          case TYPE_INT:
-                            {
-                              int32_t *pVal = config_lookup[j].pValue;
-                              f_printf(&file_out, "%s = %d\n", config_lookup[j].name, *pVal);
-                              break;
-                            }
-                          case TYPE_DOUBLE:
-                            {
-                              double *pVal = config_lookup[j].pValue;
-                              double v = *pVal;
-                              f_printf(&file_out, "%s = ", config_lookup[j].name);
-
-                              if (v < 0)
-                                {
-                                  f_printf(&file_out,'-');
-                                  v = -v;
-                                }
-
-                              /* print first part before '.' */
-                              f_printf(&file_out,"%d",(uint32_t) v);
-
-                              /* print the '.' */
-                              f_printf(&file_out,".");
-
-                              /* print last part after '.' */
-                              v = v - (int32_t)v;
-
-                              v = v * 1000.0;
-                              if (v < 100.0){
-                                f_printf(&file_out,"0");}
-                              if (v < 10.0){
-                                f_printf(&file_out,"0");}
-                              f_printf(&file_out,"%d\n",(uint32_t) v);
-                              break;
-                            }
-                          }
-                        }
-                    }
-              }
-        }
-
-      pLine = f_gets(line, sizeof(line), &file_in); /* read next line */
-      strcpy(bLine, pLine);
-      if (strlen(pLine)<3)
-        {
-          f_printf(&file_out, "%s","\n");
-
-        }
+    while (bytes  < FLASH_BUF_SIZE) {
+       sector[bytes] = 255;
+       bytes ++;
     }
 
+    prepare_sector(12, 12, SystemCoreClock);
+    erase_sector(12, 12, SystemCoreClock);
 
-  res = f_close(&file_in);
-  if (res){
-      debug("Error closing foo.txt\n");
-  }//no need for else
+    prepare_sector(12, 12, SystemCoreClock);
+    write_data(  (unsigned)(SystemCoreClock/1000),
+                           (unsigned)(SECTOR_12_START),
+                           (unsigned)sector,
+                           (unsigned)FLASH_BUF_SIZE);
 
-  res = f_close(&file_out);
-  if (res){
-      debug("Error closing foo.txt\n");
-  }//no need for else
+    compare_data((unsigned)(SystemCoreClock/1000),
+                           (unsigned)(SECTOR_12_START),
+                           (unsigned)sector,
+                           (unsigned)FLASH_BUF_SIZE);
 }

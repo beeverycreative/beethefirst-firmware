@@ -155,107 +155,107 @@ void init(void)
 
 int app_main (void)
 {
-  long timer1 = 0;
-  eParseResult parse_result;
+    long timer1 = 0;
+    eParseResult parse_result;
 
-  buzzer_init();
-  buzzer_play(1500, 100); /* low beep */
-	buzzer_wait();
-  buzzer_play(2500, 200); /* high beep */
+    buzzer_init();
+    buzzer_play(1500, 100); /* low beep */
+    buzzer_wait();
+    buzzer_play(2500, 200); /* high beep */
 
-  init();
+    init();
 
-  read_config();
+    read_config();
 
-  // grbl init
-  plan_init();      
-  st_init();    
-  
-  // main loop
-  for (;;)
-  {
-      if((plan_queue_empty()) && (config.status != 0))
-          config.status = 3;
-    // process characters from the serial port
-    while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
+    // grbl init
+    plan_init();
+    st_init();
+
+    // main loop
+    for (;;)
     {
-      unsigned char c = serial_popchar();
+        if((plan_queue_empty()) && (config.status != 0))
+            config.status = 3;
+        // process characters from the serial port
+        while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
+        {
+            unsigned char c = serial_popchar();
+
+            if (serial_line_buf.len < MAX_LINE)
+                serial_line_buf.data [serial_line_buf.len++] = c;
       
-      if (serial_line_buf.len < MAX_LINE)
-        serial_line_buf.data [serial_line_buf.len++] = c;
-
-      if ((c==10) || (c==13))
-      {
-        if (serial_line_buf.len > 1)
-          serial_line_buf.seen_lf = 1;
-        else
-          serial_line_buf.len = 0;
-      }      
-    }
-
-    // process SD file if no serial command pending
-    if (!sd_line_buf.seen_lf && sd_printing)
-    {
-      if (sd_read_file (&sd_line_buf))
-      {
-          sd_line_buf.seen_lf = 1;
-      } 
-      else
-      {
-        sd_printing = false;
-        serial_writestr ("Done printing file\r\n");
+            if ((c==10) || (c==13))
+            {
+                if (serial_line_buf.len > 1)
+                    serial_line_buf.seen_lf = 1;
+                else
+                    serial_line_buf.len = 0;
+            }
       }
-    }
-
-    // if queue is full, we wait
-    if (!plan_queue_full())
-    {
   
-      /* At end of each line, put the "GCode" on movebuffer.
-       * If there are movement to do, Timer will start and execute code which
-       * will take data from movebuffer and generate the required step pulses
-       * for stepper motors.
-       */
-  
-      // give priority to user commands
-      if (serial_line_buf.seen_lf)
+      // process SD file if no serial command pending
+      if (!sd_line_buf.seen_lf && sd_printing)
       {
-	//echo off
-	//sersendf("%s",serial_line_buf.data);
-        parse_result = gcode_parse_line (&serial_line_buf);
-        serial_line_buf.len = 0;
-        serial_line_buf.seen_lf = 0;
-      }
-      else if (sd_line_buf.seen_lf)
-      {
-        parse_result = gcode_parse_line (&sd_line_buf);
-        sd_line_buf.len = 0;
-        sd_line_buf.seen_lf = 0;
+          if (sd_read_file (&sd_line_buf))
+          {
+              sd_line_buf.seen_lf = 1;
+          }
+          else
+          {
+              sd_printing = false;
+              serial_writestr ("Done printing file\r\n");
+          }
       }
 
-    }
-
-    /* Do every 100ms */
-    #define DELAY1 100
-    if (timer1 < millis())
-    {
-      timer1 = millis() + DELAY1;
-
-      /* If there are no activity during 30 seconds, power off the machine */
-      if (steptimeout > (30 * 1000/DELAY1))
+      // if queue is full, we wait
+      if (!plan_queue_full())
       {
-        power_off();
+
+          /* At end of each line, put the "GCode" on movebuffer.
+           * If there are movement to do, Timer will start and execute code which
+           * will take data from movebuffer and generate the required step pulses
+           * for stepper motors.
+           */
+
+          // give priority to user commands
+          if (serial_line_buf.seen_lf)
+          {
+              //echo off
+              //sersendf("%s",serial_line_buf.data);
+              parse_result = gcode_parse_line (&serial_line_buf);
+              serial_line_buf.len = 0;
+              serial_line_buf.seen_lf = 0;
+          }
+          else if (sd_line_buf.seen_lf)
+          {
+              parse_result = gcode_parse_line (&sd_line_buf);
+              sd_line_buf.len = 0;
+              sd_line_buf.seen_lf = 0;
+          }
+
       }
-      else
+
+      /* Do every 100ms */
+      #define DELAY1 100
+      if (timer1 < millis())
       {
-        steptimeout++;
+          timer1 = millis() + DELAY1;
+
+          /* If there are no activity during 30 seconds, power off the machine */
+          if (steptimeout > (30 * 1000/DELAY1))
+          {
+              power_off();
+          }
+          else
+          {
+              steptimeout++;
+          }
       }
-    }
 
 #ifdef USE_BOOT_BUTTON
-    // OPTION: enter bootloader on "Boot" button
-    check_boot_request();
+      // OPTION: enter bootloader on "Boot" button
+      check_boot_request();
 #endif
 
-  }
+    }
 }
