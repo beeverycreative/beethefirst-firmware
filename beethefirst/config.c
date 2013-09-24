@@ -305,8 +305,8 @@ void read_config (void)
 
 
     char sector[FLASH_BUF_SIZE];
-    char *pmem = SECTOR_12_START;
-    size_t bytes = sizeof(config);
+    char *pmem = SECTOR_29_START;
+    size_t bytes = (sizeof(config)/sizeof(char));
     char* pConfig = &config;
 
     if(*pmem != 0xFF){
@@ -319,17 +319,17 @@ void read_config (void)
             bytes++;
         }
 
-        prepare_sector(12, 12, SystemCoreClock);
-        erase_sector(12, 12, SystemCoreClock);
+        prepare_sector(29, 29, SystemCoreClock);
+        erase_sector(29, 29, SystemCoreClock);
 
-        prepare_sector(12, 12, SystemCoreClock);
+        prepare_sector(29, 29, SystemCoreClock);
         write_data(   (unsigned)(SystemCoreClock/1000),
-                                (unsigned)(SECTOR_12_START),
+                                (unsigned)(SECTOR_29_START),
                                 (unsigned)sector,
                                 (unsigned)FLASH_BUF_SIZE);
 
         compare_data((unsigned)(SystemCoreClock/1000),
-                                (unsigned)(SECTOR_12_START),
+                                (unsigned)(SECTOR_29_START),
                                 (unsigned)sector,
                                 (unsigned)FLASH_BUF_SIZE);
     }
@@ -343,7 +343,7 @@ void read_config (void)
 void write_config (void)
 {
     char sector[FLASH_BUF_SIZE];
-    size_t bytes = sizeof(config);
+    size_t bytes = sizeof(config)/sizeof(char);
     char* pConfig = &config;
 
     memcpy(&sector, pConfig, bytes);
@@ -353,17 +353,17 @@ void write_config (void)
        bytes ++;
     }
 
-    prepare_sector(12, 12, SystemCoreClock);
-    erase_sector(12, 12, SystemCoreClock);
+    prepare_sector(29, 29, SystemCoreClock);
+    erase_sector(29, 29, SystemCoreClock);
 
-    prepare_sector(12, 12, SystemCoreClock);
+    prepare_sector(29, 29, SystemCoreClock);
     write_data(  (unsigned)(SystemCoreClock/1000),
-                           (unsigned)(SECTOR_12_START),
+                           (unsigned)(SECTOR_29_START),
                            (unsigned)sector,
                            (unsigned)FLASH_BUF_SIZE);
 
     compare_data((unsigned)(SystemCoreClock/1000),
-                           (unsigned)(SECTOR_12_START),
+                           (unsigned)(SECTOR_29_START),
                            (unsigned)sector,
                            (unsigned)FLASH_BUF_SIZE);
 }

@@ -45,6 +45,8 @@
 #include "stepper.h"
 #include "geometry.h"
 #include "bootloader.h"
+#include "sbl_config.h"
+#include "system_LPC17xx.h"
 
 FIL       file;
 uint32_t  filesize = 0;
@@ -418,43 +420,43 @@ void sd_seek(FIL *pFile, unsigned pos)
 
 eParseResult process_gcode_command()
 {
-  double backup_f;
-  uint8_t axisSelected = 0;
-  eParseResult result = PR_OK;
-  bool reply_sent = false;
+    double backup_f;
+    uint8_t axisSelected = 0;
+    eParseResult result = PR_OK;
+    bool reply_sent = false;
 
-  tTarget next_targetd = startpoint;
+    tTarget next_targetd = startpoint;
 
-  // convert relative to absolute
-  if (next_target.option_relative)
-  {
-    next_targetd.x = startpoint.x + next_target.target.x;
-    next_targetd.y = startpoint.y + next_target.target.y;
-    next_targetd.z = startpoint.z + next_target.target.z;
-    next_targetd.e = startpoint.e + next_target.target.e;
-    if (next_target.seen_F)
-      next_targetd.feed_rate = next_target.target.feed_rate;
-  }
-  else
-  {
-    // absolute
-    if (next_target.seen_X)
-      next_targetd.x = next_target.target.x;
-    if (next_target.seen_Y)
-      next_targetd.y = next_target.target.y;
-    if (next_target.seen_Z)
-      next_targetd.z = next_target.target.z;
-    if (next_target.seen_E)
-      next_targetd.e = next_target.target.e;
-    if (next_target.seen_F)
-      next_targetd.feed_rate = next_target.target.feed_rate;
-  }
+    // convert relative to absolute
+    if (next_target.option_relative)
+    {
+        next_targetd.x = startpoint.x + next_target.target.x;
+        next_targetd.y = startpoint.y + next_target.target.y;
+        next_targetd.z = startpoint.z + next_target.target.z;
+        next_targetd.e = startpoint.e + next_target.target.e;
+        if (next_target.seen_F)
+            next_targetd.feed_rate = next_target.target.feed_rate;
+    }
+    else
+    {
+        // absolute
+        if (next_target.seen_X)
+            next_targetd.x = next_target.target.x;
+        if (next_target.seen_Y)
+            next_targetd.y = next_target.target.y;
+        if (next_target.seen_Z)
+            next_targetd.z = next_target.target.z;
+        if (next_target.seen_E)
+            next_targetd.e = next_target.target.e;
+        if (next_target.seen_F)
+            next_targetd.feed_rate = next_target.target.feed_rate;
+    }
 
-  //  sersendf(" X:%ld Y:%ld Z:%ld E:%ld F:%ld\r\n", (int32_t)next_target.target.X, (int32_t)next_target.target.Y, (int32_t)next_target.target.Z, (int32_t)next_target.target.E, (uint32_t)next_target.target.F);
-  //  sersendf(" X:%g Y:%g Z:%g E:%g F:%g\r\n", next_targetd.x, next_targetd.y, next_targetd.z, next_targetd.e, next_targetd.feed_rate);
+    //  sersendf(" X:%ld Y:%ld Z:%ld E:%ld F:%ld\r\n", (int32_t)next_target.target.X, (int32_t)next_target.target.Y, (int32_t)next_target.target.Z, (int32_t)next_target.target.E, (uint32_t)next_target.target.F);
+    //  sersendf(" X:%g Y:%g Z:%g E:%g F:%g\r\n", next_targetd.x, next_targetd.y, next_targetd.z, next_targetd.e, next_targetd.feed_rate);
 
-  // E ALWAYS absolute 
-  // host should periodically reset E with "G92 E0", otherwise we overflow our registers after only a few layers
+    // E ALWAYS absolute
+    // host should periodically reset E with "G92 E0", otherwise we overflow our registers after only a few layers
 
   if (next_target.seen_G)
   {
@@ -1261,14 +1263,22 @@ eParseResult process_gcode_command()
       // M600 print the values read from the config file
       case 600:
       {
-        config.status = 3;
         print_config();
       }
       break;
 
       case 601:
       {
-        config.status = 3;
+        //sends ok message
+         serial_writestr("ok Q:");
+         serwrite_uint32(plan_queue_size());
+         serial_writestr(" N:");
+         serwrite_uint32(next_target.N);
+
+         serial_writestr(" S:");
+         serwrite_uint32(config.status);
+         serial_writestr("\r\n");
+
         write_config();
       }
       break;
@@ -1339,6 +1349,24 @@ eParseResult process_gcode_command()
       config.status = 4;
       break;
 
+      case 607:
+      {
+          //sends ok message
+          serial_writestr("ok Q:");
+          serwrite_uint32(plan_queue_size());
+          serial_writestr(" N:");
+          serwrite_uint32(next_target.N);
+
+          serial_writestr(" S:");
+          serwrite_uint32(config.status);
+          serial_writestr("\r\n");
+
+          prepare_sector(29, 29, SystemCoreClock);
+          erase_sector(29, 29, SystemCoreClock);
+
+          read_config();
+      }
+      break;
       // M610 - switch to USB bootloader
       case 610:
         config.status = 0;
@@ -1352,30 +1380,31 @@ eParseResult process_gcode_command()
       break;
 
       case 625:
-     {
-         //sends ok message
-         serial_writestr("ok Q:");
-         serwrite_uint32(plan_queue_size());
-         serial_writestr(" N:");
-         serwrite_uint32(next_target.N);
+      {
+          //sends ok message
+          serial_writestr("ok Q:");
+          serwrite_uint32(plan_queue_size());
+          serial_writestr(" N:");
+          serwrite_uint32(next_target.N);
 
-         sersendf(" S:");
-         serwrite_uint32(config.status);
-         serial_writestr("\r\n");
+          sersendf(" S:");
+          serwrite_uint32(config.status);
+          serial_writestr("\r\n");
 
-         if(config.status == 0)
+          if(config.status == 0)
              config.status = 3;
 
-         reply_sent = true;
+          reply_sent = true;
      }
      break;
 
-      // unknown mcode: spit an error
+
+        // unknown mcode: spit an error
       default:
         config.status = 0;
-      serial_writestr("E: Bad M-code ");
-      serwrite_uint8(next_target.M);
-      serial_writestr("\r\n");
+        serial_writestr("E: Bad M-code ");
+        serwrite_uint8(next_target.M);
+        serial_writestr("\r\n");
     }
   }
 
