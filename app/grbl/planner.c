@@ -818,3 +818,12 @@ uint8_t plan_queue_size(void)
   else
     return block_buffer_tail - block_buffer_head + BLOCK_BUFFER_SIZE;
 }
+void queue_flush()
+{
+  disableHwTimer(0);
+  stopBlink();
+
+  // flush queue
+  block_buffer_tail= block_buffer_head;
+
+}

@@ -89,3 +89,9 @@ unsigned int go_to_bootloader (void)
 
   return 0; // tudo bem, sem erro
 }
+unsigned int go_to_reset (void)
+{
+   reset(); // reset ao sistema
+
+  return 0; // tudo bem, sem erro
+}

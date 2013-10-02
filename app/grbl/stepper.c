@@ -309,7 +309,7 @@ void st_wake_up() {
 #endif
 }
 
-static void st_go_idle() {
+void st_go_idle() {
 #if 0
   // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
   // stop and not drift from residual inertial forces at the end of the last movement.

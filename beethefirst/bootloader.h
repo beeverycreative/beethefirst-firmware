@@ -28,3 +28,4 @@
 */
 
 unsigned int go_to_bootloader (void);
+unsigned int go_to_reset (void);

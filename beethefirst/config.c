@@ -64,52 +64,52 @@ tConfigItem config_lookup [] =
     {
         { "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
 
-        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=80}},
-        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=80}},
-        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=6400}},
-        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=36}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
+        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
+        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
+        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
+        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=517.000}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
 
         /* used for G0 rapid moves and as a cap for all other feedrates */
-        { "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=3000}}, /* 50mm / second */
-        { "maximum_feedrate_y", &config.maximum_feedrate_y, TYPE_INT, {.val_i=3000}},
-        { "maximum_feedrate_z", &config.maximum_feedrate_z, TYPE_INT, {.val_i=60}},   /* 1mm / second */
-        { "maximum_feedrate_e", &config.maximum_feedrate_e, TYPE_INT, {.val_i=3000}}, /* 50mm / second */
+        { "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
+        { "maximum_feedrate_y", &config.maximum_feedrate_y, TYPE_INT, {.val_i=60000}},
+        { "maximum_feedrate_z", &config.maximum_feedrate_z, TYPE_INT, {.val_i=60000}},   /* 1mm / second */
+        { "maximum_feedrate_e", &config.maximum_feedrate_e, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
 
-        { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=100.0}},         /* 100mm / second^2 */
-        { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.05}},
+        { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
+        { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
         /* used when searching endstops and similar */
-        { "search_feedrate_x", &config.search_feedrate_x, TYPE_INT, {.val_i=120}},
-        { "search_feedrate_y", &config.search_feedrate_y, TYPE_INT, {.val_i=120}},
-        { "search_feedrate_z", &config.search_feedrate_z, TYPE_INT, {.val_i=60}},
-        { "search_feedrate_e", &config.search_feedrate_e, TYPE_INT, {.val_i=1600}},
+        { "search_feedrate_x", &config.search_feedrate_x, TYPE_INT, {.val_i=1000}},
+        { "search_feedrate_y", &config.search_feedrate_y, TYPE_INT, {.val_i=1000}},
+        { "search_feedrate_z", &config.search_feedrate_z, TYPE_INT, {.val_i=1000}},
+        { "search_feedrate_e", &config.search_feedrate_e, TYPE_INT, {.val_i=1000}},
 
-        { "homing_feedrate_x", &config.homing_feedrate_x, TYPE_INT, {.val_i=3000}},
-        { "homing_feedrate_y", &config.homing_feedrate_y, TYPE_INT, {.val_i=3000}},
-        { "homing_feedrate_z", &config.homing_feedrate_z, TYPE_INT, {.val_i=60}},
+        { "homing_feedrate_x", &config.homing_feedrate_x, TYPE_INT, {.val_i=2500}},
+        { "homing_feedrate_y", &config.homing_feedrate_y, TYPE_INT, {.val_i=2500}},
+        { "homing_feedrate_z", &config.homing_feedrate_z, TYPE_INT, {.val_i=2500}},
 
         // home pos is left front
         { "home_direction_x", &config.home_direction_x, TYPE_INT, {.val_i=-1}},
         { "home_direction_y", &config.home_direction_y, TYPE_INT, {.val_i=-1}},
-        { "home_direction_z", &config.home_direction_z, TYPE_INT, {.val_i=-1}},
+        { "home_direction_z", &config.home_direction_z, TYPE_INT, {.val_i=1}},
 
         { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=0.0}},
         { "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=0.0}},
-        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=0.0}},
+        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=123.495}},
 
-        { "printing_vol_x", &config.printing_vol_x , TYPE_INT, {.val_i=0}},
-        { "printing_vol_y", &config.printing_vol_y , TYPE_INT, {.val_i=0}},
-        { "printing_vol_z", &config.printing_vol_z , TYPE_INT, {.val_i=0}},
+        { "printing_vol_x", &config.printing_vol_x , TYPE_INT, {.val_i=120}},
+        { "printing_vol_y", &config.printing_vol_y , TYPE_INT, {.val_i=80}},
+        { "printing_vol_z", &config.printing_vol_z , TYPE_INT, {.val_i=85}},
 
         // dump pos
         { "have_dump_pos", &config.have_dump_pos , TYPE_INT, {.val_i=0}},
-        { "dump_pos_x", &config.dump_pos_x , TYPE_INT, {.val_i=0}},
-        { "dump_pos_y", &config.dump_pos_x , TYPE_INT, {.val_i=0}},
+        { "dump_pos_x", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
+        { "dump_pos_y", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
 
         // rest pos
-        { "have_rest_pos", &config.have_rest_pos , TYPE_INT, {.val_i=0}},
-        { "rest_pos_x", &config.rest_pos_x , TYPE_INT, {.val_i=0}},
-        { "rest_pos_y", &config.rest_pos_y , TYPE_INT, {.val_i=0}},
+        { "have_rest_pos", &config.have_rest_pos , TYPE_INT, {.val_i=1}},
+        { "rest_pos_x", &config.rest_pos_x , TYPE_INT, {.val_i=120}},
+        { "rest_pos_y", &config.rest_pos_y , TYPE_INT, {.val_i=120}},
 
         // wipe pos
         { "have_wipe_pos",   &config.have_wipe_pos , TYPE_INT, {.val_i=0}},
