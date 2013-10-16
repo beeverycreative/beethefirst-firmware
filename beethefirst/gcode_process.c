@@ -1074,7 +1074,7 @@ eParseResult process_gcode_command()
           else
           {
 
-             sersendf(" C: X:%g Y:%g Z:%g E:%g", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+             sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
           }
        }
        break;
@@ -1228,7 +1228,7 @@ eParseResult process_gcode_command()
       case 200:
       {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
-              sersendf ("X%g Y%g Z%g E%g",
+              sersendf ("X%g Y%g Z%g E%g ",
                         config.steps_per_mm_x,
                         config.steps_per_mm_y,
                         config.steps_per_mm_z,
@@ -1288,7 +1288,7 @@ eParseResult process_gcode_command()
       {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
 
-              sersendf (" X%g",
+              sersendf (" X%g ",
                         config.acceleration);
           }else{
               if (next_target.seen_X){
@@ -1388,7 +1388,7 @@ eParseResult process_gcode_command()
           if (next_target.seen_S && next_target.seen_P){
               temp_set_table_entry (EXTRUDER_0, next_target.S, next_target.P);
           }else if (next_target.seen_S){
-              sersendf (" [%d] = %d", next_target.S, temp_get_table_entry (EXTRUDER_0, next_target.S));
+              sersendf (" [%d] = %d ", next_target.S, temp_get_table_entry (EXTRUDER_0, next_target.S));
           }else{
             serial_writestr ("E: bad param ");
           }
@@ -1404,7 +1404,7 @@ eParseResult process_gcode_command()
           if (next_target.seen_S && next_target.seen_P){
               temp_set_table_entry (HEATED_BED_0, next_target.S, next_target.P);
           }else if (next_target.seen_S){
-              sersendf (" [%d] = %d", next_target.S, temp_get_table_entry (HEATED_BED_0, next_target.S));
+              sersendf (" [%d] = %d ", next_target.S, temp_get_table_entry (HEATED_BED_0, next_target.S));
           }else{
               serial_writestr ("E: bad param ");
           }
@@ -1609,7 +1609,7 @@ eParseResult process_gcode_command()
       {
           serial_writestr(" S:");
           serwrite_uint32(config.status);
-
+          serial_writestr(" ");
           if(config.status == 0)
              config.status = 3;
 
@@ -1632,8 +1632,10 @@ eParseResult process_gcode_command()
 
   if (!reply_sent)
   {
-    serial_writestr(" ok\r\n");
-    //sersendf("ok Q:%d\r\n", plan_queue_size());
+      serial_writestr("ok Q:");
+      serwrite_uint32(plan_queue_size());
+      serial_writestr("\r\n");
+
   }
 
   return result;
