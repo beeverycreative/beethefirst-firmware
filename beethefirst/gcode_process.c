@@ -466,6 +466,8 @@ eParseResult process_gcode_command()
     // since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
       case 0:
       {
+        config.status = 0;
+
 #if 0
                 backup_f = next_targetd.feed_rate;
                 next_targetd.feed_rate = config.maximum_feedrate_x * 2;
@@ -478,6 +480,9 @@ eParseResult process_gcode_command()
       // G1 - synchronised motion
       case 1:
       {
+          if(sd_printing)
+              break;
+
           config.status = 4;
 #if 0
           if((extruders_on == EXTRUDER_NUM_1) && !next_target.seen_E){
@@ -529,7 +534,63 @@ eParseResult process_gcode_command()
       }
       break;
 
-      //	G30 - go home via point
+      //	G28 - go home
+      case 28:
+      {
+
+
+          config.status = 4;
+
+          if(sd_printing){
+              config.status = 0;
+
+              break;
+          }
+          if (next_target.seen_X)
+          {
+              zero_x();
+              axisSelected = 1;
+          }
+
+          if (next_target.seen_Y)
+          {
+              zero_y();
+              axisSelected = 1;
+          }
+
+          if (next_target.seen_Z)
+          {
+              zero_z();
+              axisSelected = 1;
+          }
+
+          if (next_target.seen_E)
+          {
+              zero_e();
+              axisSelected = 1;
+          }
+
+          if(!axisSelected)
+          {
+              if (config.machine_model == MM_RAPMAN)
+              {
+                  // move stage down to clear Z endstop
+                  // Rapman only?
+                  next_targetd = startpoint;
+                  next_targetd.z += 3;
+                  next_targetd.feed_rate = config.homing_feedrate_z;
+                  enqueue_moved(&next_targetd);
+              }
+
+              zero_x();
+              zero_y();
+              zero_z();
+              zero_e();
+          }
+      }
+      break;
+
+      //  G30 - go home via point
       case 30:
       {
           config.status = 0;
@@ -581,54 +642,6 @@ eParseResult process_gcode_command()
       }
       break;
 
-      //	G28 - go home
-      case 28:
-      {
-          config.status = 4;
-
-          if (next_target.seen_X)
-          {
-              zero_x();
-              axisSelected = 1;
-          }
-
-          if (next_target.seen_Y)
-          {
-              zero_y();
-              axisSelected = 1;
-          }
-
-          if (next_target.seen_Z)
-          {
-              zero_z();
-              axisSelected = 1;
-          }
-
-          if (next_target.seen_E)
-          {
-              zero_e();
-              axisSelected = 1;
-          }
-
-          if(!axisSelected)
-          {
-              if (config.machine_model == MM_RAPMAN)
-              {
-                  // move stage down to clear Z endstop
-                  // Rapman only?
-                  next_targetd = startpoint;
-                  next_targetd.z += 3;
-                  next_targetd.feed_rate = config.homing_feedrate_z;
-                  enqueue_moved(&next_targetd);
-              }
-
-              zero_x();
-              zero_y();
-              zero_z();
-              zero_e();
-          }
-      }
-      break;
 
       // G90 - absolute positioning
       case 90:
@@ -654,8 +667,14 @@ eParseResult process_gcode_command()
       //	G92 - set current position
       case 92:
       {
-          config.status = 4;
+
           tTarget new_pos;
+
+          if(sd_printing){
+              config.status = 0;
+
+              break;
+          }
 
           // must have no moves pending if changing position
           synch_queue();
@@ -908,8 +927,10 @@ eParseResult process_gcode_command()
       // M104- set temperature
       case 104:
       {
-          if(sd_printing)
+          if(sd_printing){
+              config.status = 0;
               break;
+          }
 
           if (config.enable_extruder_1)
           {
@@ -963,8 +984,10 @@ eParseResult process_gcode_command()
       // M109- set temp and wait
       case 109:
       {
-          if(sd_printing)
+          if(sd_printing){
+              config.status = 0;
               break;
+          }
 
           config.status = 4;
 
@@ -1014,7 +1037,7 @@ eParseResult process_gcode_command()
       case 113:
       {
           config.status = 0;
-          queue_flush();
+          //queue_flush();
       }
       break;
       // M115 - report firmware version
