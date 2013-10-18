@@ -235,27 +235,6 @@ int app_main (void)
 
       }
 
-      /* Do every 100ms */
-      #define DELAY1 100
-      if (timer1 < millis())
-      {
-          timer1 = millis() + DELAY1;
-
-          /* If there are no activity during 30 seconds, power off the machine */
-          if (steptimeout > (30 * 1000/DELAY1))
-          {
-              power_off();
-          }
-          else
-          {
-              steptimeout++;
-          }
-      }
-
-#ifdef USE_BOOT_BUTTON
-      // OPTION: enter bootloader on "Boot" button
-      check_boot_request();
-#endif
 
     }
 }

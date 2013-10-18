@@ -338,7 +338,58 @@ void read_config (void)
     gcode_parse_init();
 
 }
+void reset_config (void)
+{
+    unsigned j;
 
+    // first set defaults
+    for (j=0; j < NUM_TOKENS; j++){
+        switch (config_lookup[j].type){
+            case TYPE_INT:
+            {
+                int32_t *pVal = config_lookup[j].pValue;
+                *pVal = config_lookup[j].val_i;
+                break;
+            }
+            case TYPE_DOUBLE:
+            {
+                double *pVal = config_lookup[j].pValue;
+                *pVal = config_lookup[j].val_d;
+                break;
+            }
+        }
+    }
+
+    char sector[FLASH_BUF_SIZE];
+    char *pmem = SECTOR_29_START;
+    size_t bytes = (sizeof(config)/sizeof(char));
+    char* pConfig = &config;
+
+    memcpy(&sector, pConfig, bytes);
+
+    while (bytes < FLASH_BUF_SIZE) {
+        sector[bytes] = 255;
+        bytes++;
+    }
+
+    prepare_sector(29, 29, SystemCoreClock);
+    erase_sector(29, 29, SystemCoreClock);
+
+    prepare_sector(29, 29, SystemCoreClock);
+    write_data(   (unsigned)(SystemCoreClock/1000),
+                            (unsigned)(SECTOR_29_START),
+                            (unsigned)sector,
+                            (unsigned)FLASH_BUF_SIZE);
+
+    compare_data((unsigned)(SystemCoreClock/1000),
+                            (unsigned)(SECTOR_29_START),
+                            (unsigned)sector,
+                            (unsigned)FLASH_BUF_SIZE);
+
+    /* Initialize using values read from "config.txt" file */
+    gcode_parse_init();
+
+}
 
 void write_config (void)
 {

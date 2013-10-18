@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.0.0-beta+20131018155500
+Versão com a especificação dos comandos e queue devidamente implementada
+
 V1.201.0
 Versão que inclui o status
 

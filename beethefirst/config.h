@@ -109,6 +109,7 @@ struct configuration
 extern struct configuration config;
 
 void read_config (void);
+void reset_config (void);
 void print_config (void);
 void write_config (void);
 
