@@ -59,10 +59,13 @@ int main(void)
   in case the user application uses interrupts */
   SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
+  SysTickTimer_Init(); // Initialize the timer for millis()
+
+  delay_ms(2000);
+
   // Initialize USB<->Serial
   serial_init();
   
-  SysTickTimer_Init(); // Initialize the timer for millis()
 
   app_main ();
 
