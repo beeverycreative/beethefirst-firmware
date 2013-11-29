@@ -84,9 +84,9 @@ tConfigItem config_lookup [] =
         { "search_feedrate_z", &config.search_feedrate_z, TYPE_INT, {.val_i=1000}},
         { "search_feedrate_e", &config.search_feedrate_e, TYPE_INT, {.val_i=1000}},
 
-        { "homing_feedrate_x", &config.homing_feedrate_x, TYPE_INT, {.val_i=2500}},
-        { "homing_feedrate_y", &config.homing_feedrate_y, TYPE_INT, {.val_i=2500}},
-        { "homing_feedrate_z", &config.homing_feedrate_z, TYPE_INT, {.val_i=2500}},
+        { "homing_feedrate_x", &config.homing_feedrate_x, TYPE_INT, {.val_i=2000}},
+        { "homing_feedrate_y", &config.homing_feedrate_y, TYPE_INT, {.val_i=2000}},
+        { "homing_feedrate_z", &config.homing_feedrate_z, TYPE_INT, {.val_i=2000}},
 
         // home pos is left front
         { "home_direction_x", &config.home_direction_x, TYPE_INT, {.val_i=-1}},
