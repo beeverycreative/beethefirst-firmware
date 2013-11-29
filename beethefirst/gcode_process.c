@@ -537,6 +537,10 @@ eParseResult process_gcode_command()
       //	G28 - go home
       case 28:
       {
+
+          next_targetd.feed_rate = config.homing_feedrate_z;
+          double aux = config.acceleration;
+          config.acceleration = 1000;
           config.status = 4;
 
           if(sd_printing){
@@ -576,7 +580,6 @@ eParseResult process_gcode_command()
                   // Rapman only?
                   next_targetd = startpoint;
                   next_targetd.z += 3;
-                  next_targetd.feed_rate = config.homing_feedrate_z;
                   enqueue_moved(&next_targetd);
               }
 
@@ -585,6 +588,8 @@ eParseResult process_gcode_command()
               zero_z();
               zero_e();
           }
+
+          config.acceleration = aux ;
       }
       break;
 
@@ -1037,7 +1042,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.4.0");
+          serial_writestr(" 3.5.0");
           serial_writestr(" ");
       }
       break;

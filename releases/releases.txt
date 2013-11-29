@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.5.0-beta+20131129181100
+Versão com velocidades mais adequadas ao home position.
+
 BEETHEFIRST-firmware-3.4.0-beta+20131030112600
 Versão com meio segundo de intervalo entre conecções USB
 
