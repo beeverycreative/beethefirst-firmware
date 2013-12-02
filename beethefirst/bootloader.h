@@ -1,4 +1,4 @@
-/* Copyright (c) 2013 bitBOX */
+/* Copyright (c) 2013 BEEVC - Electronic Systems   */
 /* All rights reserved.
 
    Redistribution and use in source and binary forms, with or without

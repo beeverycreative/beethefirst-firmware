@@ -1,7 +1,7 @@
 /*
         LPCUSB, an USB device driver for LPC microcontrollers
         Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
-        Copyright (c) 2011 Jorge Pinto - casainho@gmail.com
+        Copyright (c) 2011-2013 BEEVC - Electronic Systems
 
         Redistribution and use in source and binary forms, with or without
         modification, are permitted provided that the following conditions are met:

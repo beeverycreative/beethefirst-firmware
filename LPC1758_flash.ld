@@ -18,7 +18,7 @@
 /* mthomas: 
    - rom length to 256k for lpc1766
    - commented out GROUP (portablity for non-CS toolchains
-   - added _sdata, _sbss, _ebss
+   - added _startdata, _startbss, _endbss
    - modified ENTRY
    - added KEEP for vector
 */
@@ -31,9 +31,7 @@ SEARCH_DIR(.)
 
 MEMORY
 {
-  rom (rx)  : ORIGIN = 64K, LENGTH = (512K - 64K) /* Bootloader uses first 64Kbytes of flash memory */
-  /* rom (rx)  : ORIGIN = 0, LENGTH = 512K */
-  ram (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
+  rom (rx)  : ORIGIN = 64K, LENGTH = (512K - 64K) /* Bootloader uses first 64Kbytes of flash memory */  ram (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
   ahbb0(rw) : ORIGIN = 0x2007C000, LENGTH =  16K
   /* ahbb1(rw) : ORIGIN = 0x20080000, LENGTH =  16K */
 }
@@ -44,12 +42,9 @@ MEMORY
  */
 EXTERN(__cs3_reset_cortex_m)
 EXTERN(__cs3_interrupt_vector_cortex_m)
-EXTERN(__cs3_start_c main __cs3_stack __cs3_stack_size __cs3_heap_end)
+EXTERN(__cs3_start_c main __cs3_stack __cs3_stack_size)
 
 PROVIDE(__cs3_stack = __cs3_region_start_ram + __cs3_region_size_ram);
-PROVIDE(__cs3_stack_size = __cs3_region_start_ram + __cs3_region_size_ram - _end);
-PROVIDE(__cs3_heap_start = _end);
-PROVIDE(__cs3_heap_end = __cs3_region_start_ram + __cs3_region_size_ram);
 
 SECTIONS
 {
@@ -135,7 +130,7 @@ SECTIONS
   .text.align :
   {
     . = ALIGN(8);
-    _etext = .;
+    _endtext = .;
   } >rom
   __cs3_region_size_rom = LENGTH(rom);
   __cs3_region_num = 1;
@@ -143,7 +138,7 @@ SECTIONS
   .data :
   {
     __cs3_region_start_ram = .;
-    _sdata = .;
+    _startdata = .;
     *(.cs3.region-head.ram)
     KEEP(*(.jcr))
     *(.got.plt) *(.got)
@@ -151,27 +146,23 @@ SECTIONS
     *(.data .data.* .gnu.linkonce.d.*)
     *(.ram)
     . = ALIGN (8);
-    _edata = .;
+    _enddata = .;
   } >ram AT>rom
   .bss(NOLOAD) :
   {
-    _sbss = .;
+    _startbss = .;
     *(.shbss)
     *(.bss .bss.* .gnu.linkonce.b.*)
     *(COMMON)
     *(.ram.b)
     . = ALIGN (8);
-    _ebss = .;
+    _endbss = .;
     _end = .;
     __end = .;
   } >ram AT>rom
-  .heap :
+  .stackarea (__cs3_stack - __cs3_stack_size) :
   {
-    *(.heap)
-  } >ram
-  .stack (__cs3_stack - __cs3_stack_size) :
-  {
-    *(.stack)
+    *(.stackarea)
   } >ram
   
   .ahb_bank0(NOLOAD) :
@@ -181,8 +172,8 @@ SECTIONS
   
   
   __cs3_region_init_ram = LOADADDR (.data);
-  __cs3_region_init_size_ram = _edata - __cs3_region_start_ram;
-  __cs3_region_zero_size_ram = _end - _edata;
+  __cs3_region_init_size_ram = _enddata - __cs3_region_start_ram;
+  __cs3_region_zero_size_ram = _end - _enddata;
   __cs3_region_size_ram = LENGTH(ram);
   __cs3_region_num = 1;
 

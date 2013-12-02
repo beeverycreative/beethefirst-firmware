@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.6.0-beta+20131202172700
+Alterado o Startup e o linker
+
 BEETHEFIRST-firmware-3.5.0-beta+20131129181100
 Versão com velocidades mais adequadas ao home position.
 

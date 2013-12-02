@@ -1,5 +1,5 @@
 /* Copyright (c) 2007, 2010, ChaN, Martin Thomas, Mike Anton */
-/* Copyright (c) 2011 Jorge Pinto - casainho@gmail.com       */
+/* Copyright (c) 2011-2013 BEEVC - Electronic Systems   */
 /* All rights reserved.
 
    Redistribution and use in source and binary forms, with or without

@@ -1,63 +1,34 @@
-/*****************************************************************************/
-/* startup_LPC17xx.s: Startup file for LPC17xx device series                 */
-/*****************************************************************************/
-/* Version: CodeSourcery Sourcery G++ Lite (with CS3)                        */
-/*****************************************************************************/
+/***************************************************************************
+ * @file :    	startup_LPC17xx.S
+ * @brief :		Startup File
+ * @version : 	V1.00
+ * @date :    	30. Jul. 2013
+ ***************************************************************************/
 
-/* mthomas:
-   - replaced CM3 _start with data-copy, bss-init
-   - added syntax unified
-   - moved NMI to UsageFault handlers in reset section to minimize checksum
-     modifications
-*/
-
-/* 
-//*** <<< Use Configuration Wizard in Context Menu >>> *** 
-*/
-
-
-/*
-// <h> Stack Configuration
-//   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
-// </h>
-*/
-
+/***************************************************************************
+* This directive sets the Instruction Set Syntax as described in the ARM-Instruction-Set section.
+* URL:http://sourceware.org/binutils/docs/as/ARM_002dInstruction_002dSet.html#ARM_002dInstruction_002dSet
+ ***************************************************************************/
 .syntax unified
 
-    .equ    Stack_Size, 0x00000300
-    .section ".stack", "w"
+ /***************************************************************************
+ * Stack Configuration
+ ***************************************************************************/
+    .equ    STACK_SIZE, 0x00000300
+    .section ".stackarea", "w"
     .align  3
-    .globl  __cs3_stack_mem
+    .globl  __cs3_stack_area
     .globl  __cs3_stack_size
-__cs3_stack_mem:
-    .if     Stack_Size
-    .space  Stack_Size
+__cs3_stack_area:
+    .if     STACK_SIZE
+    .space  STACK_SIZE
     .endif
-    .size   __cs3_stack_mem,  . - __cs3_stack_mem
-    .set    __cs3_stack_size, . - __cs3_stack_mem
+    .size   __cs3_stack_area,  . - __cs3_stack_area
+    .set    __cs3_stack_size, . - __cs3_stack_area
 
-
-/*
-// <h> Heap Configuration
-//   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
-// </h>
-*/
-
-    .equ    Heap_Size,  0x00001000
-    
-    .section ".heap", "w"
-    .align  3
-    .globl  __cs3_heap_start
-    .globl  __cs3_heap_end
-__cs3_heap_start:
-    .if     Heap_Size
-    .space  Heap_Size
-    .endif
-__cs3_heap_end:
-
-
-/* Vector Table */
-
+ /***************************************************************************
+ * Vector Table
+ ***************************************************************************/
     .section ".cs3.interrupt_vector"
     .globl  __cs3_interrupt_vector_cortex_m
     .type   __cs3_interrupt_vector_cortex_m, %object
@@ -70,7 +41,7 @@ __cs3_interrupt_vector_cortex_m:
     .long   MemManage_Handler           /* MPU Fault Handler            */
     .long   BusFault_Handler            /* Bus Fault Handler            */
     .long   UsageFault_Handler          /* Usage Fault Handler          */
-    .long   0 //0xefff79be                  /* Checksum, see LPC1xxx manual */
+    .long   0                           /* Checksum, see LPC1xxx manual */
     .long   0                           /* Reserved                     */
     .long   0                           /* Reserved                     */
     .long   0                           /* Reserved                     */
@@ -80,7 +51,9 @@ __cs3_interrupt_vector_cortex_m:
     .long   PendSV_Handler              /* PendSV Handler               */
     .long   SysTick_Handler             /* SysTick Handler              */
 
-    /* External Interrupts */
+ /***************************************************************************
+ * External Interrupts
+ ***************************************************************************/
     .long   WDT_IRQHandler              /* 16: Watchdog Timer               */
     .long   TIMER0_IRQHandler           /* 17: Timer0                       */
     .long   TIMER1_IRQHandler           /* 18: Timer1                       */
@@ -121,8 +94,9 @@ __cs3_interrupt_vector_cortex_m:
     .thumb
 
 
-/* Reset Handler */
-
+ /***************************************************************************
+ * Reset Handler
+ ***************************************************************************/
     .section .cs3.reset,"x",%progbits
     .thumb_func
     .globl  __cs3_reset_cortex_m
@@ -130,43 +104,50 @@ __cs3_interrupt_vector_cortex_m:
 __cs3_reset_cortex_m:
     .fnstart
 
-/* delay at startup to let JTAG-connection catch-up */
-	LDR R0, =startup_delay
+ /***************************************************************************
+ * Wait from JTAG
+ ***************************************************************************/
+	/*LDR R0, =startup_delay
 	BLX R0
+	/**/
 
-/* Copy the data segment initializers from flash to SRAM */
-.extern _etext
-.extern _sdata
-.extern _edata
-    ldr   r1, =_etext
-    ldr   r2, =_sdata
-    ldr   r3, =_edata
+ /***************************************************************************
+ * Copy data from flash to RAM
+ ***************************************************************************/
+.extern _endtext
+.extern _startdata
+.extern _enddata
+    ldr   r1, =_endtext
+    ldr   r2, =_startdata
+    ldr   r3, =_enddata
 1:  cmp   r2, r3
     ittt  lo
     ldrlo r0, [r1], #4
     strlo r0, [r2], #4
     blo   1b
 
-/* Zero fill the bss segment. */
-.extern _sbss
-.extern _ebss
+ /***************************************************************************
+ * Fill the bss
+ ***************************************************************************/
+.extern _startbss
+.extern _endbss
     movs  r0, #0
-    ldr   r1, =_sbss
-    ldr   r2, =_ebss
+    ldr   r1, =_startbss
+    ldr   r2, =_endbss
 2:  cmp   r1, r2
     itt   lo
     strlo r0, [r1], #4
     blo   2b
 
-/* call __libc_init_array - needed for C++ support */
-/*    LDR     R0, =__libc_init_array */
-/*    BLX     R0 */
-
-/* call system init in NXP's Device CMSIS code */
+ /***************************************************************************
+ * System init
+ ***************************************************************************/
     LDR     R0, =SystemInit
     BLX     R0
 
-/* call main() */
+ /***************************************************************************
+ * Main
+ ***************************************************************************/
     LDR     R0,=main
     BX      R0
 
@@ -177,8 +158,9 @@ __cs3_reset_cortex_m:
     .fnend
     .size   __cs3_reset_cortex_m,.-__cs3_reset_cortex_m
 
-/* Exception Handlers */
-
+ /***************************************************************************
+ * Exception Handlers
+ ***************************************************************************/
     .weak   NMI_Handler
     .type   NMI_Handler, %function
 NMI_Handler:
@@ -211,7 +193,9 @@ UsageFault_Handler:
 
 
 
-
+ /***************************************************************************
+ * Text
+ ***************************************************************************/
     .section ".text"
 
     .weak   SVC_Handler
@@ -238,9 +222,9 @@ SysTick_Handler:
     B       .
     .size   SysTick_Handler, . - SysTick_Handler
 
-
-/* IRQ Handlers */
-
+ /***************************************************************************
+ * IRQ Handlers
+ ***************************************************************************/
     .globl  Default_Handler
     .type   Default_Handler, %function
 Default_Handler:
