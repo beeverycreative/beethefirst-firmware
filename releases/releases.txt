@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.7.1-debug+20131226125600
+introduzido apito de debug a cada 20 segundos
+
 BEETHEFIRST-firmware-3.7.0-beta+20131226125100
 introduzido watchdog timer
 

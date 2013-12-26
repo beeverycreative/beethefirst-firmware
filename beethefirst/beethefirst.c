@@ -173,7 +173,9 @@ int app_main (void)
 {
     long timer1 = 0;
     eParseResult parse_result;
+    unsigned int bip;
 
+    bip = 2;
 
     //watchdog cycle
     pin_mode(1, (1<<14), 1);
@@ -197,6 +199,15 @@ int app_main (void)
     for (;;)
     {
         WDT_Feed();
+
+        //bip a cada +-20s
+        if(bip == 1){
+           buzzer_play(2500, 100); /* low beep */
+        }else if(bip == 7000000){
+           bip=0;
+        }
+
+        bip++;
 
         if((plan_queue_empty()) && (config.status != 0))
             config.status = 3;
