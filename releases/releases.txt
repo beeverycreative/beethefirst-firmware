@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.7.0-beta+20131226125100
+introduzido watchdog timer
+
 BEETHEFIRST-firmware-3.6.0-beta+20131202172700
 Alterado o Startup e o linker
 

@@ -669,7 +669,12 @@ void st_init()
 // Block until all buffered steps are executed
 void st_synchronize()
 {
-  while(plan_get_current_block()) { sleep_mode(); }    
+  while(plan_get_current_block()) {
+
+      WDT_Feed();
+
+      sleep_mode();
+  }
 }
 
 // Configures the prescaler and ceiling of timer 1 to produce the given rate as accurately as possible.

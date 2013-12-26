@@ -153,10 +153,30 @@ void init(void)
   //serial_writestr("Start\r\nOK\r\n");
 }
 
+
+void WDT_IRQHandler(void){
+
+    NVIC_DisableIRQ(WDT_IRQn);
+
+    int aux = 1;
+    while(aux){
+        GPIO_ClearValue(1, (1 << 14));
+        buzzer_play(1500, 100); /* low beep */
+        buzzer_wait();
+        buzzer_play(2500, 200); /* high beep */
+        buzzer_wait();
+        GPIO_SetValue(1, (1 << 14));
+    }
+}
+
 int app_main (void)
 {
     long timer1 = 0;
     eParseResult parse_result;
+
+
+    //watchdog cycle
+    pin_mode(1, (1<<14), 1);
 
     buzzer_init();
     buzzer_play(1500, 100); /* low beep */
@@ -170,12 +190,17 @@ int app_main (void)
     // grbl init
     plan_init();
     st_init();
+    WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_INT_ONLY );
+    WDT_Start (1000000);
 
     // main loop
     for (;;)
     {
+        WDT_Feed();
+
         if((plan_queue_empty()) && (config.status != 0))
             config.status = 3;
+
         // process characters from the serial port
         while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
         {
@@ -191,50 +216,50 @@ int app_main (void)
                 else
                     serial_line_buf.len = 0;
             }
-      }
+        }
   
-      // process SD file if no serial command pending
-      if (!sd_line_buf.seen_lf && sd_printing)
-      {
-          if (sd_read_file (&sd_line_buf))
-          {
-              sd_line_buf.seen_lf = 1;
-          }
-          else
-          {
-              sd_printing = false;
-              serial_writestr ("Done printing file\r\n");
-          }
+        // process SD file if no serial command pending
+        if (!sd_line_buf.seen_lf && sd_printing)
+        {
+            if (sd_read_file (&sd_line_buf))
+            {
+                sd_line_buf.seen_lf = 1;
+            }
+            else
+            {
+                sd_printing = false;
+                serial_writestr ("Done printing file\r\n");
+            }
+        }
+
+        // if queue is full, we wait
+        if (!plan_queue_full())
+        {
+
+            /* At end of each line, put the "GCode" on movebuffer.
+             * If there are movement to do, Timer will start and execute code which
+             * will take data from movebuffer and generate the required step pulses
+             * for stepper motors.
+             */
+
+            // give priority to user commands
+            if (serial_line_buf.seen_lf)
+            {
+                //echo off
+                //sersendf("%s",serial_line_buf.data);
+                parse_result = gcode_parse_line (&serial_line_buf);
+                serial_line_buf.len = 0;
+                serial_line_buf.seen_lf = 0;
+            }
+            else if (sd_line_buf.seen_lf)
+            {
+                parse_result = gcode_parse_line (&sd_line_buf);
+                sd_line_buf.len = 0;
+                sd_line_buf.seen_lf = 0;
+            }
+
+        }
+
+
       }
-
-      // if queue is full, we wait
-      if (!plan_queue_full())
-      {
-
-          /* At end of each line, put the "GCode" on movebuffer.
-           * If there are movement to do, Timer will start and execute code which
-           * will take data from movebuffer and generate the required step pulses
-           * for stepper motors.
-           */
-
-          // give priority to user commands
-          if (serial_line_buf.seen_lf)
-          {
-              //echo off
-              //sersendf("%s",serial_line_buf.data);
-              parse_result = gcode_parse_line (&serial_line_buf);
-              serial_line_buf.len = 0;
-              serial_line_buf.seen_lf = 0;
-          }
-          else if (sd_line_buf.seen_lf)
-          {
-              parse_result = gcode_parse_line (&sd_line_buf);
-              sd_line_buf.len = 0;
-              sd_line_buf.seen_lf = 0;
-          }
-
-      }
-
-
-    }
 }

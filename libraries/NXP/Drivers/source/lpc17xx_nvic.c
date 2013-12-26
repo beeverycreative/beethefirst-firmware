@@ -111,6 +111,10 @@ void NVIC_SCBDeInit(void)
 	SCB->CFSR = 0xFFFFFFFF;
 	SCB->HFSR = 0xFFFFFFFF;
 	SCB->DFSR = 0xFFFFFFFF;
+
+
+        NVIC_SetPriority(WDT_IRQn, 31);
+        NVIC_EnableIRQ(WDT_IRQn);
 }
 
 
