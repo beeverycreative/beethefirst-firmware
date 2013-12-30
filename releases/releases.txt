@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.8.0-debug+20131230115600
+Acrescentado o queue flush
+
 BEETHEFIRST-firmware-3.7.1-debug+20131226125600
 introduzido apito de debug a cada 20 segundos
 

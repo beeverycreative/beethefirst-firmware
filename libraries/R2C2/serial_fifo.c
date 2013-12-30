@@ -43,12 +43,16 @@ void fifo_init(fifo_t *fifo, unsigned char *buf)
 // Atomic version
 unsigned char fifo_put(fifo_t *fifo, unsigned char c)
 {
-  while((fifo_free(&txfifo)<1))
-    {continue;}
+  while((fifo_free(&txfifo)<1)){
+      continue;
+  }
+
   unsigned char t;
+
   NVIC_DisableIRQ(USB_IRQn);
   t = _fifo_put(fifo, c);
   NVIC_EnableIRQ(USB_IRQn);
+
   return t;
 }
 

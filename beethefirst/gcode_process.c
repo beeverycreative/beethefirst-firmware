@@ -1027,7 +1027,8 @@ eParseResult process_gcode_command()
           // disable extruder and bed heaters
           temp_set(0, EXTRUDER_0);
           temp_set(0, HEATED_BED_0);
-
+          disableHwTimer(0);
+          stopBlink();
           queue_flush();
       }
       break;
@@ -1036,13 +1037,13 @@ eParseResult process_gcode_command()
       case 113:
       {
           config.status = 0;
-          //queue_flush();
+          queue_flush();
       }
       break;
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.7.1");
+          serial_writestr(" 3.8.0");
           serial_writestr(" ");
       }
       break;
@@ -1583,7 +1584,6 @@ eParseResult process_gcode_command()
           serial_writestr(" ");
           if(config.status == 0)
              config.status = 3;
-
       }
       break;
 

@@ -39,7 +39,7 @@
 
 // The number of linear motions that can be in the plan at any give time
 
-#define BLOCK_BUFFER_SIZE 20
+#define BLOCK_BUFFER_SIZE 100
 
 tTarget startpoint;
 
@@ -824,8 +824,8 @@ uint8_t plan_queue_size(void)
 }
 void queue_flush()
 {
-  disableHwTimer(0);
-  stopBlink();
+ //disableHwTimer(0);
+  //stopBlink();
 
   // flush queue
   block_buffer_tail= block_buffer_head;
