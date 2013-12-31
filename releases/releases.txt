@@ -1,5 +1,5 @@
 BEETHEFIRST-firmware-3.9.0-beta+2013123101000
-retirado o bip para o user final
+retirado o bip para o user final. Alterado o descriptor
 
 BEETHEFIRST-firmware-3.8.0-debug+20131230115600
 Acrescentado o queue flush

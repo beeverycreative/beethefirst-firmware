@@ -61,7 +61,7 @@ static U8 abDescriptors[] = {
     // device descriptor
       0x12,
       DESC_DEVICE,
-      LE_WORD(0x0101),            // bcdUSB
+      LE_WORD(0x0110),            // bcdUSB
       0xFF,                       // bDeviceClass
       0x00,                       // bDeviceSubClass
       0x00,                       // bDeviceProtocol
