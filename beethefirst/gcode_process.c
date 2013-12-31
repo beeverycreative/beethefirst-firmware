@@ -1043,7 +1043,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.8.0");
+          serial_writestr(" 3.9.0");
           serial_writestr(" ");
       }
       break;

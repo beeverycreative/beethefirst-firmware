@@ -77,7 +77,7 @@ static U8 abDescriptors[] = {
     // configuration descriptor
       0x09,
       DESC_CONFIGURATION,
-      LE_WORD(142),                // wTotalLength
+      LE_WORD(32),                // wTotalLength
       0x01,                       // bNumInterfaces
       0x01,                       // bConfigurationValue
       0x00,                       // iConfiguration

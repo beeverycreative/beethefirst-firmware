@@ -201,14 +201,14 @@ int app_main (void)
         WDT_Feed();
 
         //bip a cada +-20s
-        if(bip == 1){
-           buzzer_play(2500, 100); /* low beep */
+ /*       if(bip == 1){
+           buzzer_play(2500, 100);
         }else if(bip == 7000000){
            bip=0;
         }
 
         bip++;
-
+*/
         if((plan_queue_empty()) && (config.status != 0))
             config.status = 3;
 
