@@ -724,8 +724,11 @@ eParseResult process_gcode_command()
         config.status = 0;
         serial_writestr("ok - Error: Bad G-code ");
         serwrite_uint8(next_target.G);
-        serial_writestr(" N:");
-        serwrite_uint32(next_target.N);
+        if(next_target.seen_N){
+            serial_writestr(" N:");
+            serwrite_uint32(next_target.N);
+            next_target.N = 0;
+        }
         serial_writestr("\r\n");
         reply_sent = 1;
     }
@@ -1033,7 +1036,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.10.0");
+          serial_writestr(" 3.10.1");
           serial_writestr(" ");
       }
       break;
@@ -1583,8 +1586,12 @@ eParseResult process_gcode_command()
         config.status = 0;
         serial_writestr("ok - E: Bad M-code ");
         serwrite_uint8(next_target.M);
-        serial_writestr(" N:");
-        serwrite_uint32(next_target.N);
+        if(next_target.seen_N){
+            serial_writestr(" N:");
+            serwrite_uint32(next_target.N);
+            next_target.N = 0;
+
+        }
         serial_writestr("\r\n");
         reply_sent = 1;
       }
@@ -1597,8 +1604,11 @@ eParseResult process_gcode_command()
   {
       serial_writestr("ok Q:");
       serwrite_uint32(plan_queue_size());
-      serial_writestr(" N:");
-      serwrite_uint32(next_target.N);
+      if(next_target.seen_N){
+          serial_writestr(" N:");
+          serwrite_uint32(next_target.N);
+          next_target.N = 0;
+      }
       serial_writestr("\r\n");
 
   }

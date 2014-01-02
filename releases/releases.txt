@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.10.1-beta+20140102160700
+agora só envia o nºde comando quando o recebe
+
 BEETHEFIRST-firmware-3.10.0-beta+20140102155300
 m112 limpa a queue e para a impressora. Foi ainda introduzido o número de comando
 
