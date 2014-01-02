@@ -334,6 +334,10 @@ static void trapezoid_generator_reset()
   set_step_events_per_minute(trapezoid_adjusted_rate); // Initialize cycles_per_step_event
 }
 
+void reset_current_block(){
+  current_block = 0;
+}
+
 #if 0
 // This function determines an acceleration velocity change every CYCLES_PER_ACCELERATION_TICK by
 // keeping track of the number of elapsed cycles during a de/ac-celeration. The code assumes that 

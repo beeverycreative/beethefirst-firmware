@@ -103,7 +103,7 @@
 
 // Initialize and start the stepper motor subsystem
 void st_init();
-
+void  reset_current_block();
 // Block until all buffered steps are executed
 void st_synchronize();
 

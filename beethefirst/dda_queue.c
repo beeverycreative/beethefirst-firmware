@@ -148,7 +148,7 @@ void next_move()
   }
 }
 
-void queue_flush()
+/*void queue_flush()
 {
   //disableHwTimer(0);
   //stopBlink();
@@ -157,5 +157,6 @@ void queue_flush()
   block_buffer_tail = block_buffer_head;
 
   mb_tail = mb_head;
-  //movebuffer[mb_head].live = 0;
+  movebuffer[mb_head].live = 0;
 }
+*/

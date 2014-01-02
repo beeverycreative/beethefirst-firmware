@@ -185,99 +185,21 @@ double inch_to_mm (double inches)
 
 eParseResult gcode_parse_line (tLineBuffer *pLine) 
 {
-  int j;
-  eParseResult result = PR_OK;
+    int j;
+    eParseResult result = PR_OK;
 
-  for (j=0; j < pLine->len; j++)
-  {
-    gcode_parse_char (pLine->data [j]);
-  }
-
-  // end of line
-  //if ((c == 10) || (c == 13))
-  {
-    if (
-    #ifdef	REQUIRE_LINENUMBER
-        (next_target.N >= next_target.N_expected) && (next_target.seen_N == 1)
-    #else
-        1
-    #endif
-        ) {
-          if (
-              #ifdef	REQUIRE_CHECKSUM
-              ((next_target.checksum_calculated == next_target.checksum_read) && (next_target.seen_checksum == 1))
-              #else
-              ((next_target.checksum_calculated == next_target.checksum_read) || (next_target.seen_checksum == 0))
-              #endif
-              )
-      {
-        if (sd_writing_file)
-        {
-          if (next_target.seen_M && (next_target.M >= 20) && (next_target.M <= 29))
-          {
-            if (next_target.seen_M && next_target.M == 29)
-            {
-              // M29 - stop writing
-              sd_writing_file = false;
-              sd_close (&file);
-              serial_writestr("Done saving file\r\n");
-            }
-            else
-            {
-              // else - do not write SD M-codes to file
-              serial_writestr("ok\r\n");
-            }
-          }
-          else
-          {
-            // lines in files must be LF terminated for sd_read_file to work
-            if (pLine->data [pLine->len-1] == 13)
-            {
-              pLine->data [pLine->len-1] = 10;
-            }
-
-            if (sd_write_to_file(pLine->data, pLine->len))
-            {
-              serial_writestr("ok\r\n");
-            }
-            else
-            {
-              serial_writestr("error writing to file\r\n");
-            }
-          }
-        }
-        else
-        {
-          // process
-          result = process_gcode_command();
-
-          // expect next line number
-          if (next_target.seen_N == 1)
-          {
-            next_target.N_expected = next_target.N + 1;
-          }
-        }
-      }
-      else
-      {
-        serial_writestr("Expected checksum ");
-        serwrite_uint8(next_target.checksum_calculated);
-        serial_writestr("\r\n");
-        request_resend();
-      }
+    for (j=0; j < pLine->len; j++){
+        gcode_parse_char (pLine->data [j]);
     }
-    else
-    {
-      serial_writestr("Expected line number ");
-      serwrite_uint32(next_target.N_expected);
-      serial_writestr("\r\n");
-      request_resend();
-    }
+
+    // process
+    result = process_gcode_command();
 
     // reset variables
     next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
     next_target.seen_E = next_target.seen_F = next_target.seen_S = \
     next_target.seen_P = next_target.seen_N = next_target.seen_M = \
+    next_target.seen_N = \
     next_target.seen_checksum = next_target.seen_semi_comment = \
     next_target.seen_parens_comment = next_target.checksum_read = \
     next_target.checksum_calculated = 0;
@@ -295,9 +217,8 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
       next_target.target.x = next_target.target.y = next_target.target.z = 0.0;
       next_target.target.e = 0.0;
     }
-  }
 
-  return result;
+    return result;
 }
 
 /****************************************************************************

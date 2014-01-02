@@ -724,7 +724,10 @@ eParseResult process_gcode_command()
         config.status = 0;
         serial_writestr("ok - Error: Bad G-code ");
         serwrite_uint8(next_target.G);
+        serial_writestr(" N:");
+        serwrite_uint32(next_target.N);
         serial_writestr("\r\n");
+        reply_sent = 1;
     }
   }
   else if (next_target.seen_M)
@@ -1022,28 +1025,15 @@ eParseResult process_gcode_command()
       {
           config.status = 0;
 
-          st_go_idle();
-
-          // disable extruder and bed heaters
-          temp_set(0, EXTRUDER_0);
-          temp_set(0, HEATED_BED_0);
-          disableHwTimer(0);
-          stopBlink();
           queue_flush();
+          reset_current_block();
       }
       break;
 
-      // M113- extruder PWM
-      case 113:
-      {
-          config.status = 0;
-          queue_flush();
-      }
-      break;
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.9.0");
+          serial_writestr(" 3.10.0");
           serial_writestr(" ");
       }
       break;
@@ -1593,18 +1583,22 @@ eParseResult process_gcode_command()
         config.status = 0;
         serial_writestr("ok - E: Bad M-code ");
         serwrite_uint8(next_target.M);
+        serial_writestr(" N:");
+        serwrite_uint32(next_target.N);
         serial_writestr("\r\n");
+        reply_sent = 1;
       }
     }
   }else{
       serial_writestr("E: Bad code ");
-
   }
 
   if (!reply_sent)
   {
       serial_writestr("ok Q:");
       serwrite_uint32(plan_queue_size());
+      serial_writestr(" N:");
+      serwrite_uint32(next_target.N);
       serial_writestr("\r\n");
 
   }

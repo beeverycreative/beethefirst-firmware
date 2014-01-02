@@ -124,5 +124,4 @@ uint8_t plan_queue_size(void);
 
 // flush the queue for eg; emergency stop
 void queue_flush(void);
-
 #endif

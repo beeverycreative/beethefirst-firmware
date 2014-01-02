@@ -343,8 +343,7 @@ static void planner_recalculate_trapezoids()
 //
 // All planner computations are performed with doubles (float on Arduinos) to minimize numerical round-
 // off errors. Only when planned values are converted to stepper rate parameters, these are integers.
-
-static void planner_recalculate() {     
+static void planner_recalculate() {
   planner_reverse_pass();
   planner_forward_pass();
   
@@ -433,7 +432,9 @@ void plan_buffer_line (tActionRequest *pAction)
   
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
-  while(block_buffer_head == next_buffer_tail) { sleep_mode(); }
+  while(block_buffer_head == next_buffer_tail) {
+      sleep_mode();
+  }
   
   // Prepare to set up new block
   block = &block_buffer[block_buffer_tail];
@@ -824,10 +825,6 @@ uint8_t plan_queue_size(void)
 }
 void queue_flush()
 {
- //disableHwTimer(0);
-  //stopBlink();
-
   // flush queue
-  block_buffer_tail= block_buffer_head;
-
+  block_buffer_tail = block_buffer_head;
 }
