@@ -192,7 +192,7 @@ int app_main (void)
     // grbl init
     plan_init();
     st_init();
-    WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_INT_ONLY );
+    WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
     WDT_Start (1000000);
 
     // main loop

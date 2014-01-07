@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.10.2-beta+20140107180700
+o wdt passa a reiniciar a R2c2
+
 BEETHEFIRST-firmware-3.10.1-beta+20140102160700
 agora só envia o nºde comando quando o recebe
 
