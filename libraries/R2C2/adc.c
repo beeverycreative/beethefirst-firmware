@@ -31,7 +31,7 @@ uint16_t analog_read(uint8_t adc_channel)
   ADC_StartCmd(LPC_ADC, ADC_START_NOW);
 
   // Wait conversion complete
-  while (!(ADC_ChannelGetStatus(LPC_ADC, adc_channel, ADC_DATA_DONE))) ;
+  while (!(ADC_ChannelGetStatus(LPC_ADC, adc_channel, ADC_DATA_DONE))){WDT_Feed();} ;
 
   ADC_ChannelCmd(LPC_ADC, adc_channel, DISABLE);
 

@@ -169,16 +169,6 @@ void WDT_IRQHandler(void){
     }
 }
 
-void usb_teste(void){
-
-    NVIC_DisableIRQ(USB_IRQn);
-
-    GPIO_ClearValue(1, (1 << 14));
-    GPIO_SetValue(1, (1 << 14));
-
-    NVIC_EnableIRQ(USB_IRQn);
-
-}
 
 int app_main (void)
 {
@@ -210,14 +200,17 @@ int app_main (void)
     // main loop
     for (;;)
     {
-
-        usb_teste();
-
         WDT_Feed();
 
         //bip a cada +-20s
         if(bip == 1){
            buzzer_play(2500, 100);
+           /*check if temperature is valid*/
+           temperature = temp_get(EXTRUDER_0);
+           if (temperature > 250){
+              extruder_heater_off();
+              serial_writestr ("overheated\r\n");
+           }
         }else if(bip == 7000000){
            bip=0;
         }
@@ -288,12 +281,7 @@ int app_main (void)
             }
 
         }
-        /*check if temperature is valid*/
-        temperature = temp_get(EXTRUDER_0);
-        if (temperature > 250){
-           extruder_heater_off();
-           serial_writestr ("overheated\r\n");
-        }
+
 
       }
 }

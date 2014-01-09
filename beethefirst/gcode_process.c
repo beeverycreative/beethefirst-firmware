@@ -47,6 +47,7 @@
 #include "bootloader.h"
 #include "sbl_config.h"
 #include "system_LPC17xx.h"
+#include "lpc17xx_wdt.h"
 
 FIL       file;
 uint32_t  filesize = 0;
@@ -934,6 +935,7 @@ eParseResult process_gcode_command()
       // M104- set temperature
       case 104:
       {
+        /*
           if(sd_printing){
               config.status = 0;
               break;
@@ -952,6 +954,8 @@ eParseResult process_gcode_command()
                   enqueue_wait_temp();
               }
           }
+          */
+        __disable_irq();
       }
       break;
 
@@ -1040,7 +1044,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.10.2");
+          serial_writestr(" 3.10.3");
           serial_writestr(" ");
       }
       break;
