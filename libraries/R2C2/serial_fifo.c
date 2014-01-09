@@ -35,97 +35,110 @@
 
 void fifo_init(fifo_t *fifo, unsigned char *buf)
 {
-	fifo->head = 0;
-	fifo->tail = 0;
-	fifo->buf = buf;
+    fifo->head = 0;
+    fifo->tail = 0;
+    fifo->buf = buf;
 }
 
 // Atomic version
 unsigned char fifo_put(fifo_t *fifo, unsigned char c)
 {
-  while((fifo_free(&txfifo)<1)){
-      continue;
-  }
+    while((fifo_free(&txfifo)<1)){
+        WDT_Feed();
+        continue;
+    }
 
-  unsigned char t;
+    unsigned char t;
 
-  NVIC_DisableIRQ(USB_IRQn);
-  t = _fifo_put(fifo, c);
-  NVIC_EnableIRQ(USB_IRQn);
+    NVIC_DisableIRQ(USB_IRQn);
+    t = _fifo_put(fifo, c);
+    NVIC_EnableIRQ(USB_IRQn);
 
-  return t;
+    return t;
 }
 
 unsigned char _fifo_put(fifo_t *fifo, unsigned char c)
 {
-	int next;
-	
-	// check if FIFO has room
-	next = (fifo->head + 1) % SERIAL_FIFO_SIZE;
-	if (next == fifo->tail) {
-		// full
-		return FALSE;
-	}
-	
-	fifo->buf[fifo->head] = c;
-	fifo->head = next;
-	
-	return TRUE;
+    int next;
+
+    // check if FIFO has room
+    next = (fifo->head + 1) % SERIAL_FIFO_SIZE;
+    if (next == fifo->tail) {
+            // full
+            return FALSE;
+    }
+
+    fifo->buf[fifo->head] = c;
+    fifo->head = next;
+
+    return TRUE;
 }
 
 // Atomic version
 unsigned char fifo_get(fifo_t *fifo, unsigned char *pc)
 {
-  unsigned char t;
-  NVIC_DisableIRQ(USB_IRQn);
-  t = _fifo_get(fifo, pc);
-  NVIC_EnableIRQ(USB_IRQn);
-  return t;
+    unsigned char t;
+
+    NVIC_DisableIRQ(USB_IRQn);
+
+    t = _fifo_get(fifo, pc);
+
+    NVIC_EnableIRQ(USB_IRQn);
+
+    return t;
 }
 
 unsigned char _fifo_get(fifo_t *fifo, unsigned char *pc)
 {
-	int next;
-	
-	// check if FIFO has data
-	if (fifo->head == fifo->tail) {
-		return FALSE;
-	}
-	
-	next = (fifo->tail + 1) % SERIAL_FIFO_SIZE;
-	
-	*pc = fifo->buf[fifo->tail];
-	fifo->tail = next;
+    int next;
 
-	return TRUE;
+    // check if FIFO has data
+    if (fifo->head == fifo->tail) {
+            return FALSE;
+    }
+
+    next = (fifo->tail + 1) % SERIAL_FIFO_SIZE;
+
+    *pc = fifo->buf[fifo->tail];
+    fifo->tail = next;
+
+    return TRUE;
 }
 
 //Atomic version
 int fifo_avail(fifo_t *fifo)
 {
-  int t;
-  NVIC_DisableIRQ(USB_IRQn);
-  t = _fifo_avail(fifo);
-  NVIC_EnableIRQ(USB_IRQn);
-  return t;
+    int t;
+
+    NVIC_DisableIRQ(USB_IRQn);
+
+    t = _fifo_avail(fifo);
+
+    NVIC_EnableIRQ(USB_IRQn);
+
+    return t;
 }
 
 int _fifo_avail(fifo_t *fifo)
 {
-	return (SERIAL_FIFO_SIZE + fifo->head - fifo->tail) % SERIAL_FIFO_SIZE;
+    return (SERIAL_FIFO_SIZE + fifo->head - fifo->tail) % SERIAL_FIFO_SIZE;
 }
 
 //Atomic version
 int fifo_free(fifo_t *fifo)
 {
   int t;
+
   NVIC_DisableIRQ(USB_IRQn);
+
   t = _fifo_free(fifo);
+
   NVIC_EnableIRQ(USB_IRQn);
+
   return t;
 }
 
 int _fifo_free(fifo_t *fifo)
 {
-	return (SERIAL_FIFO_SIZE - 1 - fifo_avail(fifo));
+    return (SERIAL_FIFO_SIZE - 1 - fifo_avail(fifo));
 }

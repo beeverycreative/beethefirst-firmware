@@ -34,12 +34,14 @@ int main(void)
   SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
   SysTickTimer_Init(); // Initialize the timer for millis()
+  WDT_Feed();
 
   delay_ms(500);
 
   // Initialize USB<->Serial
   serial_init();
   
+  WDT_Feed();
 
   app_main ();
 

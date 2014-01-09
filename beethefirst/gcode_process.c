@@ -941,7 +941,11 @@ eParseResult process_gcode_command()
 
           if (config.enable_extruder_1)
           {
-              temp_set(next_target.S, EXTRUDER_0);
+              if(next_target.S > 250){
+                  temp_set(250, EXTRUDER_0);
+              }else{
+                  temp_set(next_target.S, EXTRUDER_0);
+              }
 
               if (config.wait_on_temp)
               {

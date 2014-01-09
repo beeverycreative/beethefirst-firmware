@@ -75,6 +75,7 @@ void temp_set(uint16_t t, uint8_t sensor_number)
 
 uint16_t temp_get(uint8_t sensor_number)
 {
+  current_temp[sensor_number] = read_temp(sensor_number);
   return current_temp[sensor_number];
 }
 
