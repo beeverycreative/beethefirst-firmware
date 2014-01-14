@@ -205,12 +205,15 @@ int app_main (void)
         //bip a cada +-20s
         if(bip == 1){
            buzzer_play(2500, 100);
+
            /*check if temperature is valid*/
            temperature = temp_get(EXTRUDER_0);
+
            if (temperature > 250){
               extruder_heater_off();
               serial_writestr ("overheated\r\n");
            }
+
         }else if(bip == 7000000){
            bip=0;
         }

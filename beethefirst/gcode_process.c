@@ -935,27 +935,24 @@ eParseResult process_gcode_command()
       // M104- set temperature
       case 104:
       {
-        /*
+
           if(sd_printing){
               config.status = 0;
               break;
           }
 
-          if (config.enable_extruder_1)
-          {
+          if (config.enable_extruder_1){
+
               if(next_target.S > 250){
                   temp_set(250, EXTRUDER_0);
               }else{
                   temp_set(next_target.S, EXTRUDER_0);
               }
 
-              if (config.wait_on_temp)
-              {
+              if (config.wait_on_temp){
                   enqueue_wait_temp();
               }
           }
-          */
-        __disable_irq();
       }
       break;
 
@@ -1044,7 +1041,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.10.3");
+          serial_writestr(" 3.12.0");
           serial_writestr(" ");
       }
       break;
@@ -1492,6 +1489,21 @@ eParseResult process_gcode_command()
       }
       break;
 
+      //calibrate
+      case 603:
+      {
+          tTarget new_pos;
+
+          //recalculate distante from home
+          config.home_pos_z -= startpoint.z;
+
+          //my position is zero
+          new_pos = startpoint;
+          new_pos.z = 0;
+          plan_set_current_position (&new_pos);
+
+      }
+      break;
       //set home position absolute
       case 604:
       {

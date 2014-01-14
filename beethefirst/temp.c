@@ -140,12 +140,11 @@ static uint16_t read_temp(uint8_t sensor_number)
   int16_t celsius = 0;
   uint8_t i;
 
-  if (sensor_number == EXTRUDER_0)
-  {
+  if (sensor_number == EXTRUDER_0){
     raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
-  }
-  else if (sensor_number == HEATED_BED_0)
-  {
+
+  }else if (sensor_number == HEATED_BED_0){
+
     raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
 
     /* There is a problem with LPC1768 ADC being overdrive with > 3.3V on ADC extruder channel and that makes

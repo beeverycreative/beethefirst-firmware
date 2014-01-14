@@ -35,7 +35,7 @@ int main(void)
 
   SysTickTimer_Init(); // Initialize the timer for millis()
 
-  delay_ms(500);
+  delay_ms(1000);
 
   // Initialize USB<->Serial
   serial_init();

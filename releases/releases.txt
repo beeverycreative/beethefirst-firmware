@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.12.0-beta+20140114101500
+introduzido novo comando para calibração
+
 BEETHEFIRST-firmware-3.10.3-beta+20140109122900
 introduzida segurança na temperatura 
 
