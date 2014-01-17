@@ -204,7 +204,7 @@ int app_main (void)
 
         //bip a cada +-20s
         if(bip == 1){
-           buzzer_play(2500, 100);
+          // buzzer_play(2500, 100);
 
            /*check if temperature is valid*/
            temperature = temp_get(EXTRUDER_0);
