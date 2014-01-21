@@ -49,6 +49,8 @@ struct configuration config;
 
 #define TYPE_INT    0
 #define TYPE_DOUBLE 1
+#define BAD_DOUBLE  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+#define BAD_INT     0xFFFFFFFFFFFFFFFF
 typedef struct {
   char      *name;
   void      *pValue;
@@ -284,55 +286,40 @@ void print_config (void)
 void read_config (void)
 {
     unsigned j;
+    char sector[FLASH_BUF_SIZE];
+    char *pmem = SECTOR_29_START;
+    size_t bytes = (sizeof(config)/sizeof(char));
+    char* pConfig = &config;
+    char read_err = 0;
 
-    // first set defaults
+    //copy from ram to config
+    memcpy(pConfig, pmem, bytes);
+
+    //compares to check if reading is ok
     for (j=0; j < NUM_TOKENS; j++){
         switch (config_lookup[j].type){
             case TYPE_INT:
             {
                 int32_t *pVal = config_lookup[j].pValue;
-                *pVal = config_lookup[j].val_i;
+                if(*pVal==BAD_INT && config_lookup[j].val_i != BAD_INT){
+                    read_err = 1;
+                }/*No need for else*/
                 break;
             }
             case TYPE_DOUBLE:
             {
                 double *pVal = config_lookup[j].pValue;
-                *pVal = config_lookup[j].val_d;
+                if(*pVal==BAD_DOUBLE && config_lookup[j].val_d != BAD_DOUBLE){
+                    read_err = 1;
+                }/*No need for else*/
                 break;
             }
         }
     }
 
-
-    char sector[FLASH_BUF_SIZE];
-    char *pmem = SECTOR_29_START;
-    size_t bytes = (sizeof(config)/sizeof(char));
-    char* pConfig = &config;
-
-    if(*pmem != 0xFF){
-        memcpy(pConfig, pmem, bytes);
-    }else{
-        memcpy(&sector, pConfig, bytes);
-
-        while (bytes < FLASH_BUF_SIZE) {
-            sector[bytes] = 255;
-            bytes++;
-        }
-
-        prepare_sector(29, 29, SystemCoreClock);
-        erase_sector(29, 29, SystemCoreClock);
-
-        prepare_sector(29, 29, SystemCoreClock);
-        write_data(   (unsigned)(SystemCoreClock/1000),
-                                (unsigned)(SECTOR_29_START),
-                                (unsigned)sector,
-                                (unsigned)FLASH_BUF_SIZE);
-
-        compare_data((unsigned)(SystemCoreClock/1000),
-                                (unsigned)(SECTOR_29_START),
-                                (unsigned)sector,
-                                (unsigned)FLASH_BUF_SIZE);
-    }
+    if(read_err){
+        reset_config();
+    }/*No need for else*/
 
     /* Initialize using values read from "config.txt" file */
     gcode_parse_init();

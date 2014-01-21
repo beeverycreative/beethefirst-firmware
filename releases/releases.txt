@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.13.0-beta+20140121150900
+introduzida segurança entre versões do config
+
 BEETHEFIRST-firmware-3.12.1-beta+20140117110600
 retirado o bip
 
