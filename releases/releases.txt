@@ -1,4 +1,4 @@
-BEETHEFIRST-firmware-3.13.0-beta+20140121150900
+BEETHEFIRST-firmware-3.14.0-beta+20140127121200
 acrescentado comando M636 para activar e desactivar bip
 
 BEETHEFIRST-firmware-3.13.0-beta+20140121150900
