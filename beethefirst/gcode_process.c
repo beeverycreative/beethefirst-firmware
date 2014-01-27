@@ -728,7 +728,7 @@ eParseResult process_gcode_command()
         if(next_target.seen_N){
             serial_writestr(" N:");
             serwrite_uint32(next_target.N);
-            next_target.N = 0;
+            //next_target.N = 0;
         }
         serial_writestr("\r\n");
         reply_sent = 1;
@@ -1041,7 +1041,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.14.0");
+          serial_writestr(" 3.15.0");
           serial_writestr(" ");
       }
       break;
@@ -1609,6 +1609,20 @@ eParseResult process_gcode_command()
           }
       }
       break;
+
+      case 637:
+      {
+        reply_sent = 1;
+      }
+      break;
+
+      case 638:
+      {
+        serial_writestr("last N:");
+        serwrite_uint32(next_target.N);
+      }
+      break;
+
       // unknown mcode: spit an error
       default:
       {
@@ -1618,7 +1632,7 @@ eParseResult process_gcode_command()
         if(next_target.seen_N){
             serial_writestr(" N:");
             serwrite_uint32(next_target.N);
-            next_target.N = 0;
+            //next_target.N = 0;
 
         }
         serial_writestr("\r\n");
@@ -1636,7 +1650,7 @@ eParseResult process_gcode_command()
       if(next_target.seen_N){
           serial_writestr(" N:");
           serwrite_uint32(next_target.N);
-          next_target.N = 0;
+          //next_target.N = 0;
       }
       serial_writestr("\r\n");
 

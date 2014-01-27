@@ -18,7 +18,7 @@
 #include "lpc17xx_pinsel.h"
 
 //Debug UART can be 0 or 3
-#define DBG_UART_NUM  0 
+#define DBG_UART_NUM  3
 #define DBG_UART      LPC_UART3
 
 void uart_init(void)
@@ -92,6 +92,9 @@ char uart_receive(void)
 
 void uart_send(char byte)
 {
+  //LSR - Line Status Register. Contains flags for transmit and
+  //receive status, including line errors.
+
 	while ( (DBG_UART->LSR & UART_LSR_THRE) == 0) ;
 	UART_SendByte(DBG_UART, byte);
 }

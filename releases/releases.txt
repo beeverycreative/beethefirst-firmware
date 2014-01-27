@@ -1,3 +1,7 @@
+BEETHEFIRST-firmware-3.15.0-beta+20140127151200
+acrescentado comando M637 que não faz nada
+acrescentado comando M638 que envia o último N executado
+
 BEETHEFIRST-firmware-3.14.0-beta+20140127121200
 acrescentado comando M636 para activar e desactivar bip
 
