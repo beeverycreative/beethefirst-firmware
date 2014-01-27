@@ -34,6 +34,7 @@
 #include	<stdint.h>
 
 #include "planner.h"
+uint32_t bip_switch;
 
 // whether the asterisk (checksum-command) is included for checksum calculation
 // undefined for RepRap host software

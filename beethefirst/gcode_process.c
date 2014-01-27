@@ -29,8 +29,8 @@
 */
 
 #include <string.h>
-#include "gcode_process.h"
 #include "gcode_parse.h"
+#include "gcode_process.h"
 #include "serial.h"
 #include "sermsg.h"
 #include "sersendf.h"
@@ -1041,7 +1041,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.13.0");
+          serial_writestr(" 3.14.0");
           serial_writestr(" ");
       }
       break;
@@ -1593,13 +1593,22 @@ eParseResult process_gcode_command()
       case 625:
       {
           serial_writestr(" S:");
-          serwrite_uint32(config.status);
+          serwrite_int32(config.status);
           serial_writestr(" ");
           if(config.status == 0)
              config.status = 3;
       }
       break;
 
+      case 636:
+      {
+          if(bip_switch == 0){
+              bip_switch = 1;
+          }else{
+              bip_switch = 0;
+          }
+      }
+      break;
       // unknown mcode: spit an error
       default:
       {

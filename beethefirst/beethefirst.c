@@ -178,7 +178,7 @@ int app_main (void)
     int temperature = 0;
 
     bip = 2;
-
+    bip_switch = 0;
     //watchdog cycle
     pin_mode(1, (1<<14), 1);
 
@@ -204,7 +204,9 @@ int app_main (void)
 
         //bip a cada +-20s
         if(bip == 1){
-          // buzzer_play(2500, 100);
+            if(bip_switch){
+                buzzer_play(2500, 100);
+            }
 
            /*check if temperature is valid*/
            temperature = temp_get(EXTRUDER_0);
@@ -214,7 +216,7 @@ int app_main (void)
               serial_writestr ("overheated\r\n");
            }
 
-        }else if(bip == 7000000){
+        }else if(bip == 4000000){
            bip=0;
         }
         WDT_Feed();
