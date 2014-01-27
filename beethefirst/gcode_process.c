@@ -1041,7 +1041,7 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.15.0");
+          serial_writestr(" 3.16.0");
           serial_writestr(" ");
       }
       break;
@@ -1620,6 +1620,19 @@ eParseResult process_gcode_command()
       {
         serial_writestr("last N:");
         serwrite_uint32(next_target.N);
+      }
+      break;
+
+      case 639:
+      {
+          for(int i=0;i<120;i++){
+              if(next_target.filename[i]){
+                  serial_writechar(next_target.filename[i]);
+              }else{
+                  break;
+              }
+          }
+          serial_writestr(" ");
       }
       break;
 

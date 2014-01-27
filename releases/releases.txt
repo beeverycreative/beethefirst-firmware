@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.16.0-beta+20140127161800
+acrescentado comando M639 que faz o echo
+
 BEETHEFIRST-firmware-3.15.0-beta+20140127151200
 acrescentado comando M637 que não faz nada
 acrescentado comando M638 que envia o último N executado
