@@ -83,6 +83,7 @@ typedef struct {
 
 	uint8_t					seen_P	:1;
 	uint8_t					seen_N	:1;
+	uint8_t                                 seen_B  :1;
 	uint8_t					seen_checksum				:1;
 	uint8_t					seen_semi_comment		:1;
 	uint8_t					seen_parens_comment	:1;

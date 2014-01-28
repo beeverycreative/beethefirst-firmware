@@ -723,14 +723,16 @@ eParseResult process_gcode_command()
       // unknown gcode: spit an error
       default:
         config.status = 0;
-        serial_writestr("ok - Error: Bad G-code ");
-        serwrite_uint8(next_target.G);
-        if(next_target.seen_N){
-            serial_writestr(" N:");
-            serwrite_uint32(next_target.N);
-            //next_target.N = 0;
+        if(!next_target.seen_B){
+            serial_writestr("ok - Error: Bad G-code ");
+            serwrite_uint8(next_target.G);
+            if(next_target.seen_N){
+                serial_writestr(" N:");
+                serwrite_uint32(next_target.N);
+                //next_target.N = 0;
+            }
+            serial_writestr("\r\n");
         }
-        serial_writestr("\r\n");
         reply_sent = 1;
     }
   }
@@ -959,7 +961,9 @@ eParseResult process_gcode_command()
       // M105- get temperature
       case 105:
       {
-          temp_print();
+          if(!next_target.seen_B){
+              temp_print();
+          }
       }
       break;
 
@@ -1041,8 +1045,10 @@ eParseResult process_gcode_command()
       // M115 - report firmware version
       case 115:
       {
-          serial_writestr(" 3.16.0");
-          serial_writestr(" ");
+          if(!next_target.seen_B){
+              serial_writestr(" 3.17.0");
+              serial_writestr(" ");
+          }
       }
       break;
 
@@ -1089,7 +1095,9 @@ eParseResult process_gcode_command()
            if (next_target.option_inches){
                config.status = 0;
           }else{
-             sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+              if(!next_target.seen_B){
+                  sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+              }
           }
        }
        break;
@@ -1234,11 +1242,13 @@ eParseResult process_gcode_command()
       case 200:
       {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
-              sersendf ("X%g Y%g Z%g E%g ",
+              if(!next_target.seen_B){
+                  sersendf ("X%g Y%g Z%g E%g ",
                         config.steps_per_mm_x,
                         config.steps_per_mm_y,
                         config.steps_per_mm_z,
                         config.steps_per_mm_e);
+              }
           }else{
               if (next_target.seen_X){
                   config.steps_per_mm_x = next_target.target.x;
@@ -1293,9 +1303,10 @@ eParseResult process_gcode_command()
       case 206:
       {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
-
-              sersendf (" X%g ",
+              if(!next_target.seen_B){
+                  sersendf (" X%g ",
                         config.acceleration);
+              }
           }else{
               if (next_target.seen_X){
                   config.acceleration = next_target.target.x;
@@ -1479,7 +1490,9 @@ eParseResult process_gcode_command()
       // M600 print the values read from the config file
       case 600:
       {
-          print_config();
+          if(!next_target.seen_B){
+              print_config();
+          }
       }
       break;
 
@@ -1592,11 +1605,13 @@ eParseResult process_gcode_command()
 
       case 625:
       {
-          serial_writestr(" S:");
-          serwrite_int32(config.status);
-          serial_writestr(" ");
-          if(config.status == 0)
-             config.status = 3;
+          if(!next_target.seen_B){
+              serial_writestr(" S:");
+              serwrite_int32(config.status);
+              serial_writestr(" ");
+              if(config.status == 0)
+                 config.status = 3;
+          }
       }
       break;
 
@@ -1618,21 +1633,27 @@ eParseResult process_gcode_command()
 
       case 638:
       {
-        serial_writestr("last N:");
-        serwrite_uint32(next_target.N);
+        if(!next_target.seen_B){
+            serial_writestr("last N:");
+            serwrite_uint32(next_target.N);
+            serial_writestr(" ");
+        }
+
       }
       break;
 
       case 639:
       {
-          for(int i=0;i<120;i++){
-              if(next_target.filename[i]){
-                  serial_writechar(next_target.filename[i]);
-              }else{
-                  break;
-              }
+          if(!next_target.seen_B){
+            for(int i=0;i<120;i++){
+                if(next_target.filename[i]){
+                    serial_writechar(next_target.filename[i]);
+                }else{
+                    break;
+                }
+            }
+            serial_writestr(" ");
           }
-          serial_writestr(" ");
       }
       break;
 
@@ -1640,32 +1661,38 @@ eParseResult process_gcode_command()
       default:
       {
         config.status = 0;
-        serial_writestr("ok - E: Bad M-code ");
-        serwrite_uint8(next_target.M);
-        if(next_target.seen_N){
-            serial_writestr(" N:");
-            serwrite_uint32(next_target.N);
-            //next_target.N = 0;
+        if(!next_target.seen_B){
+            serial_writestr("ok - E: Bad M-code ");
+            serwrite_uint8(next_target.M);
+            if(next_target.seen_N){
+                serial_writestr(" N:");
+                serwrite_uint32(next_target.N);
+                //next_target.N = 0;
 
+            }
+            serial_writestr("\r\n");
         }
-        serial_writestr("\r\n");
         reply_sent = 1;
       }
     }
   }else{
-      serial_writestr("E: Bad code ");
+      if(!next_target.seen_B){
+          serial_writestr("E: Bad code ");
+      }
   }
 
   if (!reply_sent)
   {
-      serial_writestr("ok Q:");
-      serwrite_uint32(plan_queue_size());
-      if(next_target.seen_N){
-          serial_writestr(" N:");
-          serwrite_uint32(next_target.N);
-          //next_target.N = 0;
+      if(!next_target.seen_B){
+          serial_writestr("ok Q:");
+          serwrite_uint32(plan_queue_size());
+          if(next_target.seen_N){
+              serial_writestr(" N:");
+              serwrite_uint32(next_target.N);
+              //next_target.N = 0;
+          }
+          serial_writestr("\r\n");
       }
-      serial_writestr("\r\n");
 
   }
 

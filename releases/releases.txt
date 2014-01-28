@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.17.0-beta+20140128113300
+acrescentado o comando B que suprime os prints
+
 BEETHEFIRST-firmware-3.16.0-beta+20140127161800
 acrescentado comando M639 que faz o echo
 

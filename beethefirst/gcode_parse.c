@@ -42,34 +42,6 @@
 
 GCODE_COMMAND next_target;
 
-/*
-	Switch user friendly values to coding friendly values
-
-	This also affects the possible build volume. We have +-2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
-
-		2^31 mm / STEPS_PER_MM_x / 1000
-
-	for each axis. For a M6 threaded rod driven machine and 1/16 microstepping this evaluates to
-
-		2^31 mm / 200 / 1 / 16 / 1000 = 671 mm,
-
-	which is about the worst case we have. All other machines have a bigger build volume.
-*/
-
-#if 0
-static uint32_t steps_per_m_x;
-static uint32_t steps_per_m_y;
-static uint32_t steps_per_m_z;
-static uint32_t steps_per_m_e;
-
-static double steps_per_in_x;
-static double steps_per_in_y;
-static double steps_per_in_z;
-static double steps_per_in_e;
-#endif
-
-
-
 static uint8_t last_field = 0;
 
 #define crc(a, b)		(a ^ b)
@@ -89,18 +61,7 @@ void request_resend(void);
 
 void gcode_parse_init(void)
 {
-#if 0
-  steps_per_m_x = ((uint32_t) (config.steps_per_mm_x * 1000.0));
-  steps_per_m_y = ((uint32_t) (config.steps_per_mm_y * 1000.0));
-  steps_per_m_z = ((uint32_t) (config.steps_per_mm_z * 1000.0));
-  steps_per_m_e = ((uint32_t) (config.steps_per_mm_e * 1000.0));
 
-  // same as above with 25.4 scale factor
-  steps_per_in_x = ((double) (25.4 * config.steps_per_mm_x));
-  steps_per_in_y = ((double) (25.4 * config.steps_per_mm_y));
-  steps_per_in_z = ((double) (25.4 * config.steps_per_mm_z));
-  steps_per_in_e = ((double) (25.4 * config.steps_per_mm_e));
-#endif  
   next_target.target.feed_rate = config.homing_feedrate_z;
 }
 
@@ -201,7 +162,7 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
     next_target.seen_E = next_target.seen_F = next_target.seen_S = \
     next_target.seen_P = next_target.seen_N = next_target.seen_M = \
-    next_target.seen_N = \
+    next_target.seen_N = next_target.seen_B = \
     next_target.seen_checksum = next_target.seen_semi_comment = \
     next_target.seen_parens_comment = next_target.checksum_read = \
     next_target.checksum_calculated = 0;
@@ -436,6 +397,10 @@ void gcode_parse_char(uint8_t c)
 
       case 'N':
       next_target.seen_N = 1;
+      break;
+
+      case 'B':
+      next_target.seen_B = 1;
       break;
 
       case '*':
