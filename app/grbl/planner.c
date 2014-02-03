@@ -715,7 +715,6 @@ void plan_buffer_wait (tActionRequest *pAction)
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
   while(block_buffer_head == next_buffer_tail) {
-      WDT_Feed();
 
       sleep_mode();
   }

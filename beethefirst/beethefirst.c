@@ -195,7 +195,7 @@ int app_main (void)
     plan_init();
     st_init();
     WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
-    WDT_Start (1000000);
+    WDT_Start (10000000);
 
     // main loop
     for (;;)
@@ -219,7 +219,6 @@ int app_main (void)
         }else if(bip == 4000000){
            bip=0;
         }
-        WDT_Feed();
 
         bip++;
 
@@ -229,8 +228,6 @@ int app_main (void)
         // process characters from the serial port
         while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
         {
-            WDT_Feed();
-
             unsigned char c = serial_popchar();
 
             if (serial_line_buf.len < MAX_LINE)

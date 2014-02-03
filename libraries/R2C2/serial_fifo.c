@@ -44,7 +44,6 @@ void fifo_init(fifo_t *fifo, unsigned char *buf)
 unsigned char fifo_put(fifo_t *fifo, unsigned char c)
 {
     while((fifo_free(&txfifo)<1)){
-        WDT_Feed();
         continue;
     }
 

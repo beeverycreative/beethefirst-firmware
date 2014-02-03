@@ -69,9 +69,12 @@ void NVIC_DeInit(void)
 	NVIC->ICPR[0] = 0xFFFFFFFF;
 	NVIC->ICPR[1] = 0x00000001;
 
+	//wdt has higher priority
+        NVIC->IP[0] = 0x78787800;
+
 	/* Clear all interrupt priority */
-	for (tmp = 0; tmp < 32; tmp++) {
-		NVIC->IP[tmp] = 0x00;
+	for (tmp = 1; tmp < 32; tmp++) {
+		NVIC->IP[tmp] = 0x78787878;
 	}
 }
 
@@ -113,7 +116,7 @@ void NVIC_SCBDeInit(void)
 	SCB->DFSR = 0xFFFFFFFF;
 
 
-        NVIC_SetPriority(WDT_IRQn, 31);
+        NVIC_SetPriority(WDT_IRQn, 0);
         NVIC_EnableIRQ(WDT_IRQn);
 }
 
