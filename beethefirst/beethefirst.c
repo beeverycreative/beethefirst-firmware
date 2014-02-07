@@ -195,7 +195,7 @@ int app_main (void)
     plan_init();
     st_init();
     WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
-    WDT_Start (10000000);
+    WDT_Start (30000000);
 
     // main loop
     for (;;)

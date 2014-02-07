@@ -1046,7 +1046,7 @@ eParseResult process_gcode_command()
       case 115:
       {
           if(!next_target.seen_B){
-              serial_writestr(" 3.21.0");
+              serial_writestr(" 3.21.2");
               serial_writestr(" ");
           }
       }
