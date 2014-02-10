@@ -207,15 +207,14 @@ int app_main (void)
             if(bip_switch){
                 buzzer_play(2500, 100);
             }
-
-           /*check if temperature is valid*/
+/*
            temperature = temp_get(EXTRUDER_0);
 
            if (temperature > 250){
               extruder_heater_off();
               serial_writestr ("overheated\r\n");
            }
-
+*/
         }else if(bip == 4000000){
            bip=0;
         }

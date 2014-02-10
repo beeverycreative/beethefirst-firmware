@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.21.4-beta+20140210152900
+retirado a protecção de temperatura
+
 BEETHEFIRST-firmware-3.21.2-beta+20140207164900
 aumentado o tempo do WDT
 
