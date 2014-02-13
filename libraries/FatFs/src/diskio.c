@@ -1,109 +1,128 @@
 /*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for FatFs                          */
-/* (C)ChaN, 2007                                                         */
-/* Copyright (c) 2010, Martin Thomas                                     */
-/* Copyright (c) 2010, Jorge Pinto, Hardware_Box                         */
+/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2013        */
 /*-----------------------------------------------------------------------*/
-/* This is a stub disk I/O module that acts as front end of the existing */
-/* disk I/O modules and attach it to FatFs module with common interface. */
+/* If a working storage control module is available, it should be        */
+/* attached to the FatFs via a glue function rather than modifying it.   */
+/* This is an example of glue functions to attach various exsisting      */
+/* storage control module to the FatFs module with a defined API.        */
 /*-----------------------------------------------------------------------*/
 
 #include "integer.h"
 #include "diskio.h"
 #include "sdcard.h"
 
+#define MMC             1
 
 /*-----------------------------------------------------------------------*/
-/* disk-timer - forwarded to low-level drivers                           */
+/* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
-void disk_timerproc(void)
-{
-      MMC_disk_timerproc();
-}
-
-/*-----------------------------------------------------------------------*/
-/* Initialize a Drive                                                    */
-/*-----------------------------------------------------------------------*/
-
-DSTATUS disk_initialize(BYTE drv)
-{
-  (void) drv;
-
+DSTATUS disk_initialize (
+    BYTE pdrv				/* Physical drive nmuber (0..) */
+){
   DSTATUS stat;
-  stat = MMC_disk_initialize();
-  return stat;
+  int result;
+
+  if (pdrv != MMC) {
+
+      result = MMC_disk_initialize();
+
+      // translate the reslut code here
+
+      return stat;
+  }else{
+
+      return STA_NOINIT;
+  }
 }
 
+
+
 /*-----------------------------------------------------------------------*/
-/* Return Disk Status                                                    */
+/* Get Disk Status                                                       */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status(BYTE drv)
-{
-  (void) drv;
-
+DSTATUS disk_status (
+    BYTE pdrv		/* Physical drive nmuber (0..) */
+){
   DSTATUS stat;
-  stat = MMC_disk_status();
-  return stat;
+  int result;
+
+  if(pdrv != MMC){
+      result = MMC_disk_status();
+      return stat;
+  }else{
+      return STA_NOINIT;
+  }
 }
+
+
 
 /*-----------------------------------------------------------------------*/
 /* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read(BYTE drv, /* Physical drive number (0..) */
-                BYTE *buff, /* Data buffer to store read data */
-                DWORD sector, /* Sector address (LBA) */
-                BYTE count /* Number of sectors to read (1..255) */
-)
-{
-  (void) drv;
-
+DRESULT disk_read (
+    BYTE pdrv,		/* Physical drive nmuber (0..) */
+    BYTE *buff,		/* Data buffer to store read data */
+    DWORD sector,	/* Sector address (LBA) */
+    UINT count		/* Number of sectors to read (1..128) */
+){
   DRESULT res;
+  int result;
 
-  res = MMC_disk_read(buff, sector, count);
-  return res;
+  if(pdrv != MMC){
+      result = MMC_disk_read(buff, sector, count);      return res;
+
+  }else{
+      return RES_PARERR;
+  }
 }
+
+
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
 /*-----------------------------------------------------------------------*/
-/* The FatFs module will issue multiple sector transfer request
- /  (count > 1) to the disk I/O layer. The disk function should process
- /  the multiple sector transfer properly Do. not translate it into
- /  multiple single sector transfers to the media, or the data read/write
- /  performance may be drastically decreased. */
 
-#if _READONLY == 0
-DRESULT disk_write(BYTE drv, /* Physical drive number (0..) */
-        const BYTE *buff, /* Data to be written */
-        DWORD sector, /* Sector address (LBA) */
-        BYTE count /* Number of sectors to write (1..255) */
-)
-{
-  (void) drv;
-
+#if _USE_WRITE
+DRESULT disk_write (
+    BYTE pdrv,			/* Physical drive nmuber (0..) */
+    const BYTE *buff,	/* Data to be written */
+    DWORD sector,		/* Sector address (LBA) */
+    UINT count			/* Number of sectors to write (1..128) */
+){
   DRESULT res;
-  res = MMC_disk_write(buff, sector, count);
-  return res;
+  int result;
+
+  if(pdrv != MMC){
+      result = MMC_disk_write(buff, sector, count);      return res;
+
+  }else{
+      return RES_PARERR;
+  }
 }
-#endif /* _READONLY */
+#endif
+
 
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_ioctl(BYTE drv, /* Physical drive number (0..) */
-BYTE ctrl, /* Control code */
-void *buff /* Buffer to send/receive control data */
-)
-{
-  (void) drv;
-
+#if _USE_IOCTL
+DRESULT disk_ioctl (
+    BYTE pdrv,		/* Physical drive nmuber (0..) */
+    BYTE cmd,		/* Control code */
+    void *buff		/* Buffer to send/receive control data */
+){
   DRESULT res;
+  int result;
 
-  res = MMC_disk_ioctl(ctrl, buff);
-  return res;
+  if(pdrv != MMC){
+      result = MMC_disk_ioctl(cmd, buff);      return res;
+
+  }else{
+      return RES_PARERR;
+  }
 }
-
+#endif

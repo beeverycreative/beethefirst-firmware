@@ -745,26 +745,21 @@ eParseResult process_gcode_command()
       {
 
           config.status = 0;
-
-#if 0
           serial_writestr("Begin file list\r\n");
           // list files in root folder
           sd_list_dir();
           serial_writestr("End file list\r\n");
-#endif
       }
       break;
 
       case 21: // M21 - init SD card
       {
           config.status = 0;
-
-#if 0
           sd_printing = false;
           sd_initialise();
           // NB : assume that the disk has been mounted in config.c
           // TODO: mount volume here and change config.c
-#endif
+
       }
       break;
 
@@ -772,11 +767,10 @@ eParseResult process_gcode_command()
       {
         config.status = 0;
 
-#if 0
         sd_printing = false;
         sd_active = false;
         // TODO: should unmount volume
-#endif
+
       }
       break;
 
@@ -784,7 +778,6 @@ eParseResult process_gcode_command()
       {
         config.status = 0;
 
-#if 0
           if (!sd_active)
           {
               sd_initialise();
@@ -805,7 +798,7 @@ eParseResult process_gcode_command()
                   sersendf("file.open failed\r\n");
               }
           }
-#endif
+
       }
       break;
 
@@ -813,47 +806,45 @@ eParseResult process_gcode_command()
       case 24: //M24 - Start SD print
       {
           config.status = 0;
-#if 0
+
           if(sd_active)
           {
               config.status = 5;
               sd_printing = true;
           }
-#endif
+
       }
       break;
 
       case 25: //M25 - Pause SD print
       {
         config.status = 0;
-#if 0
           if(sd_printing)
           {
               sd_printing = false;
               config.status = 3;
 
           }
-#endif
       }
       break;
 
       case 26: //M26 - Set SD file pos
       {
           config.status = 0;
-#if 0
+
           if(sd_active && next_target.seen_S)
           {
             sd_pos = next_target.S;  // 16 bit
             sd_seek(&file, sd_pos);
           }
-#endif
+
       }
       break;
 
       case 27: //M27 - Get SD status
       {
           config.status = 0;
-#if 0
+
           if(sd_active)
           {
               sersendf("SD printing byte %d/%d\r\n", sd_pos, filesize);
@@ -862,14 +853,14 @@ eParseResult process_gcode_command()
           {
               serial_writestr("Not SD printing\r\n");
           }
-#endif
+
       }
       break;
 
       case 28: //M28 <filename> - Start SD write
       {
           config.status = 0;
-#if 0
+
           if (!sd_active)
           {
               sd_initialise();
@@ -889,7 +880,6 @@ eParseResult process_gcode_command()
                   sersendf("Writing to file: %s\r\n", next_target.filename);
               }
           }
-#endif
       }
       break;
 
@@ -1592,14 +1582,8 @@ eParseResult process_gcode_command()
 
       case 609:
       {
+          USBHwConnect(FALSE);
           go_to_reset(); // reinicia o sistema
-      }
-      break;
-
-      // M610 - switch to USB bootloader
-      case 610:
-      {
-          go_to_bootloader ();
       }
       break;
 

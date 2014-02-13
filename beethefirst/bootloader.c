@@ -51,39 +51,6 @@ static __INLINE void reset(void)
  * ficheiro para entrar em bootloader. */
 unsigned int go_to_bootloader (void)
 {
-  /* initialize SPI for SDCard */
-  spi_init();
-
-  /* necessário para a FAT */
-  FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file_boot;       /* file object */
-  FRESULT res;    /* FatFs function common result code */
-
-  /* Register a work area for logical drive 0 */
-  res = f_mount(0, &fs);
-  if(res){
-      debug("Err mount fs\n");
-      return 1;
-  }//no need for else
-
-  /* Abre o ficheiro "boot". Caso não exista, é criado. */
-  res = f_open(&file_boot, "boot", FA_WRITE|FA_OPEN_ALWAYS);
-  if (res){
-      debug("Error opening/creating boot\n");
-
-      f_mount(0, NULL); // desmonta
-      return 2;
-  }//no need for else
-
-  res = f_close(&file_boot);
-  if (res){
-      debug("Error closing boot\n");
-
-      f_mount(0, NULL); // desmonta
-      return 3;
-  }//no need for else
-
-  f_mount(0, NULL); // desmonta
 
   reset(); // reset ao sistema
 

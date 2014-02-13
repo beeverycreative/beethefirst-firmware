@@ -173,8 +173,8 @@ SRC = \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/lpc17xx_*.c) \
 	$(APPLIBDIR)/FatFs/src/ff.c \
-	$(APPLIBDIR)/FatFs/src/diskio.c \
 	$(APPLIBDIR)/FatFs/src/fattime.c \
+	$(APPLIBDIR)/FatFs/src/diskio.c \
 	$(APPLIBDIR)/R2C2/ios.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
