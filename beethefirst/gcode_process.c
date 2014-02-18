@@ -75,6 +75,7 @@ static void enqueue_moved (tTarget *pTarget)
   // grbl
   tActionRequest request;
 
+
   if (pTarget->x != startpoint.x || pTarget->y != startpoint.y ||
       pTarget->z != startpoint.z || pTarget->e != startpoint.e
   )
@@ -389,6 +390,8 @@ bool sd_read_file(tLineBuffer *pLine)
   }
   else
   {
+
+
     return false;
   }
 }
@@ -441,16 +444,21 @@ eParseResult process_gcode_command()
     else
     {
         // absolute
-        if (next_target.seen_X)
+        if (next_target.seen_X){
             next_targetd.x = next_target.target.x;
-        if (next_target.seen_Y)
+        }
+        if (next_target.seen_Y){
             next_targetd.y = next_target.target.y;
-        if (next_target.seen_Z)
+        }
+        if (next_target.seen_Z){
             next_targetd.z = next_target.target.z;
-        if (next_target.seen_E)
+        }
+        if (next_target.seen_E){
             next_targetd.e = next_target.target.e;
-        if (next_target.seen_F)
+        }
+        if (next_target.seen_F){
             next_targetd.feed_rate = next_target.target.feed_rate;
+        }
     }
 
     //  sersendf(" X:%ld Y:%ld Z:%ld E:%ld F:%ld\r\n", (int32_t)next_target.target.X, (int32_t)next_target.target.Y, (int32_t)next_target.target.Z, (int32_t)next_target.target.E, (uint32_t)next_target.target.F);
@@ -461,6 +469,7 @@ eParseResult process_gcode_command()
 
   if (next_target.seen_G)
   {
+
     switch (next_target.G)
     {
     // G0 - rapid, unsynchronised motion
@@ -481,8 +490,7 @@ eParseResult process_gcode_command()
       // G1 - synchronised motion
       case 1:
       {
-          if(sd_printing)
-              break;
+
 
           config.status = 4;
 #if 0
@@ -495,6 +503,7 @@ eParseResult process_gcode_command()
           }
 #endif
           enqueue_moved(&next_targetd);
+
       }
       break;
 
@@ -538,17 +547,13 @@ eParseResult process_gcode_command()
       //	G28 - go home
       case 28:
       {
+        //serial_writestr("Go home\n");
 
           next_targetd.feed_rate = config.homing_feedrate_z;
           double aux = config.acceleration;
           config.acceleration = 1000;
           config.status = 4;
 
-          if(sd_printing){
-              config.status = 0;
-
-              break;
-          }
           if (next_target.seen_X)
           {
               zero_x();
@@ -671,13 +676,7 @@ eParseResult process_gcode_command()
       //	G92 - set current position
       case 92:
       {
-
           tTarget new_pos;
-
-          if(sd_printing){
-              config.status = 0;
-              break;
-          }
 
           // must have no moves pending if changing position
           synch_queue();
@@ -723,7 +722,7 @@ eParseResult process_gcode_command()
       // unknown gcode: spit an error
       default:
         config.status = 0;
-        if(!next_target.seen_B){
+        if(!next_target.seen_B && !sd_printing){
             serial_writestr("ok - Error: Bad G-code ");
             serwrite_uint8(next_target.G);
             if(next_target.seen_N){
@@ -738,35 +737,33 @@ eParseResult process_gcode_command()
   }
   else if (next_target.seen_M)
   {
+
     switch (next_target.M)
     {
+
       // SD File functions
       case 20: // M20 - list SD Card files
       {
 
           config.status = 0;
-          serial_writestr("Begin file list\r\n");
-          // list files in root folder
-          sd_list_dir();
-          serial_writestr("End file list\r\n");
+          if(!next_target.seen_B){
+              serial_writestr("Begin file list\r\n");
+              // list files in root folder
+              sd_list_dir();
+              serial_writestr("End file list\r\n");
+          }
       }
       break;
 
       case 21: // M21 - init SD card
       {
-          config.status = 0;
           sd_printing = false;
           sd_initialise();
-          // NB : assume that the disk has been mounted in config.c
-          // TODO: mount volume here and change config.c
-
       }
       break;
 
       case 22: // M22 - release SD card
       {
-        config.status = 0;
-
         sd_printing = false;
         sd_active = false;
         // TODO: should unmount volume
@@ -776,7 +773,6 @@ eParseResult process_gcode_command()
 
       case 23: // M23 <filename> - Select file
       {
-        config.status = 0;
 
           if (!sd_active)
           {
@@ -789,13 +785,20 @@ eParseResult process_gcode_command()
               if (sd_open(&file, next_target.filename, FA_READ))
               {
                   filesize = sd_filesize(&file);
-                  sersendf("File opened: %s Size: %d\r\n", next_target.filename, filesize);
+                  if(!next_target.seen_B){
+
+                      sersendf("File opened: %s Size: %d\r\n", next_target.filename, filesize);
+                      sersendf("File selected\r\n");
+                  }
                   sd_pos = 0;
-                  sersendf("File selected\r\n");
+
               }
               else
               {
-                  sersendf("file.open failed\r\n");
+                  if(!next_target.seen_B){
+
+                      sersendf("file.open failed\r\n");
+                  }
               }
           }
 
@@ -805,8 +808,6 @@ eParseResult process_gcode_command()
 
       case 24: //M24 - Start SD print
       {
-          config.status = 0;
-
           if(sd_active)
           {
               config.status = 5;
@@ -818,7 +819,6 @@ eParseResult process_gcode_command()
 
       case 25: //M25 - Pause SD print
       {
-        config.status = 0;
           if(sd_printing)
           {
               sd_printing = false;
@@ -830,7 +830,6 @@ eParseResult process_gcode_command()
 
       case 26: //M26 - Set SD file pos
       {
-          config.status = 0;
 
           if(sd_active && next_target.seen_S)
           {
@@ -847,11 +846,16 @@ eParseResult process_gcode_command()
 
           if(sd_active)
           {
-              sersendf("SD printing byte %d/%d\r\n", sd_pos, filesize);
+              if(!next_target.seen_B){
+
+                  sersendf("SD printing byte %d/%d\r\n", sd_pos, filesize);
+              }
           }
           else
           {
-              serial_writestr("Not SD printing\r\n");
+              if(!next_target.seen_B){
+                  serial_writestr("Not SD printing\r\n");
+              }
           }
 
       }
@@ -859,7 +863,6 @@ eParseResult process_gcode_command()
 
       case 28: //M28 <filename> - Start SD write
       {
-          config.status = 0;
 
           if (!sd_active)
           {
@@ -872,12 +875,18 @@ eParseResult process_gcode_command()
 
               if (!sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE))
               {
-                  sersendf("open failed, File: %s.\r\n", next_target.filename);
+                  if(!next_target.seen_B){
+
+                      sersendf("open failed, File: %s.\r\n", next_target.filename);
+                  }
               }
               else
               {
                   sd_writing_file = true;
-                  sersendf("Writing to file: %s\r\n", next_target.filename);
+                  if(!next_target.seen_B){
+
+                      sersendf("Writing to file: %s\r\n", next_target.filename);
+                  }
               }
           }
       }
@@ -885,7 +894,7 @@ eParseResult process_gcode_command()
 
       case 29: //M29 - Stop SD write
       {
-          config.status = 0;
+          //config.status = 0;
       }
       break;
 
@@ -928,11 +937,6 @@ eParseResult process_gcode_command()
       case 104:
       {
 
-          if(sd_printing){
-              config.status = 0;
-              break;
-          }
-
           if (config.enable_extruder_1){
 
               if(next_target.S > 250){
@@ -951,7 +955,7 @@ eParseResult process_gcode_command()
       // M105- get temperature
       case 105:
       {
-          if(!next_target.seen_B){
+        if(!next_target.seen_B){
               temp_print();
           }
       }
@@ -989,11 +993,6 @@ eParseResult process_gcode_command()
       // M109- set temp and wait
       case 109:
       {
-          if(sd_printing){
-              config.status = 0;
-              break;
-          }
-
           config.status = 4;
 
           if (config.enable_extruder_1)
@@ -1628,7 +1627,7 @@ eParseResult process_gcode_command()
 
       case 639:
       {
-          if(!next_target.seen_B){
+          if(!next_target.seen_B ){
             for(int i=0;i<120;i++){
                 if(next_target.filename[i]){
                     serial_writechar(next_target.filename[i]);
@@ -1645,7 +1644,7 @@ eParseResult process_gcode_command()
       default:
       {
         config.status = 0;
-        if(!next_target.seen_B){
+        if(!next_target.seen_B && !sd_printing){
             serial_writestr("ok - E: Bad M-code ");
             serwrite_uint8(next_target.M);
             if(next_target.seen_N){
@@ -1660,14 +1659,14 @@ eParseResult process_gcode_command()
       }
     }
   }else{
-      if(!next_target.seen_B){
+      if(!next_target.seen_B && !sd_printing){
           serial_writestr("E: Bad code ");
       }
   }
 
   if (!reply_sent)
   {
-      if(!next_target.seen_B){
+      if(!next_target.seen_B && !sd_printing){
           serial_writestr("ok Q:");
           serwrite_uint32(plan_queue_size());
           if(next_target.seen_N){

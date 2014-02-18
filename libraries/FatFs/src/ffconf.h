@@ -41,7 +41,7 @@
 /* To enable f_mkfs() function, set _USE_MKFS to 1 and set _FS_READONLY to 0 */
 
 
-#define	_USE_FASTSEEK	0	/* 0:Disable or 1:Enable */
+#define	_USE_FASTSEEK	1	/* 0:Disable or 1:Enable */
 /* To enable fast seek feature, set _USE_FASTSEEK to 1. */
 
 
@@ -57,7 +57,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define _CODE_PAGE	932
+#define _CODE_PAGE	1250
 /* The _CODE_PAGE specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /
@@ -112,7 +112,7 @@
 /  functions. */
 
 
-#define _STRF_ENCODE	3	/* 0:ANSI/OEM, 1:UTF-16LE, 2:UTF-16BE, 3:UTF-8 */
+#define _STRF_ENCODE	0	/* 0:ANSI/OEM, 1:UTF-16LE, 2:UTF-16BE, 3:UTF-8 */
 /* When Unicode API is enabled by _LFN_UNICODE option, this option selects the character
 /  encoding on the file to be read/written via string I/O functions, f_gets(), f_putc(),
 /  f_puts and f_printf(). This option has no effect when Unicode API is not enabled. */
@@ -132,7 +132,7 @@
 / Drive/Volume Configurations
 /---------------------------------------------------------------------------*/
 
-#define _VOLUMES	8
+#define _VOLUMES	1
 /* Number of volumes (logical drives) to be used. */
 
 
@@ -182,7 +182,7 @@
 / System Configurations
 /---------------------------------------------------------------------------*/
 
-#define _WORD_ACCESS	1	/* 0 or 1 */
+#define _WORD_ACCESS	0	/* 0 or 1 */
 /* The _WORD_ACCESS option is an only platform dependent option. It defines
 /  which access method is used to the word data on the FAT volume.
 /

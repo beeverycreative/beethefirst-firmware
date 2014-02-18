@@ -158,6 +158,12 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     // process
     result = process_gcode_command();
 
+    //echo
+/*
+    for (j=0; j < pLine->len; j++){
+        serial_writechar(pLine->data [j]);
+    }
+*/
     // reset variables
     next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
     next_target.seen_E = next_target.seen_F = next_target.seen_S = \

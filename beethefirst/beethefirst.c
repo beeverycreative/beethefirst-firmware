@@ -149,6 +149,21 @@ void init(void)
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
 
+  /* initialize SPI for SDCard */
+  spi_init();
+
+  FATFS fs;       /* Work area (file system object) for logical drive */
+  FIL file;       /* file object */
+  FRESULT res;    /* FatFs function common result code */
+
+  res = f_mount(&fs,"",1);
+
+  if(res != FR_OK){
+      serial_writestr ("Err mount fs. ERR:");
+      serwrite_uint32(res);
+      serial_writestr ("\n");
+      return;
+  }
   // say hi to host
   //serial_writestr("Start\r\nOK\r\n");
 }
@@ -194,8 +209,9 @@ int app_main (void)
     // grbl init
     plan_init();
     st_init();
-    WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
-    WDT_Start (30000000);
+
+    //WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
+    //WDT_Start (30000000);
 
     // main loop
     for (;;)
@@ -251,7 +267,7 @@ int app_main (void)
             else
             {
                 sd_printing = false;
-                serial_writestr ("Done printing file\r\n");
+                serial_writestr("Done printing file\r\n");
             }
         }
 

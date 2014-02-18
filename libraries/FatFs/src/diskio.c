@@ -10,7 +10,7 @@
 #include "integer.h"
 #include "diskio.h"
 #include "sdcard.h"
-
+#include "sermsg.h"
 #define MMC             1
 
 /*-----------------------------------------------------------------------*/
@@ -20,20 +20,12 @@
 DSTATUS disk_initialize (
     BYTE pdrv				/* Physical drive nmuber (0..) */
 ){
-  DSTATUS stat;
+  volatile DSTATUS stat_2;
   int result;
 
-  if (pdrv != MMC) {
-
       result = MMC_disk_initialize();
+      return stat_2;
 
-      // translate the reslut code here
-
-      return stat;
-  }else{
-
-      return STA_NOINIT;
-  }
 }
 
 
@@ -48,12 +40,10 @@ DSTATUS disk_status (
   DSTATUS stat;
   int result;
 
-  if(pdrv != MMC){
+
       result = MMC_disk_status();
       return stat;
-  }else{
-      return STA_NOINIT;
-  }
+
 }
 
 
@@ -71,12 +61,8 @@ DRESULT disk_read (
   DRESULT res;
   int result;
 
-  if(pdrv != MMC){
       result = MMC_disk_read(buff, sector, count);      return res;
 
-  }else{
-      return RES_PARERR;
-  }
 }
 
 
@@ -95,12 +81,8 @@ DRESULT disk_write (
   DRESULT res;
   int result;
 
-  if(pdrv != MMC){
       result = MMC_disk_write(buff, sector, count);      return res;
 
-  }else{
-      return RES_PARERR;
-  }
 }
 #endif
 
@@ -118,11 +100,7 @@ DRESULT disk_ioctl (
   DRESULT res;
   int result;
 
-  if(pdrv != MMC){
       result = MMC_disk_ioctl(cmd, buff);      return res;
 
-  }else{
-      return RES_PARERR;
-  }
 }
 #endif
