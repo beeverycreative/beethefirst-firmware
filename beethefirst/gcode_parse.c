@@ -168,7 +168,7 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
     next_target.seen_E = next_target.seen_F = next_target.seen_S = \
     next_target.seen_P = next_target.seen_N = next_target.seen_M = \
-    next_target.seen_N = next_target.seen_B = \
+    next_target.seen_N = next_target.seen_B = next_target.seen_A = \
     next_target.seen_checksum = next_target.seen_semi_comment = \
     next_target.seen_parens_comment = next_target.checksum_read = \
     next_target.checksum_calculated = 0;
@@ -180,6 +180,8 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     // dont assume a G1 by default
     next_target.seen_G = 0;
     next_target.G = 0;
+    next_target.A = 0;
+
 
     if (next_target.option_relative)
     {
@@ -238,7 +240,7 @@ void gcode_parse_char(uint8_t c)
         // this is a bit hacky since string parameters don't fit in general G code syntax
         // NB: filename MUST start with a letter and MUST NOT contain spaces
         // letters will also be converted to uppercase
-        if ((next_target.M == 23) || (next_target.M == 28) || (next_target.M == 639))
+        if ((next_target.M == 23) || (next_target.M == 28) || (next_target.M == 30) || (next_target.M == 639))
         {
           next_target.getting_string = 1;
         }
@@ -317,6 +319,10 @@ void gcode_parse_char(uint8_t c)
 
         case 'N':
         next_target.N = value;
+        break;
+
+        case 'A':
+        next_target.A = value;
         break;
 
         case '*':
@@ -402,6 +408,10 @@ void gcode_parse_char(uint8_t c)
       break;
 
       case 'N':
+      next_target.seen_N = 1;
+      break;
+
+      case 'A':
       next_target.seen_N = 1;
       break;
 

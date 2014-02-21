@@ -307,12 +307,15 @@ FRESULT sd_list_dir_sub (char *path)
 #endif
 
   res = f_opendir(&dir, path);
+
   if (res == FR_OK)
   {
+
     i = strlen(path);
     for (;;)
     {
       res = f_readdir(&dir, &fno);
+
       if (res != FR_OK || fno.fname[0] == 0) break;
       if (fno.fname[0] == '.') continue;
 #if _USE_LFN
@@ -339,6 +342,7 @@ FRESULT sd_list_dir_sub (char *path)
         sersendf("%s/%s\r\n", path, fn);
       }
     }
+
   }
 
   return res;
@@ -417,7 +421,7 @@ void sd_seek(FIL *pFile, unsigned pos)
 }
 
 /****************************************************************************
- *                                                                           *
+ *                                 04948837f25a5486ff47944cfcf7f94abc26d0a8                                          *
  * Command Received - process it                                             *
  *                                                                           *
  ****************************************************************************/
@@ -744,10 +748,9 @@ eParseResult process_gcode_command()
       // SD File functions
       case 20: // M20 - list SD Card files
       {
-
-          config.status = 0;
           if(!next_target.seen_B){
-              serial_writestr("Begin file list\r\n");
+              serial_writestr("Begin file list\n");
+
               // list files in root folder
               sd_list_dir();
               serial_writestr("End file list\r\n");
@@ -797,7 +800,9 @@ eParseResult process_gcode_command()
               {
                   if(!next_target.seen_B){
 
-                      sersendf("file.open failed\r\n");
+                      sersendf("file open failed.\n");
+
+
                   }
               }
           }
@@ -861,40 +866,64 @@ eParseResult process_gcode_command()
       }
       break;
 
-      case 28: //M28 <filename> - Start SD write
+      case 28: //M28
       {
 
-          if (!sd_active)
-          {
-              sd_initialise();
-          }
-          if(sd_active)
-          {
-              sd_close(&file);
-              sd_printing = false;
+        if (!sd_active){
+            sd_initialise();
+        }/*No need for else*/
+        if(sd_active){
+            bytes_to_transfer = next_target.A;
 
-              if (!sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE))
-              {
-                  if(!next_target.seen_B){
+            if ((bytes_to_transfer < 1)){
+                serwrite_uint32(next_target.A);
+                serial_writestr(" - invalid number of bytes to transfer ");
+                break;
+            }/*No need for else*/
 
-                      sersendf("open failed, File: %s.\r\n", next_target.filename);
-                  }
-              }
-              else
-              {
-                  sd_writing_file = true;
-                  if(!next_target.seen_B){
+            if (bytes_to_transfer > 0){
+                serial_writestr("will write ");
+                serwrite_uint32(bytes_to_transfer);
+                serial_writestr("bytes\n");
 
-                      sersendf("Writing to file: %s\r\n", next_target.filename);
-                  }
-              }
-          }
+                number_of_bytes = 0;
+                transfer_mode = 1;
+            }/*No need for else*/
+        }/*No need for else*/
       }
       break;
 
       case 29: //M29 - Stop SD write
       {
           //config.status = 0;
+      }
+      break;
+
+      case 30: //M30 <filename>
+      {
+        //serial_writestr("ca0\n");
+
+        if (!sd_active){
+            sd_initialise();
+        }/*No need for else*/
+        if(sd_active){
+            sd_printing = false;
+            sd_close(&file);
+
+            if (sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
+                if(!next_target.seen_B) {
+                    sersendf("File created\n");
+                }/*No need for else*/
+                sd_pos = 0;
+            }else{
+                if(!next_target.seen_B){
+                    sersendf("error creating file\n");
+                    serial_writestr(next_target.filename);
+                    serial_writestr("\n");
+
+                }/*No need for else*/
+            }
+        }/*No need for else*/
       }
       break;
 

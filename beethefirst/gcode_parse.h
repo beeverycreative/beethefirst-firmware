@@ -83,6 +83,8 @@ typedef struct {
 
 	uint8_t					seen_P	:1;
 	uint8_t					seen_N	:1;
+        uint8_t                                 seen_A  :1;
+
 	uint8_t                                 seen_B  :1;
 	uint8_t					seen_checksum				:1;
 	uint8_t					seen_semi_comment		:1;
@@ -100,6 +102,8 @@ typedef struct {
 	uint16_t					P;
 
 	uint32_t					N;
+        uint32_t                                        A;
+
 	uint32_t					N_expected;
 
 	uint8_t						checksum_read;
@@ -128,6 +132,10 @@ typedef enum {
   
 // the command being processed
 extern GCODE_COMMAND next_target;
+
+uint32_t bytes_to_transfer;
+uint32_t transfer_mode;
+uint32_t number_of_bytes;
 
 // utility functions
 //int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);

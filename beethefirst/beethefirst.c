@@ -46,7 +46,7 @@
 
 #include "planner.h"
 #include "stepper.h"
-
+#include "sbl_config.h"
 
 tTimer temperatureTimer;
 
@@ -170,135 +170,187 @@ void init(void)
 
 
 void WDT_IRQHandler(void){
-
-    NVIC_DisableIRQ(WDT_IRQn);
-
-    int aux = 1;
-    while(aux){
-        GPIO_ClearValue(1, (1 << 14));
-        buzzer_play(1500, 100); /* low beep */
-        buzzer_wait();
-        buzzer_play(2500, 200); /* high beep */
-        buzzer_wait();
-        GPIO_SetValue(1, (1 << 14));
-    }
 }
 
 
-int app_main (void)
-{
-    long timer1 = 0;
-    eParseResult parse_result;
-    unsigned int bip;
-    int temperature = 0;
+int app_main (void){
+  long timer1 = 0;
+  eParseResult parse_result;
+  unsigned int bip;
+  int temperature = 0;
 
-    bip = 2;
-    bip_switch = 0;
-    //watchdog cycle
-    pin_mode(1, (1<<14), 1);
+  /*variables used to write the gcode in the sd card*/
+  unsigned int counter = 0;
+  unsigned char sector[SD_BUF_SIZE] = {0};
+  unsigned int BytesWritten;
+  unsigned long sector_number = 0;
+  FRESULT res;
+  bip = 2;
+  bip_switch = 0;
 
-    buzzer_init();
-    buzzer_play(1500, 100); /* low beep */
-    buzzer_wait();
-    buzzer_play(2500, 200); /* high beep */
+  buzzer_init();
+  buzzer_play(1500, 100); /* low beep */
+  buzzer_wait();
+  buzzer_play(2500, 200); /* high beep */
 
-    init();
+  init();
 
-    read_config();
+  read_config();
 
-    // grbl init
-    plan_init();
-    st_init();
+  // grbl init
+  plan_init();
+  st_init();
 
-    //WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
-    //WDT_Start (30000000);
+  //WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
+  //WDT_Start (30000000);
 
-    // main loop
-    for (;;)
-    {
-        WDT_Feed();
+  // main loop
+  for (;;){
+      WDT_Feed();
 
-        //bip a cada +-20s
-        if(bip == 1){
-            if(bip_switch){
-                buzzer_play(2500, 100);
-            }
-/*
-           temperature = temp_get(EXTRUDER_0);
-
-           if (temperature > 250){
-              extruder_heater_off();
-              serial_writestr ("overheated\r\n");
-           }
-*/
-        }else if(bip == 4000000){
-           bip=0;
-        }
-
-        bip++;
-
-        if((plan_queue_empty()) && (config.status != 0))
-            config.status = 3;
-
-        // process characters from the serial port
-        while (!serial_line_buf.seen_lf && (serial_rxchars() != 0) )
-        {
-            unsigned char c = serial_popchar();
-
-            if (serial_line_buf.len < MAX_LINE)
-                serial_line_buf.data [serial_line_buf.len++] = c;
-      
-            if ((c==10) || (c==13))
-            {
-                if (serial_line_buf.len > 1)
-                    serial_line_buf.seen_lf = 1;
-                else
-                    serial_line_buf.len = 0;
-            }
-        }
-  
-        // process SD file if no serial command pending
-        if (!sd_line_buf.seen_lf && sd_printing)
-        {
-            if (sd_read_file (&sd_line_buf))
-            {
-                sd_line_buf.seen_lf = 1;
-            }
-            else
-            {
-                sd_printing = false;
-                serial_writestr("Done printing file\r\n");
-            }
-        }
-
-        // if queue is full, we wait
-        if (!plan_queue_full())
-        {
-
-            /* At end of each line, put the "GCode" on movebuffer.
-             * If there are movement to do, Timer will start and execute code which
-             * will take data from movebuffer and generate the required step pulses
-             * for stepper motors.
-             */
-
-            // give priority to user commands
-            if (serial_line_buf.seen_lf)
-            {
-                //echo off
-                //sersendf("%s",serial_line_buf.data);
-                parse_result = gcode_parse_line (&serial_line_buf);
-                serial_line_buf.len = 0;
-                serial_line_buf.seen_lf = 0;
-            }
-            else if (sd_line_buf.seen_lf)
-            {
-                parse_result = gcode_parse_line (&sd_line_buf);
-                sd_line_buf.len = 0;
-                sd_line_buf.seen_lf = 0;
-            }
-
-        }
-
-
+      //bip a cada +-20s
+      if(bip == 1){
+          if(bip_switch){
+              buzzer_play(2500, 100);
+          }
+      }else if(bip == 4000000){
+          bip=0;
       }
+
+      bip++;
+
+      //if not executing movements
+      //nor in a error state
+      //nor printing form sd card
+      //then is ready
+      if((plan_queue_empty())
+          && (config.status != 0)
+          && (!sd_printing)){
+          config.status = 3;
+      }
+
+      // process characters from the usb port
+      while (!serial_line_buf.seen_lf
+          && (serial_rxchars() != 0)){
+          unsigned char c = serial_popchar();
+
+          if (serial_line_buf.len < MAX_LINE){
+              serial_line_buf.data [serial_line_buf.len] = c;
+              serial_line_buf.len++;
+          }/*no need for else*/
+
+          if (((c==10) || (c==13))
+              && (transfer_mode == 0)){
+
+              if (serial_line_buf.len > 1)
+                serial_line_buf.seen_lf = 1;
+              else
+                serial_line_buf.len = 0;
+
+          }/*no need for else*/
+
+          if (transfer_mode == 1){
+              number_of_bytes = number_of_bytes + 1;
+              if (number_of_bytes == bytes_to_transfer){
+                  serial_line_buf.seen_lf = 1;
+                  break;
+              }/*no need for else*/
+          }/*no need for else*/
+      }
+
+      // process SD file if no serial command pending
+      if (!sd_line_buf.seen_lf && sd_printing){
+          if (sd_read_file (&sd_line_buf)){
+              sd_line_buf.seen_lf = 1;
+          }else{
+              sd_printing = false;
+              serial_writestr("Done printing file\r\n");
+          }
+      }/*no need for else*/
+
+      // if queue is full, we wait
+      if (!plan_queue_full()
+          && !transfer_mode
+          && (serial_line_buf.seen_lf
+              || sd_line_buf.seen_lf) ){
+
+          /* At end of each line, put the "GCode" on movebuffer.
+           * If there are movement to do, Timer will start and execute code which
+           * will take data from movebuffer and generate the required step pulses
+           * for stepper motors.
+           */
+
+          // give priority to user commands
+          if (serial_line_buf.seen_lf){
+
+              parse_result = gcode_parse_line (&serial_line_buf);
+              serial_line_buf.len = 0;
+              serial_line_buf.seen_lf = 0;
+          }else if (sd_line_buf.seen_lf){
+              parse_result = gcode_parse_line (&sd_line_buf);
+              sd_line_buf.len = 0;
+              sd_line_buf.seen_lf = 0;
+          }
+      }/*no need for else*/
+
+
+      if (transfer_mode
+          && (serial_line_buf.len != 0)){
+
+          /*used in the debug loop back*/
+          //serial_writeblock(serial_line_buf.data,serial_line_buf.len);
+
+          /*This should never occur!*/
+          if (!((counter + serial_line_buf.len) <= SD_BUF_SIZE)){
+              serial_writestr("Danger: sector overflow ");
+              serwrite_uint32(counter + serial_line_buf.len);
+              serial_writestr("\n");
+          }
+
+          /*the USB message is transfered to the array that is going to be stored*/
+          for (int i = 0; i < serial_line_buf.len; i++){
+              sector[counter+i] = serial_line_buf.data[i];
+          }
+
+          counter = counter + serial_line_buf.len;
+          serial_line_buf.len = 0;
+          serial_line_buf.seen_lf = 0;
+
+          /*if the array to be written is full, it is write*/
+          if (counter == SD_BUF_SIZE){
+              serial_writestr("512 received OK");
+
+              /* writes to the file*/
+              res = sd_write_to_file(sector, SD_BUF_SIZE);
+
+              sector_number++;
+
+              counter = 0;
+          }
+
+          if (number_of_bytes == bytes_to_transfer){
+              serial_writestr("last chunk received OK");
+
+              /*if the array to be written is full, it is write*/
+              if (counter != FLASH_BUF_SIZE){
+
+                  /*fill the rest of the array*/
+                  for(;counter < FLASH_BUF_SIZE; counter++){
+                      sector[counter] = 255;
+                  }
+
+                  /* writes to the file*/
+                  res = sd_write_to_file(sector, SD_BUF_SIZE);
+
+                  bytes_to_transfer = 0;
+                  number_of_bytes = 0;
+                  transfer_mode = 0;
+                  sector_number = 0;
+
+              }/*no need for else*/
+
+          }/*no need for else*/
+
+      }/*no need for else*/
+  }
 }

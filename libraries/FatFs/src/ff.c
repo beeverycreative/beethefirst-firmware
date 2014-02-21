@@ -115,7 +115,8 @@
 
 #include "ff.h"			/* Declarations of FatFs API */
 #include "diskio.h"		/* Declarations of disk I/O functions */
-
+#include "serial.h"
+#include "sersendf.h"
 
 /*--------------------------------------------------------------------------
 
@@ -574,6 +575,7 @@ FRESULT sync_window (
 			}
 		}
 	}
+
 	return FR_OK;
 }
 #endif
@@ -581,21 +583,29 @@ FRESULT sync_window (
 
 static
 FRESULT move_window (
-	FATFS* fs,		/* File system object */
-	DWORD sector	/* Sector number to make appearance in the fs->win[] */
-)
-{
-	if (sector != fs->winsect) {	/* Changed current window */
-#if !_FS_READONLY
-		if (sync_window(fs) != FR_OK)
-			return FR_DISK_ERR;
-#endif
-		if (disk_read(fs->drv, fs->win, sector, 1))
-			return FR_DISK_ERR;
-		fs->winsect = sector;
-	}
+    FATFS* fs,		/* File system object */
+    DWORD sector){	/* Sector number to make appearance in the fs->win[] */
 
-	return FR_OK;
+
+
+  if (sector != fs->winsect) {	/* Changed current window */
+#if !_FS_READONLY
+
+      if (sync_window(fs) != FR_OK){
+
+          return FR_DISK_ERR;
+      }
+#endif
+
+      if (disk_read(fs->drv, fs->win, sector, 1)){
+
+          return FR_DISK_ERR;
+      }
+      fs->winsect = sector;
+
+  }
+
+  return FR_OK;
 }
 
 
@@ -1362,9 +1372,13 @@ FRESULT dir_read (
 #endif
 
 	res = FR_NO_FILE;
+
 	while (dp->sect) {
+
 		res = move_window(dp->fs, dp->sect);
+
 		if (res != FR_OK) break;
+
 		dir = dp->dir;					/* Ptr to the directory entry of current index */
 		c = dir[DIR_Name];
 		if (c == 0) { res = FR_NO_FILE; break; }	/* Reached to end of table */
@@ -1609,7 +1623,16 @@ FRESULT create_name (
 	const TCHAR** path	/* Pointer to pointer to the segment in the path string */
 )
 {
+  //serial_writestr("cn \n");
+//#ifdef _EXCVT
+//  serial_writestr("is excvt \n");
+
+//        static const BYTE excvt[] = _EXCVT;     /* Upper conversion table for extended chars */
+//#endif
+
 #if _USE_LFN	/* LFN configuration */
+        //serial_writestr("use lfn \n");
+
 	BYTE b, cf;
 	WCHAR w, *lfn;
 	UINT i, ni, si, di;
@@ -1625,18 +1648,26 @@ FRESULT create_name (
 		if (di >= _MAX_LFN)				/* Reject too long name */
 			return FR_INVALID_NAME;
 #if !_LFN_UNICODE
+		  //serial_writestr("lfn unicode\n");
+
 		w &= 0xFF;
 		if (IsDBCS1(w)) {				/* Check if it is a DBC 1st byte (always false on SBCS cfg) */
 			b = (BYTE)p[si++];			/* Get 2nd byte */
-			if (!IsDBCS2(b))
+			if (!IsDBCS2(b)){
 				return FR_INVALID_NAME;	/* Reject invalid sequence */
+			}
+
 			w = (w << 8) + b;			/* Create a DBC */
 		}
 		w = ff_convert(w, 1);			/* Convert ANSI/OEM to Unicode */
-		if (!w) return FR_INVALID_NAME;	/* Reject invalid code */
+		if (!w){
+		    return FR_INVALID_NAME;	/* Reject invalid code */
+		}
 #endif
-		if (w < 0x80 && chk_chr("\"*:<>\?|\x7F", w)) /* Reject illegal characters for LFN */
+
+		if (w < 0x80 && chk_chr("\"*:<>\?|\x7F", w)){ /* Reject illegal characters for LFN */
 			return FR_INVALID_NAME;
+		}
 		lfn[di++] = w;					/* Store the Unicode character */
 	}
 	*path = &p[si];						/* Return pointer to the next segment */
@@ -1656,7 +1687,9 @@ FRESULT create_name (
 		if (w != ' ' && w != '.') break;
 		di--;
 	}
-	if (!di) return FR_INVALID_NAME;	/* Reject nul string */
+	if (!di){
+	    return FR_INVALID_NAME;	/* Reject nul string */
+	}
 
 	lfn[di] = 0;						/* LFN is created */
 
@@ -1689,6 +1722,7 @@ FRESULT create_name (
 			w = ff_convert(w, 0);		/* Unicode -> OEM code */
 			if (w) w = ExCvt[w - 0x80];	/* Convert extended character to upper (SBCS) */
 #else
+
 			w = ff_convert(ff_wtoupper(w), 0);	/* Upper converted Unicode -> OEM code */
 #endif
 			cf |= NS_LFN;				/* Force create LFN entry */
@@ -1757,7 +1791,9 @@ FRESULT create_name (
 		c = (BYTE)p[si++];
 		if (c <= ' ' || c == '/' || c == '\\') break;	/* Break on end of segment */
 		if (c == '.' || i >= ni) {
-			if (ni != 8 || c != '.') return FR_INVALID_NAME;
+			if (ni != 8 || c != '.'){
+			    return FR_INVALID_NAME;
+			}
 			i = 8; ni = 11;
 			b <<= 2; continue;
 		}
@@ -1771,15 +1807,19 @@ FRESULT create_name (
 #endif
 #endif
 		}
+               // serial_writestr("continua\n");
+
 		if (IsDBCS1(c)) {				/* Check if it is a DBC 1st byte (always false on SBCS cfg) */
 			d = (BYTE)p[si++];			/* Get 2nd byte */
-			if (!IsDBCS2(d) || i >= ni - 1)	/* Reject invalid DBC */
+			if (!IsDBCS2(d) || i >= ni - 1){	/* Reject invalid DBC */
 				return FR_INVALID_NAME;
+			}
 			sfn[i++] = c;
 			sfn[i++] = d;
 		} else {						/* Single byte code */
-			if (chk_chr("\"*+,:;<=>\?[]|\x7F", c))	/* Reject illegal chrs for SFN */
+			if (chk_chr("\"*+,:;<=>\?[]|\x7F", c)){	/* Reject illegal chrs for SFN */
 				return FR_INVALID_NAME;
+			}
 			if (IsUpper(c)) {			/* ASCII large capital? */
 				b |= 2;
 			} else {
@@ -1793,7 +1833,9 @@ FRESULT create_name (
 	*path = &p[si];						/* Return pointer to the next segment */
 	c = (c <= ' ') ? NS_LAST : 0;		/* Set last segment flag if end of path */
 
-	if (!i) return FR_INVALID_NAME;		/* Reject nul string */
+	if (!i){
+	    return FR_INVALID_NAME;		/* Reject nul string */
+	}
 	if (sfn[0] == DDE) sfn[0] = NDDE;	/* When first character collides with DDE, replace it with 0x05 */
 
 	if (ni == 8) b <<= 2;
@@ -1834,15 +1876,23 @@ FRESULT follow_path (	/* FR_OK(0): successful, !=0: error code */
 		path++;
 	dp->sclust = 0;							/* Always start from the root directory */
 #endif
+        //serial_writestr("caa ");
+        //sersendf ("%d", res);
 
 	if ((UINT)*path < ' ') {				/* Null path name is the origin directory itself */
+
 		res = dir_sdi(dp, 0);
+
 		dp->dir = 0;
 	} else {								/* Follow path */
 		for (;;) {
 			res = create_name(dp, &path);	/* Get a segment name of the path */
+		        serial_writestr("cab ");
+		        sersendf ("%d", res);
 			if (res != FR_OK) break;
 			res = dir_find(dp);				/* Find an object with the sagment name */
+		        serial_writestr("cac ");
+		        sersendf ("%d", res);
 			ns = dp->fn[NS];
 			if (res != FR_OK) {				/* Failed to find the object */
 				if (res == FR_NO_FILE) {	/* Object is not found */
@@ -2262,46 +2312,64 @@ FRESULT f_open (
 #if !_FS_READONLY
 	mode &= FA_READ | FA_WRITE | FA_CREATE_ALWAYS | FA_OPEN_ALWAYS | FA_CREATE_NEW;
 	res = find_volume(&dj.fs, &path, (BYTE)(mode & ~FA_READ));
+
 #else
 	mode &= FA_READ;
 	res = find_volume(&dj.fs, &path, 0);
 #endif
+        serial_writestr("ca00 ");
+        sersendf ("%d\n", res);
 	if (res == FR_OK) {
 		INIT_BUF(dj);
+
 		res = follow_path(&dj, path);	/* Follow the file path */
+
 		dir = dj.dir;
+
 #if !_FS_READONLY	/* R/W configuration */
 		if (res == FR_OK) {
-			if (!dir)	/* Default directory itself */
-				res = FR_INVALID_NAME;
+
+			if (!dir){	/* Default directory itself */
+
+		                res = FR_INVALID_NAME;
+
+			}
 #if _FS_LOCK
 			else
 				res = chk_lock(&dj, (mode & ~FA_READ) ? 1 : 0);
 #endif
 		}
+
 		/* Create or Open a file */
 		if (mode & (FA_CREATE_ALWAYS | FA_OPEN_ALWAYS | FA_CREATE_NEW)) {
 			DWORD dw, cl;
 
 			if (res != FR_OK) {					/* No file, create new */
+
 				if (res == FR_NO_FILE)			/* There is no file to open, create a new entry */
+
 #if _FS_LOCK
 					res = enq_lock() ? dir_register(&dj) : FR_TOO_MANY_OPEN_FILES;
 #else
 					res = dir_register(&dj);
+
 #endif
 				mode |= FA_CREATE_ALWAYS;		/* File is created */
 				dir = dj.dir;					/* New entry */
 			}
-			else {								/* Any object is already existing */
+			else {
+/* Any object is already existing */
 				if (dir[DIR_Attr] & (AM_RDO | AM_DIR)) {	/* Cannot overwrite it (R/O or DIR) */
 					res = FR_DENIED;
 				} else {
 					if (mode & FA_CREATE_NEW)	/* Cannot create as new file */
 						res = FR_EXIST;
 				}
+
 			}
+
 			if (res == FR_OK && (mode & FA_CREATE_ALWAYS)) {	/* Truncate it if overwrite mode */
+
 				dw = get_fattime();				/* Created time */
 				ST_DWORD(dir+DIR_CrtTime, dw);
 				dir[DIR_Attr] = 0;				/* Reset attribute */
@@ -2312,6 +2380,7 @@ FRESULT f_open (
 				if (cl) {						/* Remove the cluster chain if exist */
 					dw = dj.fs->winsect;
 					res = remove_chain(dj.fs, cl);
+
 					if (res == FR_OK) {
 						dj.fs->last_clust = cl - 1;	/* Reuse the cluster hole */
 						res = move_window(dj.fs, dw);
@@ -2344,7 +2413,7 @@ FRESULT f_open (
 		if (res == FR_OK) {					/* Follow succeeded */
 			dir = dj.dir;
 			if (!dir) {						/* Current directory itself */
-				res = FR_INVALID_NAME;
+			    res = FR_INVALID_NAME;
 			} else {
 				if (dir[DIR_Attr] & AM_DIR)	/* It is a directory */
 					res = FR_NO_FILE;
@@ -3073,17 +3142,22 @@ FRESULT f_readdir (
 	FILINFO* fno		/* Pointer to file information to return */
 )
 {
+
 	FRESULT res;
 	DEF_NAMEBUF;
 
 
 	res = validate(dp);						/* Check validity of the object */
+
 	if (res == FR_OK) {
 		if (!fno) {
 			res = dir_sdi(dp, 0);			/* Rewind the directory object */
+
 		} else {
 			INIT_BUF(*dp);
+
 			res = dir_read(dp, 0);			/* Read an item */
+
 			if (res == FR_NO_FILE) {		/* Reached end of directory */
 				dp->sect = 0;
 				res = FR_OK;
@@ -3129,6 +3203,7 @@ FRESULT f_stat (
 			if (dj.dir) {		/* Found an object */
 				if (fno) get_fileinfo(&dj, fno);
 			} else {			/* It is root directory */
+
 				res = FR_INVALID_NAME;
 			}
 		}
