@@ -404,9 +404,14 @@ bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
 {
   UINT bytes_written;
   FRESULT result;
-
+  int res = 0;
   result = f_write (&file, pStr, bytes_to_write, &bytes_written);
+/*
+  res = memcmp(&pStr,&bytes_written,bytes_to_write);
 
+  if(res)
+    serial_writestr("error comparing\n");
+*/
   return result == FR_OK;
 }
 
@@ -785,8 +790,10 @@ eParseResult process_gcode_command()
           {
               sd_printing = false;
               sd_close(&file);
-              if (sd_open(&file, next_target.filename, FA_READ))
+
+              if (sd_open(&file, next_target.filename, FA_READ|FA_CREATE_ALWAYS|FA_WRITE))
               {
+
                   filesize = sd_filesize(&file);
                   if(!next_target.seen_B){
 
@@ -798,6 +805,7 @@ eParseResult process_gcode_command()
               }
               else
               {
+
                   if(!next_target.seen_B){
 
                       sersendf("file open failed.\n");
@@ -876,7 +884,7 @@ eParseResult process_gcode_command()
             bytes_to_transfer = next_target.A;
 
             if ((bytes_to_transfer < 1)){
-                serwrite_uint32(next_target.A);
+                serwrite_uint32(bytes_to_transfer);
                 serial_writestr(" - invalid number of bytes to transfer ");
                 break;
             }/*No need for else*/

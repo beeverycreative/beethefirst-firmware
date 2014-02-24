@@ -182,7 +182,6 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.G = 0;
     next_target.A = 0;
 
-
     if (next_target.option_relative)
     {
       next_target.target.x = next_target.target.y = next_target.target.z = 0.0;
@@ -240,7 +239,7 @@ void gcode_parse_char(uint8_t c)
         // this is a bit hacky since string parameters don't fit in general G code syntax
         // NB: filename MUST start with a letter and MUST NOT contain spaces
         // letters will also be converted to uppercase
-        if ((next_target.M == 23) || (next_target.M == 28) || (next_target.M == 30) || (next_target.M == 639))
+        if ((next_target.M == 23) || (next_target.M == 30) || (next_target.M == 639))
         {
           next_target.getting_string = 1;
         }

@@ -318,18 +318,21 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("512 received OK");
+              serial_writestr("512 received ok\n");
 
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
-
+              if(res != FR_OK) {
+                  serwrite_uint32(res);
+                  serial_writestr(" - error writing file\n");
+              }
               sector_number++;
 
               counter = 0;
           }
 
           if (number_of_bytes == bytes_to_transfer){
-              serial_writestr("last chunk received OK");
+              serial_writestr("last chunk received ok\n");
 
               /*if the array to be written is full, it is write*/
               if (counter != FLASH_BUF_SIZE){
@@ -341,6 +344,12 @@ int app_main (void){
 
                   /* writes to the file*/
                   res = sd_write_to_file(sector, SD_BUF_SIZE);
+                  if(res != FR_OK) {
+                      serwrite_uint32(res);
+                      serial_writestr(" - error writing file\n");
+                  }
+
+                  sd_close(&file);
 
                   bytes_to_transfer = 0;
                   number_of_bytes = 0;

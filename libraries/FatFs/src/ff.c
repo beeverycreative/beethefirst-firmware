@@ -1876,8 +1876,7 @@ FRESULT follow_path (	/* FR_OK(0): successful, !=0: error code */
 		path++;
 	dp->sclust = 0;							/* Always start from the root directory */
 #endif
-        //serial_writestr("caa ");
-        //sersendf ("%d", res);
+
 
 	if ((UINT)*path < ' ') {				/* Null path name is the origin directory itself */
 
@@ -1887,12 +1886,10 @@ FRESULT follow_path (	/* FR_OK(0): successful, !=0: error code */
 	} else {								/* Follow path */
 		for (;;) {
 			res = create_name(dp, &path);	/* Get a segment name of the path */
-		        serial_writestr("cab ");
-		        sersendf ("%d", res);
+
 			if (res != FR_OK) break;
 			res = dir_find(dp);				/* Find an object with the sagment name */
-		        serial_writestr("cac ");
-		        sersendf ("%d", res);
+
 			ns = dp->fn[NS];
 			if (res != FR_OK) {				/* Failed to find the object */
 				if (res == FR_NO_FILE) {	/* Object is not found */
@@ -2317,8 +2314,7 @@ FRESULT f_open (
 	mode &= FA_READ;
 	res = find_volume(&dj.fs, &path, 0);
 #endif
-        serial_writestr("ca00 ");
-        sersendf ("%d\n", res);
+
 	if (res == FR_OK) {
 		INIT_BUF(dj);
 
@@ -2565,23 +2561,46 @@ FRESULT f_write (
 	*bw = 0;	/* Clear write byte counter */
 
 	res = validate(fp);						/* Check validity */
-	if (res != FR_OK) LEAVE_FF(fp->fs, res);
+
+	if (res != FR_OK)
+	  LEAVE_FF(fp->fs, res);
+
 	if (fp->err)							/* Check error */
 		LEAVE_FF(fp->fs, (FRESULT)fp->err);
+
 	if (!(fp->flag & FA_WRITE))				/* Check access mode */
 		LEAVE_FF(fp->fs, FR_DENIED);
+
 	if (fp->fptr + btw < fp->fptr) btw = 0;	/* File size cannot reach 4GB */
+
+        serial_writestr("c1\n");
 
 	for ( ;  btw;							/* Repeat until all data written */
 		wbuff += wcnt, fp->fptr += wcnt, *bw += wcnt, btw -= wcnt) {
+
+	        serial_writestr("c2\n");
+
 		if ((fp->fptr % SS(fp->fs)) == 0) {	/* On the sector boundary? */
+
+		        serial_writestr("c3\n");
+
 			csect = (BYTE)(fp->fptr / SS(fp->fs) & (fp->fs->csize - 1));	/* Sector offset in the cluster */
+
+		        serial_writestr("c4\n");
+
 			if (!csect) {					/* On the cluster boundary? */
-				if (fp->fptr == 0) {		/* On the top of the file? */
+
+                              serial_writestr("c5\n");
+
+                              if (fp->fptr == 0) {		/* On the top of the file? */
+
+                                  serial_writestr("c6\n");
+
 					clst = fp->sclust;		/* Follow from the origin */
-					if (clst == 0)			/* When no cluster is allocated, */
+					if (clst == 0)	{		/* When no cluster is allocated, */
 					  clst = create_chain(fp->fs, 0); /* Create a new cluster chain */
-					                                  } else {                                        /* Middle or end of the file */
+					}
+                                } else {                                        /* Middle or end of the file */
 #if _USE_FASTSEEK
 					if (fp->cltbl)
 						clst = clmt_clust(fp, fp->fptr);	/* Get cluster# from the CLMT */
@@ -2591,8 +2610,12 @@ FRESULT f_write (
 				}
 				if (clst == 0) break;		/* Could not allocate a new cluster (disk full) */
 				if (clst == 1) ABORT(fp->fs, FR_INT_ERR);
-				if (clst == 0xFFFFFFFF) ABORT(fp->fs, FR_DISK_ERR);
+				if (clst == 0xFFFFFFFF){
+				    serial_writestr("ca\n");
+				    ABORT(fp->fs, FR_DISK_ERR);
+				}
 				fp->clust = clst;			/* Update current cluster */
+
 				if (fp->sclust == 0) fp->sclust = clst; /* Set start cluster if the first write */
 			}
 #if _FS_TINY
@@ -2600,8 +2623,11 @@ FRESULT f_write (
 				ABORT(fp->fs, FR_DISK_ERR);
 #else
 			if (fp->flag & FA__DIRTY) {		/* Write-back sector cache */
-				if (disk_write(fp->fs->drv, fp->buf, fp->dsect, 1))
+				if (disk_write(fp->fs->drv, fp->buf, fp->dsect, 1)){
+	                                serial_writestr("cb\n");
+
 					ABORT(fp->fs, FR_DISK_ERR);
+				}
 				fp->flag &= ~FA__DIRTY;
 			}
 #endif
@@ -2612,8 +2638,10 @@ FRESULT f_write (
 			if (cc) {						/* Write maximum contiguous sectors directly */
 				if (csect + cc > fp->fs->csize)	/* Clip at cluster boundary */
 					cc = fp->fs->csize - csect;
-				if (disk_write(fp->fs->drv, wbuff, sect, cc))
+				if (disk_write(fp->fs->drv, wbuff, sect, cc)){
+	                                serial_writestr("cc\n");
 					ABORT(fp->fs, FR_DISK_ERR);
+				}
 #if _FS_MINIMIZE <= 2
 #if _FS_TINY
 				if (fp->fs->winsect - sect < cc) {	/* Refill sector cache if it gets invalidated by the direct write */
@@ -2638,8 +2666,11 @@ FRESULT f_write (
 #else
 			if (fp->dsect != sect) {		/* Fill sector cache with file data */
 				if (fp->fptr < fp->fsize &&
-					disk_read(fp->fs->drv, fp->buf, sect, 1))
+					disk_read(fp->fs->drv, fp->buf, sect, 1)){
+	                                        serial_writestr("cd\n");
+
 						ABORT(fp->fs, FR_DISK_ERR);
+				}
 			}
 #endif
 			fp->dsect = sect;
