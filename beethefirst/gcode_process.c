@@ -404,7 +404,7 @@ bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
 {
   UINT bytes_written;
   FRESULT result;
-  int res = 0;
+  //int res = 0;
   result = f_write (&file, pStr, bytes_to_write, &bytes_written);
 /*
   res = memcmp(&pStr,&bytes_written,bytes_to_write);
@@ -412,7 +412,7 @@ bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
   if(res)
     serial_writestr("error comparing\n");
 */
-  return result == FR_OK;
+  return result;
 }
 
 unsigned sd_filesize (FIL *pFile)
@@ -426,7 +426,7 @@ void sd_seek(FIL *pFile, unsigned pos)
 }
 
 /****************************************************************************
- *                                 04948837f25a5486ff47944cfcf7f94abc26d0a8                                          *
+ *                                                                          *
  * Command Received - process it                                             *
  *                                                                           *
  ****************************************************************************/
@@ -925,7 +925,7 @@ eParseResult process_gcode_command()
                 sd_pos = 0;
             }else{
                 if(!next_target.seen_B){
-                    sersendf("error creating file\n");
+                    sersendf(" error creating file\n");
                     serial_writestr(next_target.filename);
                     serial_writestr("\n");
 

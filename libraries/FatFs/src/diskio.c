@@ -81,7 +81,8 @@ DRESULT disk_write (
   DRESULT res;
   int result;
 
-      result = MMC_disk_write(buff, sector, count);      return res;
+      result = MMC_disk_write(buff, sector, count);
+      return res;
 
 }
 #endif

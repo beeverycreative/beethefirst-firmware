@@ -183,10 +183,10 @@ int app_main (void){
   unsigned int counter = 0;
   unsigned char sector[SD_BUF_SIZE] = {0};
   unsigned int BytesWritten;
-  unsigned long sector_number = 0;
   FRESULT res;
+
   bip = 2;
-  bip_switch = 0;
+  bip_switch = 1;
 
   buzzer_init();
   buzzer_play(1500, 100); /* low beep */
@@ -213,7 +213,7 @@ int app_main (void){
           if(bip_switch){
               buzzer_play(2500, 100);
           }
-      }else if(bip == 4000000){
+      }else if(bip == 2000000){
           bip=0;
       }
 
@@ -226,12 +226,14 @@ int app_main (void){
       if((plan_queue_empty())
           && (config.status != 0)
           && (!sd_printing)){
+
           config.status = 3;
-      }
+      }/*no need for else*/
 
       // process characters from the usb port
       while (!serial_line_buf.seen_lf
           && (serial_rxchars() != 0)){
+
           unsigned char c = serial_popchar();
 
           if (serial_line_buf.len < MAX_LINE){
@@ -286,7 +288,9 @@ int app_main (void){
               parse_result = gcode_parse_line (&serial_line_buf);
               serial_line_buf.len = 0;
               serial_line_buf.seen_lf = 0;
+
           }else if (sd_line_buf.seen_lf){
+
               parse_result = gcode_parse_line (&sd_line_buf);
               sd_line_buf.len = 0;
               sd_line_buf.seen_lf = 0;
@@ -305,7 +309,7 @@ int app_main (void){
               serial_writestr("Danger: sector overflow ");
               serwrite_uint32(counter + serial_line_buf.len);
               serial_writestr("\n");
-          }
+          }/*no need for else*/
 
           /*the USB message is transfered to the array that is going to be stored*/
           for (int i = 0; i < serial_line_buf.len; i++){
@@ -318,48 +322,41 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("512 received ok\n");
+              serial_writestr("ok\n");
 
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
               if(res != FR_OK) {
                   serwrite_uint32(res);
                   serial_writestr(" - error writing file\n");
-              }
-              sector_number++;
-
+              }/*no need for else*/
               counter = 0;
-          }
+          }/*no need for else*/
 
           if (number_of_bytes == bytes_to_transfer){
-              serial_writestr("last chunk received ok\n");
+              serial_writestr("ok\n");
 
               /*if the array to be written is full, it is write*/
-              if (counter != FLASH_BUF_SIZE){
-
-                  /*fill the rest of the array*/
-                  for(;counter < FLASH_BUF_SIZE; counter++){
-                      sector[counter] = 255;
-                  }
+              if (counter != 0){
 
                   /* writes to the file*/
-                  res = sd_write_to_file(sector, SD_BUF_SIZE);
+                  res = sd_write_to_file(sector, counter);
                   if(res != FR_OK) {
                       serwrite_uint32(res);
                       serial_writestr(" - error writing file\n");
-                  }
-
-                  sd_close(&file);
-
-                  bytes_to_transfer = 0;
-                  number_of_bytes = 0;
-                  transfer_mode = 0;
-                  sector_number = 0;
-
+                  }/*no need for else*/
               }/*no need for else*/
+              sd_close(&file);
+
+              bytes_to_transfer = 0;
+              number_of_bytes = 0;
+              transfer_mode = 0;
+              counter = 0;
 
           }/*no need for else*/
 
       }/*no need for else*/
+
   }
 }
+
