@@ -916,7 +916,7 @@ eParseResult process_gcode_command(){
           case 115:
           {
             if(!next_target.seen_B && !sd_printing){
-                serial_writestr(" 3.23.0");
+                serial_writestr(" 4.23.0");
                 serial_writestr(" ");
             }
           }
@@ -1048,7 +1048,7 @@ eParseResult process_gcode_command(){
           {
               if(!next_target.seen_B){
                   print_config();
-              }
+              }/*No need for else*/
           }
           break;
 
@@ -1077,26 +1077,22 @@ eParseResult process_gcode_command(){
           //set home position absolute
           case 604:
           {
-              if (next_target.seen_X)
-              {
+              if (next_target.seen_X){
                   config.home_pos_x = next_target.target.x;
                   axisSelected = 1;
               }//no need for else
 
-              if (next_target.seen_Y)
-              {
+              if (next_target.seen_Y){
                   config.home_pos_y = next_target.target.y;
                   axisSelected = 1;
               }//no need for else
 
-              if (next_target.seen_Z)
-              {
+              if (next_target.seen_Z){
                   config.home_pos_z = next_target.target.z;
                   axisSelected = 1;
               }//no need for else
 
-              if(!axisSelected)
-              {
+              if(!axisSelected) {
                   config.home_pos_x = 0.0;
                   config.home_pos_y = 0.0;
                   config.home_pos_z = 0.0;
@@ -1158,9 +1154,10 @@ eParseResult process_gcode_command(){
                   serial_writestr(" S:");
                   serwrite_int32(config.status);
                   serial_writestr(" ");
-                  if(config.status == 0)
+                  if(config.status == 0){
                      config.status = 3;
-              }
+                  }/*No need for else*/
+              }/*No need for else*/
           }
           break;
 
@@ -1186,22 +1183,22 @@ eParseResult process_gcode_command(){
                 serial_writestr("last N:");
                 serwrite_uint32(next_target.N);
                 serial_writestr(" ");
-            }
+            }/*No need for else*/
           }
           break;
 
           case 639:
           {
-              if(!next_target.seen_B ){
-                for(int i=0;i<120;i++){
-                    if(next_target.filename[i]){
-                        serial_writechar(next_target.filename[i]);
-                    }else{
-                        break;
-                    }
-                }
-                serial_writestr(" ");
-              }/*No need for else*/
+            if(!next_target.seen_B ){
+              for(int i=0;i<120;i++){
+                  if(next_target.filename[i]){
+                      serial_writechar(next_target.filename[i]);
+                  }else{
+                      break;
+                  }
+              }
+              serial_writestr(" ");
+            }/*No need for else*/
           }
           break;
 
@@ -1217,7 +1214,7 @@ eParseResult process_gcode_command(){
                     serwrite_uint32(next_target.N);
                     //next_target.N = 0;
 
-                }
+                }/*No need for else*/
                 serial_writestr("\r\n");
             }
             reply_sent = 1;
