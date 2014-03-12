@@ -149,23 +149,7 @@ void init(void)
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
 
-  /* initialize SPI for SDCard */
-  spi_init();
-
-  FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file;       /* file object */
-  FRESULT res;    /* FatFs function common result code */
-
-  res = f_mount(&fs,"",1);
-
-  if(res != FR_OK){
-      serial_writestr ("Err mount fs. ERR:");
-      serwrite_uint32(res);
-      serial_writestr ("\n");
-      return;
-  }
-  // say hi to host
-  //serial_writestr("Start\r\nOK\r\n");
+  //sd_init();
 }
 
 
@@ -186,7 +170,7 @@ int app_main (void){
   FRESULT res;
 
   bip = 2;
-  bip_switch = 1;
+  bip_switch = 0;
 
   buzzer_init();
   buzzer_play(1500, 100); /* low beep */
@@ -194,15 +178,14 @@ int app_main (void){
   buzzer_play(2500, 200); /* high beep */
 
   init();
-
   read_config();
 
   // grbl init
   plan_init();
   st_init();
 
-  //WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
-  //WDT_Start (30000000);
+  WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
+  WDT_Start (30000000);
 
   // main loop
   for (;;){
@@ -255,6 +238,7 @@ int app_main (void){
               number_of_bytes = number_of_bytes + 1;
               if (number_of_bytes == bytes_to_transfer){
                   serial_line_buf.seen_lf = 1;
+                  //last_word = 1;
                   break;
               }/*no need for else*/
           }/*no need for else*/
@@ -264,6 +248,7 @@ int app_main (void){
       if (!sd_line_buf.seen_lf && sd_printing){
           if (sd_read_file (&sd_line_buf)){
               sd_line_buf.seen_lf = 1;
+              executed_lines++;
           }else{
               sd_printing = false;
               serial_writestr("Done printing file\r\n");
@@ -306,7 +291,7 @@ int app_main (void){
 
           /*This should never occur!*/
           if (!((counter + serial_line_buf.len) <= SD_BUF_SIZE)){
-              serial_writestr("Danger: sector overflow ");
+              serial_writestr("error : sector overflow ");
               serwrite_uint32(counter + serial_line_buf.len);
               serial_writestr("\n");
           }/*no need for else*/
@@ -322,7 +307,7 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("ok\n");
+              serial_writestr("tog\n");
 
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
@@ -331,10 +316,13 @@ int app_main (void){
                   serial_writestr(" - error writing file\n");
               }/*no need for else*/
               counter = 0;
+              md5_append(sector, SD_BUF_SIZE);
+
           }/*no need for else*/
 
           if (number_of_bytes == bytes_to_transfer){
-              serial_writestr("ok\n");
+              serial_writestr("tog\n");
+              delay_ms(100);
 
               /*if the array to be written is full, it is write*/
               if (counter != 0){
@@ -346,12 +334,16 @@ int app_main (void){
                       serial_writestr(" - error writing file\n");
                   }/*no need for else*/
               }/*no need for else*/
-              sd_close(&file);
+
+              md5_append(sector, counter);
+
+              f_sync(&file);
 
               bytes_to_transfer = 0;
               number_of_bytes = 0;
               transfer_mode = 0;
               counter = 0;
+              config.status = 3;
 
           }/*no need for else*/
 

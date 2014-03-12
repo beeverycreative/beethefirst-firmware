@@ -1,3 +1,7 @@
+BEETHEFIRST-firmware-3.23.0-beta+20140312111700
+impressão autónoma e transferência de ficheiro
+MD5
+
 BEETHEFIRST-firmware-3.21.4-beta+20140210152900
 retirado a protecção de temperatura
 

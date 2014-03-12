@@ -32,7 +32,6 @@ int main(void)
   /* Change the Vector Table to the USER_FLASH_START
   in case the user application uses interrupts */
   SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
-  //SCB->VTOR = (0 & 0x1FFFFF80);
 
   SysTickTimer_Init(); // Initialize the timer for millis()
 

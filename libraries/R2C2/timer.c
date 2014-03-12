@@ -20,7 +20,7 @@
 #include "ios.h"
 #include "sdcard.h"
 #include "timer.h"
-
+#include "gcode_parse.h"
 
 //unsigned char clock_counter_250ms = 0;
 //unsigned char clock_counter_1s = 0;
@@ -197,7 +197,7 @@ void SysTick_Handler(void)
 {
   static uint8_t counter = 0;
   tTimer *pTimer;
-
+  time_elapsed++;
   millis_ticks++;
 
   /* 100ms tick for SDCard ***********************************************/
