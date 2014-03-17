@@ -1,3 +1,7 @@
+BEETHEFIRST-firmware-3.23.3-beta+20140317162100
+introduzido alimentação do WDT na sincronização do G92
+corrigido bug no M32
+
 BEETHEFIRST-firmware-3.23.0-beta+20140312111700
 impressão autónoma e transferência de ficheiro
 MD5

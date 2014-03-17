@@ -124,16 +124,6 @@ void temperatureTimerCallback (tTimer *pTimer)
   temp_tick();
 }
 
-void check_boot_request (void)
-{
-  if (digital_read (4, (1<<29)) == 0)
-  {
-    WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
-    WDT_Start (10);
-    while (1);
-  }
-}
-
 void init(void)
 {
   // set up inputs and outputs
@@ -236,16 +226,18 @@ int app_main (void){
 
           if (transfer_mode == 1){
               number_of_bytes = number_of_bytes + 1;
-              if (number_of_bytes == bytes_to_transfer){
+              if ((number_of_bytes == bytes_to_transfer)
+                  ||((counter + serial_line_buf.len) == SD_BUF_SIZE)){
+
                   serial_line_buf.seen_lf = 1;
-                  //last_word = 1;
                   break;
               }/*no need for else*/
           }/*no need for else*/
       }
 
       // process SD file if no serial command pending
-      if (!sd_line_buf.seen_lf && sd_printing){
+      if (!sd_line_buf.seen_lf && sd_printing && (plan_queue_size() < (BLOCK_BUFFER_SIZE - 10))){
+
           if (sd_read_file (&sd_line_buf)){
               sd_line_buf.seen_lf = 1;
               executed_lines++;
@@ -253,6 +245,7 @@ int app_main (void){
               sd_printing = false;
               serial_writestr("Done printing file\r\n");
           }
+
       }/*no need for else*/
 
       // if queue is full, we wait
@@ -275,7 +268,6 @@ int app_main (void){
               serial_line_buf.seen_lf = 0;
 
           }else if (sd_line_buf.seen_lf){
-
               parse_result = gcode_parse_line (&sd_line_buf);
               sd_line_buf.len = 0;
               sd_line_buf.seen_lf = 0;
@@ -307,7 +299,7 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("tog\n");
+              serial_writestr("tog ");
 
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
@@ -336,6 +328,7 @@ int app_main (void){
               }/*no need for else*/
 
               md5_append(sector, counter);
+              md5_finish( md5_word);
 
               f_sync(&file);
 

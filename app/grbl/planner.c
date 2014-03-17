@@ -39,8 +39,6 @@
 
 // The number of linear motions that can be in the plan at any give time
 
-#define BLOCK_BUFFER_SIZE 100
-
 tTarget startpoint;
 
 static block_t block_buffer[BLOCK_BUFFER_SIZE];  // A ring buffer for motion instructions
@@ -161,7 +159,8 @@ static void planner_reverse_pass()
   prev = &block_buffer[block_index];
 
   while(block_index != block_buffer_head) 
-  {    
+  {
+
     if (replan_prev && cur)
       cur->recalculate_flag = true;
 
@@ -217,7 +216,7 @@ static void planner_forward_pass()
   block_t *prev, *cur, *next;
 
   prev = cur = next = NULL;
-  
+
   while(block_index != block_buffer_tail) 
   {
     prev = cur;
@@ -298,8 +297,11 @@ static void planner_recalculate_trapezoids()
   block_t *current;
   block_t *next = NULL;
   
+  int while_lock = 0;
+
   while(block_index != block_buffer_tail) 
   {
+
     current = next;
     next = &block_buffer[block_index];
     
@@ -432,7 +434,9 @@ void plan_buffer_line (tActionRequest *pAction)
   
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
+
   while(block_buffer_head == next_buffer_tail) {
+
       sleep_mode();
   }
   
@@ -714,6 +718,7 @@ void plan_buffer_wait (tActionRequest *pAction)
   
   // If the buffer is full: good! That means we are well ahead of the robot. 
   // Rest here until there is room in the buffer.
+
   while(block_buffer_head == next_buffer_tail) {
 
       sleep_mode();
