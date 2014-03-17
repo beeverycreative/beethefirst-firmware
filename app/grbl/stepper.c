@@ -674,6 +674,7 @@ void st_init()
 void st_synchronize()
 {
   while(plan_get_current_block()) {
+      WDT_Feed();
       sleep_mode();
   }
 }

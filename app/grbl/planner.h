@@ -24,6 +24,8 @@
                  
 #include <inttypes.h>
 
+#define BLOCK_BUFFER_SIZE 100
+
 typedef enum {
   AT_MOVE,
   AT_MOVE_ENDSTOP,

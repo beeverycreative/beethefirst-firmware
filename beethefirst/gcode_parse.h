@@ -145,7 +145,7 @@ uint32_t estimated_time;
 uint32_t time_elapsed;
 uint32_t number_of_lines;
 uint32_t executed_lines;
-
+md5_byte_t md5_word[16];
 md5_state_t file_md5;
 
 // utility functions

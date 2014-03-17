@@ -436,7 +436,7 @@ void sd_init(){
   res = f_mount(&fs,"",1);
 
   if(res != FR_OK){
-      serial_writestr ("Error mounting fs - ");
+      serial_writestr ("error mounting fs - ");
       serwrite_uint32(res);
       serial_writestr ("\n");
       return;
@@ -642,11 +642,37 @@ eParseResult process_gcode_command(){
             sd_init();
           }
           break;
-
+/*
           case 22: // M22 - release SD card
           {
             sd_close(&file);
             sd_printing = false;
+          }
+          break;
+*/
+
+          //M28 - transfer size and begging if valid
+          case 23:
+          {
+            executed_lines = 0;
+            time_elapsed = 0;
+
+            //closes file
+            sd_close(&file);
+
+            //opens a file
+            if (sd_open(&file, next_target.filename, FA_READ)) {
+                if(!next_target.seen_B) {
+                    sersendf("File opened\n");
+                }/*No need for else*/
+                sd_pos = 0;
+            }else{
+                if(!next_target.seen_B){
+                    sersendf("error opening file\n");
+                    serial_writestr(next_target.filename);
+                    serial_writestr("\n");
+                }/*No need for else*/
+            }
           }
           break;
 
@@ -675,6 +701,7 @@ eParseResult process_gcode_command(){
             if(!next_target.seen_A){
                 if(!next_target.seen_B){
                     serial_writestr("error - not seen A\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
             }/*No need for else*/
@@ -682,15 +709,17 @@ eParseResult process_gcode_command(){
             if(!next_target.seen_D){
                 if(!next_target.seen_B){
                     serial_writestr("error - not seen D\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
             }/*No need for else*/
 
-            bytes_to_transfer = next_target.D - next_target.A;
+            bytes_to_transfer = next_target.D - next_target.A + 1;
 
             if ((bytes_to_transfer < 1) || (next_target.A > next_target.D)){
                 if(!next_target.seen_B){
                     serial_writestr("error - invalid number of bytes to transfer\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
             }/*No need for else*/
@@ -698,8 +727,8 @@ eParseResult process_gcode_command(){
             if (bytes_to_transfer > 0){
                 if(!next_target.seen_B){
                     serial_writestr("will write ");
-                    serwrite_uint32(bytes_to_transfer);
-                    serial_writestr("bytes\n");
+                    serwrite_uint32((bytes_to_transfer));
+                    serial_writestr(" bytes ");
                 }/*No need for else*/
             }/*No need for else*/
 
@@ -709,6 +738,7 @@ eParseResult process_gcode_command(){
             if(res != FR_OK){
                 if(!next_target.seen_B){
                     serial_writestr("error seeking position on file\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
             }/*No need for else*/
@@ -743,6 +773,7 @@ eParseResult process_gcode_command(){
                     serial_writestr("\n");
                 }/*No need for else*/
             }
+            executed_lines = 0;
           }
           break;
 
@@ -753,17 +784,17 @@ eParseResult process_gcode_command(){
             }else{
                 if(!next_target.seen_B){
                     serial_writestr("error - not seen A\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
-
             }
 
             if(next_target.seen_L){
                 number_of_lines = next_target.L;
             }else{
-
                 if(!next_target.seen_B){
                     serial_writestr("error - not seen L\n");
+                    reply_sent = 1;
                 }/*No need for else*/
                 break;
             }
@@ -804,21 +835,20 @@ eParseResult process_gcode_command(){
             config.status = 5;
             sd_printing = true;
             time_elapsed = 0;
-
+            executed_lines = 0;
           }
           break;
 
           case 34: //M33 - FINISH SD print
           {
 
-            md5_byte_t md5_word[16];
-
-            md5_finish( md5_word);
             if(!next_target.seen_B){
                 serial_writestr("transfer completed ");
                 for(int i=0; i<16; i++){
                     serwrite_hex8(md5_word[i]);
                 }
+                serial_writestr(" ");
+
             }/*No need for else*/
 
           }
@@ -916,7 +946,8 @@ eParseResult process_gcode_command(){
           case 115:
           {
             if(!next_target.seen_B && !sd_printing){
-                serial_writestr(" 4.23.0");
+
+                serial_writestr(" 4.23.2");
                 serial_writestr(" ");
             }
           }
