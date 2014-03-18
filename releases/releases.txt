@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-4.23.4-beta+20140318144200
+correcção de bug no status
+
 BEETHEFIRST-firmware-3.23.3-beta+20140317162100
 introduzido alimentação do WDT na sincronização do G92
 corrigido bug no M32

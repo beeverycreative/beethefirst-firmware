@@ -496,7 +496,11 @@ eParseResult process_gcode_command(){
         // G1 - synchronised motion
         case 1:
         {
-          config.status = 4;
+          if(!sd_printing){
+              config.status = 4;
+          }else{
+              config.status = 5;
+          }
 
           enqueue_moved(&next_targetd);
 
@@ -512,8 +516,11 @@ eParseResult process_gcode_command(){
           next_targetd.feed_rate = config.homing_feedrate_z;
           double aux = config.acceleration;
           config.acceleration = 1000;
-          config.status = 4;
-
+          if(!sd_printing){
+              config.status = 4;
+          }else{
+              config.status = 5;
+          }
           if (next_target.seen_X){
               zero_x();
               axisSelected = 1;
@@ -750,7 +757,7 @@ eParseResult process_gcode_command(){
             md5_init();
 
             //status = transfering
-            config.status = 5;
+            config.status = 6;
           }
           break;
 
@@ -915,7 +922,11 @@ eParseResult process_gcode_command(){
           // M109- set temp and wait
           case 109:
           {
-            config.status = 4;
+            if(!sd_printing){
+                config.status = 4;
+            }else{
+                config.status = 5;
+            }
 
             if (config.enable_extruder_1){
                 temp_set(next_target.S, EXTRUDER_0);
@@ -947,7 +958,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 4.23.2");
+                serial_writestr(" 4.23.4");
                 serial_writestr(" ");
             }
           }
@@ -1186,7 +1197,11 @@ eParseResult process_gcode_command(){
                   serwrite_int32(config.status);
                   serial_writestr(" ");
                   if(config.status == 0){
-                     config.status = 3;
+                      if(!sd_printing){
+                          config.status = 3;
+                      }else{
+                          config.status = 5;
+                      }
                   }/*No need for else*/
               }/*No need for else*/
           }

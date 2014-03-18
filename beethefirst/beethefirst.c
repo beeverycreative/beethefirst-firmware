@@ -203,6 +203,14 @@ int app_main (void){
           config.status = 3;
       }/*no need for else*/
 
+
+      if((plan_queue_empty())
+          && (config.status != 0)
+          && (sd_printing)){
+
+          config.status = 5;
+      }/*no need for else*/
+
       // process characters from the usb port
       while (!serial_line_buf.seen_lf
           && (serial_rxchars() != 0)){
