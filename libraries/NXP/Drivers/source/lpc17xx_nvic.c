@@ -74,7 +74,14 @@ void NVIC_DeInit(void)
 
 	/* Clear all interrupt priority */
 	for (tmp = 1; tmp < 32; tmp++) {
-		NVIC->IP[tmp] = 0x78787878;
+
+	    if(tmp==6){
+              //usb has higher priority than the others but less thant WDT
+              NVIC->IP[tmp] = 0x78787838;
+	    }else{
+              NVIC->IP[tmp] = 0x78787878;
+	    }
+
 	}
 }
 

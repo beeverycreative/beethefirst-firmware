@@ -244,14 +244,13 @@ int app_main (void){
       }
 
       // process SD file if no serial command pending
-      if (!sd_line_buf.seen_lf && sd_printing && (plan_queue_size() < (BLOCK_BUFFER_SIZE - 10))){
+      if (!sd_line_buf.seen_lf && sd_printing && (plan_queue_size() < 10)){
 
           if (sd_read_file (&sd_line_buf)){
               sd_line_buf.seen_lf = 1;
               executed_lines++;
           }else{
               sd_printing = false;
-              serial_writestr("Done printing file\r\n");
           }
 
       }/*no need for else*/

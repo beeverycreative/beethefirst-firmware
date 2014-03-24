@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-4.23.5-beta+20140324093300
+alterada a queue para minimizar os tempos que fica preso no G92 e G28
+
 BEETHEFIRST-firmware-4.23.4-beta+20140318144200
 correcção de bug no status
 

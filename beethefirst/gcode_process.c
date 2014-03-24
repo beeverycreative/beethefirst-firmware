@@ -567,6 +567,7 @@ eParseResult process_gcode_command(){
         //G92 - set current position
         case 92:
         {
+
             tTarget new_pos;
 
             // must have no moves pending if changing position
@@ -658,7 +659,7 @@ eParseResult process_gcode_command(){
           break;
 */
 
-          //M28 - transfer size and begging if valid
+          //M28 - transfer size and begin if valid
           case 23:
           {
             executed_lines = 0;
@@ -702,7 +703,7 @@ eParseResult process_gcode_command(){
           }
           break;
 
-          //M28 - transfer size and begging if valid
+          //M28 - transfer size and begin if valid
           case 28:
           {
             if(!next_target.seen_A){
@@ -812,6 +813,8 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B){
 
+              int temp = 0;
+              temp = estimated_time;
               serial_writestr("A");
               serwrite_uint32(estimated_time);
               serial_writestr(" B");
@@ -820,7 +823,11 @@ eParseResult process_gcode_command(){
               serwrite_uint32(number_of_lines);
               serial_writestr(" D");
               serwrite_uint32(executed_lines);
-              serial_writestr("\n");
+              serial_writestr(" ");
+
+              if(number_of_lines == executed_lines){
+                  serial_writestr("Done printing file\n");
+              }/*No need for else*/
             }/*No need for else*/
 
           }
@@ -958,7 +965,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.23.4");
+                serial_writestr(" 3.23.5");
                 serial_writestr(" ");
             }
           }
@@ -1274,7 +1281,7 @@ eParseResult process_gcode_command(){
 
   if (!reply_sent){
       if(!next_target.seen_B){
-          serial_writestr("ok Q:");
+          serial_writestr("ok Q:0");
           serwrite_uint32(plan_queue_size());
           if(next_target.seen_N){
               serial_writestr(" N:");
