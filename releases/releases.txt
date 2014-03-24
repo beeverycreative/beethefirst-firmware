@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.23.6-beta+201403240164200
+inserido comando com bcode
+
 BEETHEFIRST-firmware-4.23.5-beta+20140324093300
 alterada a queue para minimizar os tempos que fica preso no G92 e G28
 

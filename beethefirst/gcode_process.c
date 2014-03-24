@@ -965,7 +965,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.23.5");
+                serial_writestr(" 3.23.6");
                 serial_writestr(" ");
             }
           }
@@ -1092,6 +1092,18 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          // M400 bcode
+          case 400:
+          {
+            if(next_target.seen_A){
+              config.bcode= next_target.A;
+            }else{
+                serial_writestr(" bcode:");
+                serwrite_int32(config.bcode);
+                serial_writestr(" ");
+            }
+          }
+          break;
           // M600 print the values read from the config file
           case 600:
           {
@@ -1281,7 +1293,7 @@ eParseResult process_gcode_command(){
 
   if (!reply_sent){
       if(!next_target.seen_B){
-          serial_writestr("ok Q:0");
+          serial_writestr("ok Q:");
           serwrite_uint32(plan_queue_size());
           if(next_target.seen_N){
               serial_writestr(" N:");

@@ -104,6 +104,8 @@ struct configuration
   int32_t enable_extruder_1;
 
   int32_t status;
+  int32_t bcode;
+
 };
 
 extern struct configuration config;
