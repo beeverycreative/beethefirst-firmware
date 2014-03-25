@@ -965,7 +965,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.23.6");
+                serial_writestr(" 3.23.7");
                 serial_writestr(" ");
             }
           }
@@ -1098,7 +1098,7 @@ eParseResult process_gcode_command(){
             if(next_target.seen_A){
               config.bcode= next_target.A;
             }else{
-                serial_writestr(" bcode:");
+                serial_writestr(" bcode:A");
                 serwrite_int32(config.bcode);
                 serial_writestr(" ");
             }
