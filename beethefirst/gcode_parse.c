@@ -334,8 +334,17 @@ void gcode_parse_char(uint8_t c)
         next_target.L = value;
         break;
 
+        case 'T':
+        next_target.T = value;
+        break;
+
         case '*':
         next_target.checksum_read = value;
+        break;
+
+        case ';':
+        case '^':
+        next_target.seen_semi_comment = 1;
         break;
       }
 
@@ -434,6 +443,10 @@ void gcode_parse_char(uint8_t c)
 
       case 'B':
       next_target.seen_B = 1;
+      break;
+
+      case 'T':
+      next_target.seen_T = 1;
       break;
 
       case '*':

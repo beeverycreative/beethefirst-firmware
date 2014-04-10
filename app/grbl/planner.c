@@ -720,6 +720,7 @@ void plan_buffer_wait (tActionRequest *pAction)
   // Rest here until there is room in the buffer.
 
   while(block_buffer_head == next_buffer_tail) {
+      WDT_Feed();
 
       sleep_mode();
   }

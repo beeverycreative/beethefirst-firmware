@@ -494,6 +494,7 @@ eParseResult process_gcode_command(){
       switch (next_target.G)
       {
         // G1 - synchronised motion
+        case 0:
         case 1:
         {
           if(!sd_printing){
@@ -591,7 +592,7 @@ eParseResult process_gcode_command(){
             }/*No need for else*/
 
             if (next_target.seen_E){
-                new_pos.e = 0;
+                new_pos.e = next_target.target.e;
                 axisSelected = 1;
             }/*No need for else*/
 
@@ -965,7 +966,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.23.7");
+                serial_writestr(" 3.24.0");
                 serial_writestr(" ");
             }
           }

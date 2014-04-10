@@ -85,6 +85,7 @@ typedef struct {
 	uint8_t					seen_N	:1;
         uint8_t                                 seen_A  :1;
         uint8_t                                 seen_L  :1;
+        uint8_t                                 seen_T  :1;
 
 	uint8_t                                 seen_B  :1;
         uint8_t                                 seen_D  :1;
@@ -98,6 +99,8 @@ typedef struct {
 	uint8_t					option_inches				:1;
 
 	uint8_t						G;
+        uint8_t                                         T;
+
 	uint16_t				  M;
 	tTarget						target;
 

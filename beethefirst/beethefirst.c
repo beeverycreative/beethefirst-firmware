@@ -146,7 +146,6 @@ void init(void)
 void WDT_IRQHandler(void){
 }
 
-
 int app_main (void){
   long timer1 = 0;
   eParseResult parse_result;
@@ -351,4 +350,3 @@ int app_main (void){
 
   }
 }
-

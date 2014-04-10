@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.24.0-beta+20140410104600
+compatibilidade com CURAEngine 
+
 BEETHEFIRST-firmware-3.23.7-beta+20140325150700
 pequena alteração na mensagem do bcode
 
