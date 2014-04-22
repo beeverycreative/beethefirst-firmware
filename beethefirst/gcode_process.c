@@ -966,7 +966,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.24.0");
+                serial_writestr(" 3.24.1");
                 serial_writestr(" ");
             }
           }
@@ -1289,6 +1289,9 @@ eParseResult process_gcode_command(){
   }else{
       if(!next_target.seen_B && !sd_printing){
           serial_writestr("E: Bad code ");
+      }/*No need for else*/
+      if(sd_printing){
+          reply_sent = 1;
       }/*No need for else*/
   }
 
