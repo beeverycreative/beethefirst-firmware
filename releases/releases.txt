@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.24.2-beta+20140429120500
+rejeita as linhas só de comentários
+
 BEETHEFIRST-firmware-3.24.0-beta+20140410104600
 compatibilidade com CURAEngine 
 

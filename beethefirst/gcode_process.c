@@ -966,7 +966,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.24.1");
+                serial_writestr(" 3.24.2");
                 serial_writestr(" ");
             }
           }
@@ -1286,6 +1286,8 @@ eParseResult process_gcode_command(){
             reply_sent = 1;
           }
     }
+  }else if(next_target.seen_semi_comment || next_target.seen_parens_comment){
+      reply_sent = 1;
   }else{
       if(!next_target.seen_B && !sd_printing){
           serial_writestr("E: Bad code ");
