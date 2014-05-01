@@ -966,7 +966,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.24.2");
+                serial_writestr(" 3.26.0");
                 serial_writestr(" ");
             }
           }
@@ -1205,6 +1205,7 @@ eParseResult process_gcode_command(){
 
           case 609:
           {
+              delay_ms(1000);
               USBHwConnect(FALSE);
               go_to_reset(); // reinicia o sistema
           }
