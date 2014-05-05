@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.26.1-beta+20140505181800
+corrigido bug na escrita na flash
+
 BEETHEFIRST-firmware-3.26.0-beta+20140501172000
 introduzida pausa para a transição ser detectada
 

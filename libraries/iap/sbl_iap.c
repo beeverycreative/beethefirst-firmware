@@ -219,20 +219,28 @@ void compare_data(unsigned cclk, unsigned dst, void * flash_data_buf, unsigned c
 
 void erase_sector(unsigned start_sector, unsigned end_sector, unsigned cclk)
 {
+  __disable_irq();
+
   param_table[0] = ERASE_SECTOR;
   param_table[1] = start_sector;
   param_table[2] = end_sector;
   param_table[3] = cclk;
   iap_entry(param_table,result_table);
+  __enable_irq();
+
 }
 
 void prepare_sector(unsigned start_sector,unsigned end_sector,unsigned cclk)
 {
+  __disable_irq();
+
   param_table[0] = PREPARE_SECTOR_FOR_WRITE;
   param_table[1] = start_sector;
   param_table[2] = end_sector;
   param_table[3] = cclk;
   iap_entry(param_table,result_table);
+  __enable_irq();
+
 }
 
 void iap_entry(unsigned param_tab[], unsigned result_tab[])

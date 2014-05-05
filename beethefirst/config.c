@@ -406,4 +406,6 @@ void write_config (void)
                            (unsigned)(SECTOR_29_START),
                            (unsigned)sector,
                            (unsigned)FLASH_BUF_SIZE);
+
 }
+
