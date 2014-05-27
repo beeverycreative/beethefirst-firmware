@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.27.0-beta+20140527104200
+alterados tamanhos dos buffers
+
 BEETHEFIRST-firmware-3.26.1-beta+20140505181800
 corrigido bug na escrita na flash
 

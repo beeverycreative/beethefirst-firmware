@@ -50,6 +50,7 @@ uint32_t bip_switch;
 #ifndef ABS
 #define ABS(v)          (((v) >= 0)?(v):(-(v)))
 #endif
+#define MAX_LINE 512
 
 #if 0
 // this is a very crude decimal-based floating point structure. a real floating point would at least have signed exponent
@@ -122,7 +123,6 @@ typedef struct {
 	char              filename [120];
 } GCODE_COMMAND;
 
-#define MAX_LINE 120
 typedef struct
 {
   char    data [MAX_LINE];
