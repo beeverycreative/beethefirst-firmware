@@ -33,6 +33,7 @@
 #include "pinout.h"
 #include "sersendf.h"
 #include "stepper.h"
+#include "config.h"
 
 /* {ADC value Extruder0, ADC value HeatedBed0, temperature} */
 uint16_t temptable[NUMTEMPS][3] = {
@@ -52,17 +53,17 @@ uint16_t temptable[NUMTEMPS][3] = {
   {4080, 4085, 0}
 };
 
-static uint16_t current_temp [NUMBER_OF_SENSORS] = {0};
-static uint16_t target_temp  [NUMBER_OF_SENSORS] = {0};
+static double current_temp [NUMBER_OF_SENSORS] = {0};
+static double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
 
-static uint16_t read_temp(uint8_t sensor_number);
+static double read_temp(uint8_t sensor_number);
 
-void temp_set(uint16_t t, uint8_t sensor_number)
+void temp_set(double t, uint8_t sensor_number)
 {
   if (t)
   {
@@ -71,6 +72,7 @@ void temp_set(uint16_t t, uint8_t sensor_number)
   }
 
   target_temp[sensor_number] = t;
+
 }
 
 uint16_t temp_get(uint8_t sensor_number)
@@ -112,6 +114,7 @@ void temp_tick(void)
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
 
   /* Manage heater using simple ON/OFF logic, no PID */
+
   if (current_temp[EXTRUDER_0] < target_temp[EXTRUDER_0])
   {
     extruder_heater_on();
@@ -133,11 +136,11 @@ void temp_tick(void)
 }
 
 /* Read and average the ADC input signal */
-static uint16_t read_temp(uint8_t sensor_number)
+static double read_temp(uint8_t sensor_number)
 {
   int32_t raw = 4095; // initialize raw with value equal to lowest temperature.
   static int32_t raw_correct = 4095;
-  int16_t celsius = 0;
+  double celsius = 0;
   uint8_t i;
 
   if (sensor_number == EXTRUDER_0){
@@ -146,19 +149,6 @@ static uint16_t read_temp(uint8_t sensor_number)
   }else if (sensor_number == HEATED_BED_0){
 
     raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
-
-    /* There is a problem with LPC1768 ADC being overdrive with > 3.3V on ADC extruder channel and that makes
-     * error readings on ADC bed channel (only when extruder is cold less than ~15ºC).
-     * Try to avoid the bad readings that usually are raw =< 300.
-     */
-    if (raw < 300) // error, assume last correct value
-    {
-      raw = raw_correct;
-    }
-    else // no error, save current raw
-    {
-      raw_correct = raw;
-    }
   }
   
   // filter the ADC values with simple IIR

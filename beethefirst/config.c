@@ -129,7 +129,9 @@ tConfigItem config_lookup [] =
         { "enable_extruder_1", &config.enable_extruder_1, TYPE_INT, {.val_i=1}},
         { "status", &config.status, TYPE_INT, {.val_i=1}},
         { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
-
+        { "kp", &config.kp, TYPE_DOUBLE, {.val_d=22.200}},
+        { "ki", &config.ki, TYPE_DOUBLE, {.val_d=1.080}},
+        { "kd", &config.kd, TYPE_DOUBLE, {.val_d=114.000}},
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))

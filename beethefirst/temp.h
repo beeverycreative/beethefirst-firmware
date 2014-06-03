@@ -40,7 +40,7 @@
 #include "adc.h"
 
 // set target temperature
-void temp_set(uint16_t t, uint8_t sensor_number);
+void temp_set(double t, uint8_t sensor_number);
 
 // return last read temperature
 uint16_t temp_get(uint8_t sensor_number);
@@ -61,7 +61,7 @@ void temp_print(void);
 void temp_tick(void);
 
 #define NUMTEMPS 14
-extern uint16_t temptable[NUMTEMPS][3];
+extern double temptable[NUMTEMPS][3];
 
 bool      temp_set_table_entry (uint8_t sensor_number, uint16_t temp, uint16_t adc_val);
 uint16_t  temp_get_table_entry (uint8_t sensor_number, uint16_t temp);

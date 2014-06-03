@@ -106,6 +106,9 @@ struct configuration
   int32_t status;
   int32_t bcode;
 
+  double kp;
+  double ki;
+  double kd;
 };
 
 extern struct configuration config;
