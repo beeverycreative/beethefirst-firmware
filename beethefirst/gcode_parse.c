@@ -171,6 +171,7 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.seen_E = next_target.seen_F = next_target.seen_S = \
     next_target.seen_P = next_target.seen_N = next_target.seen_M = \
     next_target.seen_N = next_target.seen_B = next_target.seen_A = \
+    next_target.seen_T = next_target.seen_U = next_target.seen_V = \
     next_target.seen_checksum = next_target.seen_semi_comment = \
     next_target.seen_parens_comment = next_target.checksum_read = \
     next_target.checksum_calculated = next_target.seen_D = next_target.seen_L = 0;
@@ -335,7 +336,15 @@ void gcode_parse_char(uint8_t c)
         break;
 
         case 'T':
-        next_target.T = value;
+        config.kp = value;
+        break;
+
+        case 'U':
+        config.ki = value;
+        break;
+
+        case 'V':
+        config.kd = value;
         break;
 
         case '*':
@@ -447,6 +456,14 @@ void gcode_parse_char(uint8_t c)
 
       case 'T':
       next_target.seen_T = 1;
+      break;
+
+      case 'U':
+      next_target.seen_U = 1;
+      break;
+
+      case 'V':
+      next_target.seen_V = 1;
       break;
 
       case '*':

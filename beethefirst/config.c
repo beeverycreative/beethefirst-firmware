@@ -290,7 +290,6 @@ void print_config (void)
 void read_config (void)
 {
     unsigned j;
-    char sector[FLASH_BUF_SIZE];
     char *pmem = SECTOR_29_START;
     size_t bytes = (sizeof(config)/sizeof(char));
     char* pConfig = &config;
@@ -351,17 +350,12 @@ void reset_config (void)
         }
     }
 
-    char sector[FLASH_BUF_SIZE];
     char *pmem = SECTOR_29_START;
-    size_t bytes = (sizeof(config)/sizeof(char));
+    uint32_t bytes = (sizeof(config)/sizeof(char));
+    char sector[bytes];
     char* pConfig = &config;
 
     memcpy(&sector, pConfig, bytes);
-
-    while (bytes < FLASH_BUF_SIZE) {
-        sector[bytes] = 255;
-        bytes++;
-    }
 
     prepare_sector(29, 29, SystemCoreClock);
     erase_sector(29, 29, SystemCoreClock);
@@ -384,16 +378,12 @@ void reset_config (void)
 
 void write_config (void)
 {
-    char sector[FLASH_BUF_SIZE];
     size_t bytes = sizeof(config)/sizeof(char);
+    char sector[bytes];
+
     char* pConfig = &config;
 
     memcpy(&sector, pConfig, bytes);
-
-    while (bytes  < FLASH_BUF_SIZE) {
-       sector[bytes] = 255;
-       bytes ++;
-    }
 
     prepare_sector(29, 29, SystemCoreClock);
     erase_sector(29, 29, SystemCoreClock);

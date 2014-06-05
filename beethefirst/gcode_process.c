@@ -966,7 +966,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.27.0");
+                serial_writestr(" 3.28.0");
                 serial_writestr(" ");
             }
           }
@@ -1008,6 +1008,29 @@ eParseResult process_gcode_command(){
                     sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
                 }/*No need for else*/
             }
+          }
+          break;
+
+          // M130 temperature PID
+          case 130:
+          {
+              if(!next_target.seen_B ){
+                  if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+                      serial_writestr("kp:");
+                      serwrite_double(config.kp);
+                      serial_writestr(" ki:");
+                      serwrite_double(config.ki);
+                      serial_writestr(" kd:");
+                      serwrite_double(config.kd);
+                      serial_writestr(" ");
+                  }/*No need for else*/
+              }/*No need for else*/
+          }
+          break;
+
+          case 131:
+          {
+              print_pwm();
           }
           break;
 
@@ -1073,19 +1096,14 @@ eParseResult process_gcode_command(){
           // P: duration
           case 300:
           {
-            uint16_t frequency = 1000;  // 1kHz
             uint16_t duration = 1000; // 1 second
 
-            if (next_target.seen_S){
-                frequency = next_target.S;
-            }/*No need for else*/
-
-            if (next_target.seen_P){
+            if (next_target.seen_P && next_target.P<11000){
                 duration = next_target.P;
             }/*No need for else*/
 
             buzzer_wait ();
-            buzzer_play (frequency, duration);
+            buzzer_play (duration);
 
             if(sd_printing){
                 reply_sent = 1;
@@ -1105,6 +1123,59 @@ eParseResult process_gcode_command(){
             }
           }
           break;
+
+          //set pwm
+          case 401:
+          {
+            int duty_cicle = 50;
+
+            if(next_target.seen_P){
+                if(next_target.seen_P<0||next_target.seen_P>100){
+                    serial_writestr("invalid pwm duty cicle ");
+                    break;
+                }
+                duty_cicle = next_target.P;
+            }
+
+            if (next_target.seen_S){
+
+                if(next_target.seen_S<1 || next_target.seen_S>5){
+                    serial_writestr("invalid pwm channel ");
+                    break;
+                }
+
+                pwm_set_duty_cycle(next_target.S, duty_cicle);
+                pwm_set_enable(next_target.S);
+            }
+          }
+          break;
+
+          //disable pwm
+          case 402:
+          {
+            if (next_target.seen_S){
+                if(next_target.seen_S<1 || next_target.seen_S>5){
+                    serial_writestr("invalid pwm channel ");
+                    break;
+                }
+                pwm_set_duty_cycle(next_target.S, 0);
+                pwm_set_enable(next_target.S);
+            }else{
+                pwm_set_duty_cycle(1, 0);
+                pwm_set_duty_cycle(2, 0);
+                pwm_set_duty_cycle(3, 0);
+                pwm_set_duty_cycle(4, 0);
+                pwm_set_duty_cycle(5, 0);
+
+                pwm_set_enable(1);
+                pwm_set_enable(2);
+                pwm_set_enable(3);
+                pwm_set_enable(4);
+                pwm_set_enable(5);
+            }
+          }
+          break;
+
           // M600 print the values read from the config file
           case 600:
           {

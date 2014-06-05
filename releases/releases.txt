@@ -1,3 +1,8 @@
+BEETHEFIRST-firmware-3.28.0-beta+20140505105400
+introduzido controlo do pwm
+aumentada resolução da temperatura
+introduzido pid para controlar temperatura
+
 BEETHEFIRST-firmware-3.27.0-beta+20140527104200
 alterados tamanhos dos buffers
 

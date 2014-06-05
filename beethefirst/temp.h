@@ -43,10 +43,10 @@
 void temp_set(double t, uint8_t sensor_number);
 
 // return last read temperature
-uint16_t temp_get(uint8_t sensor_number);
+double temp_get(uint8_t sensor_number);
 
 // return target temperature
-uint16_t temp_get_target(uint8_t sensor_number);
+double temp_get_target(uint8_t sensor_number);
 
 // true if last read temp is close to target temp, false otherwise
 uint8_t temp_achieved(uint8_t sensor_number);
@@ -60,10 +60,16 @@ void temp_print(void);
 // periodically read temperature and update heater with PID
 void temp_tick(void);
 
+void print_pwm(void);
+
 #define NUMTEMPS 14
+double last_error;
+double iterm_temp;
+double dterm_temp;
+double output;
 extern double temptable[NUMTEMPS][3];
 
-bool      temp_set_table_entry (uint8_t sensor_number, uint16_t temp, uint16_t adc_val);
-uint16_t  temp_get_table_entry (uint8_t sensor_number, uint16_t temp);
+bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val);
+double  temp_get_table_entry (uint8_t sensor_number, double temp);
 
 #endif	/* _TIMER_H */

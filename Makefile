@@ -142,18 +142,9 @@ APPSRC = \
 	$(APPDIR)/endstops.c \
 	$(APPDIR)/geometry.c \
 	$(APPDIR)/bootloader.c \
+	$(APPDIR)/pwm.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
-
-#	app/grbl/print.c \
-#	app/grbl/eeprom.c \
-#	app/grbl/settings.c \
-# $(APPDIR)/dda_queue.c \
-#	$(APPDIR)/dda.c \
-
-
-#APPDIR = sample
-#APPSRC = $(APPDIR)/sample_app.c
 
 # Utility variables
 APPLIBDIR    = libraries
