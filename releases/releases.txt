@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-3.28.1-beta+20140505122800
+corrigido bug no pwm
+
 BEETHEFIRST-firmware-3.28.0-beta+20140505105400
 introduzido controlo do pwm
 aumentada resolução da temperatura

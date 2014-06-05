@@ -132,7 +132,9 @@ void temp_tick(void)
 
   if(output > 100) {
       output = 100;
-  }else if(output<0 || target_temp[EXTRUDER_0] == 0) {
+  }else if(output<0 ) {
+      output = 0;
+  }else if(target_temp[EXTRUDER_0] == 0){
       output = 0;
       pterm = 0;
       iterm = 0;
