@@ -142,6 +142,7 @@ void temp_tick(void)
       iterm = 0;
       dterm = 0;
   }
+
   pwm_set_duty_cycle(5, output);
   pwm_set_enable(5);
 }
@@ -231,5 +232,5 @@ double temp_get_table_entry (uint8_t sensor_number, double temp)
 }
 
 void print_pwm(void){
-  sersendf("pwm: %g ", output);
+  sersendf("pwm:%g p:%g i:%g d:%g ", output, last_error,iterm_temp,dterm_temp);
 }

@@ -172,7 +172,6 @@ void init(void)
   StartSlowTimer (&ledsTimer, 500, ledsTimerCallback);
   ledsTimer.AutoReload = 1;
 
-  //sd_init();
 }
 
 
