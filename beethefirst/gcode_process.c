@@ -1080,7 +1080,17 @@ eParseResult process_gcode_command(){
             }
           }
           break;
+          case 139:
+          {
+              if (next_target.seen_P){
 
+                  max_set(next_target.P );
+              }else{
+                  serial_writestr("max: ");
+                  serwrite_int32(PID_FUNTIONAL_RANGE);
+              }
+          }
+          break;
           // M200 - set steps per mm
           case 200:
           {

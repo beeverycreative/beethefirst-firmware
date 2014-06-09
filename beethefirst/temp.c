@@ -76,6 +76,10 @@ void temp_set(double t, uint8_t sensor_number)
 
 }
 
+void max_set(int range){
+  PID_FUNTIONAL_RANGE =range;
+}
+
 double temp_get(uint8_t sensor_number)
 {
   current_temp[sensor_number] = read_temp(sensor_number);
@@ -124,6 +128,11 @@ void temp_tick(void)
 
   pterm = config.kp * pid_error;
   iterm_temp += pid_error;
+
+  if(iterm_temp > PID_FUNTIONAL_RANGE){
+      iterm_temp = PID_FUNTIONAL_RANGE;
+  }/*No need for else*/
+
   iterm = config.ki * iterm_temp;
   dterm_temp = pid_error - last_error;
   dterm = config.kd * dterm_temp;

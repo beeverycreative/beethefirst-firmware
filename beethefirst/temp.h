@@ -66,9 +66,10 @@ void print_pwm(void);
 double last_error;
 double iterm_temp;
 double dterm_temp;
+int PID_FUNTIONAL_RANGE;
 double output;
 extern double temptable[NUMTEMPS][3];
-
+void max_set(int range);
 bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val);
 double  temp_get_table_entry (uint8_t sensor_number, double temp);
 

@@ -195,6 +195,7 @@ int app_main (void){
   dterm_temp = 0;
   iterm_temp = 0;
   output = 0;
+  PID_FUNTIONAL_RANGE = 0;
   estimated_time = 0;
   time_elapsed = 0;
   number_of_lines = 0;
