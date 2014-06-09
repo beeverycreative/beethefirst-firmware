@@ -143,6 +143,7 @@ APPSRC = \
 	$(APPDIR)/geometry.c \
 	$(APPDIR)/bootloader.c \
 	$(APPDIR)/pwm.c \
+	$(APPDIR)/leds.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
 

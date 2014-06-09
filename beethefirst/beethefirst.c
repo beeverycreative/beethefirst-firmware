@@ -48,26 +48,28 @@
 #include "stepper.h"
 #include "sbl_config.h"
 #include "pwm.h"
+#include "leds.h"
 
 tTimer temperatureTimer;
+tTimer ledsTimer;
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
 
 /* initialize PWM */
 void pwm_init(void){
-  pwm_pins_init(2,0);
+  //pwm_pins_init(2,0);
   pwm_pins_init(2,1);
   pwm_pins_init(2,2);
-  pwm_pins_init(2,3);
+  //pwm_pins_init(2,3);
   pwm_pins_init(2,4);
 
   init_pwm_peripheral();
 
-  init_global_match(1);
+  //init_global_match(1);
   init_global_match(2);
   init_global_match(3);
-  init_global_match(4);
+  //init_global_match(4);
   init_global_match(5);
 
 }
@@ -126,12 +128,26 @@ void io_init(void)
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
 
+  pin_mode(VENTOINHA_EXTRUSOR_PORT, VENTOINHA_EXTRUSOR_PIN, OUTPUT);
+  ventoinha_extrusor_off();
+
+  pin_mode(VENTOINHA_R2C2_PORT, VENTOINHA_R2C2_PIN, OUTPUT);
+  ventoinha_r2c2_off();
+
+  pin_mode(LEDS_PORT, LEDS_PIN, OUTPUT);
+  leds_off();
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
 {
   /* Manage the temperatures */
   temp_tick();
+}
+
+void ledsTimerCallback (tTimer *pTimer)
+{
+  /* Manage the temperatures */
+  led_tick();
 }
 
 void init(void)
@@ -150,6 +166,11 @@ void init(void)
   AddSlowTimer (&temperatureTimer);
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
+
+  led_mode = 0;
+  AddSlowTimer (&ledsTimer);
+  StartSlowTimer (&ledsTimer, 500, ledsTimerCallback);
+  ledsTimer.AutoReload = 1;
 
   //sd_init();
 }
@@ -175,6 +196,10 @@ int app_main (void){
   dterm_temp = 0;
   iterm_temp = 0;
   output = 0;
+  estimated_time = 0;
+  time_elapsed = 0;
+  number_of_lines = 0;
+  time_elapsed = 0;
   //debug bip
   bip = 2;
   bip_switch = 0;

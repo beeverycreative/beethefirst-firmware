@@ -105,6 +105,15 @@
 #define EXTRUDER_0_FAN_PORT             2         /* P2.3 */
 #define EXTRUDER_0_FAN_PIN              (1<<3)
 
+#define VENTOINHA_EXTRUSOR_PORT         0         /* P0.7 */
+#define VENTOINHA_EXTRUSOR_PIN          (1<<7)
+
+#define LEDS_PORT                       2         /* P2.0 */
+#define LEDS_PIN                        (1<<0)
+
+#define VENTOINHA_R2C2_PORT             1         /* P1.8 */
+#define VENTOINHA_R2C2_PIN              (1<<8)
+
 #define HEATED_BED_0_HEATER_PORT        2        /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5) /* P2.5 */
 #define HEATED_BED_0_ADC_PORT           0        /* P0.3 */
@@ -158,6 +167,15 @@
 
 #define extruder_fan_on() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, HIGH);
 #define extruder_fan_off() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, LOW);
+
+#define ventoinha_extrusor_off() digital_write(VENTOINHA_EXTRUSOR_PORT, VENTOINHA_EXTRUSOR_PIN, LOW);
+#define ventoinha_extrusor_on() digital_write(VENTOINHA_EXTRUSOR_PORT, VENTOINHA_EXTRUSOR_PIN, HIGH);
+
+#define ventoinha_r2c2_off() digital_write(VENTOINHA_R2C2_PORT, VENTOINHA_R2C2_PIN, LOW);
+#define ventoinha_r2c2_on() digital_write(VENTOINHA_R2C2_PORT, VENTOINHA_R2C2_PIN, HIGH);
+
+#define leds_off() digital_write(LEDS_PORT, LEDS_PIN, LOW);
+#define leds_on() digital_write(LEDS_PORT, LEDS_PIN, HIGH);
 
 /*
         Heated Bed

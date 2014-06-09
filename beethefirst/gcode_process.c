@@ -814,8 +814,6 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B){
 
-              int temp = 0;
-              temp = estimated_time;
               serial_writestr("A");
               serwrite_uint32(estimated_time);
               serial_writestr(" B");
@@ -1031,6 +1029,55 @@ eParseResult process_gcode_command(){
           case 131:
           {
               print_pwm();
+          }
+          break;
+
+          case 132:
+          {
+              ventoinha_extrusor_on();
+          }
+          break;
+
+          case 133:
+          {
+              ventoinha_extrusor_off();
+          }
+          break;
+
+          case 134:
+          {
+              ventoinha_r2c2_on();
+          }
+          break;
+
+          case 135:
+          {
+              ventoinha_r2c2_off();
+          }
+          break;
+
+          case 136:
+          {
+              leds_on();
+          }
+          break;
+
+          case 137:
+          {
+              leds_off();
+          }
+          break;
+
+          case 138:
+          {
+
+            if (next_target.seen_P){
+
+                set_led_mode(next_target.P );
+            }else{
+                serial_writestr("not seen P ");
+
+            }
           }
           break;
 

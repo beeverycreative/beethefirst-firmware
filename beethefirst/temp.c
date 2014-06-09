@@ -110,6 +110,8 @@ void temp_print()
 
 void temp_tick(void)
 {
+
+
   double pid_error = 0;
   double pterm = 0;
   double iterm = 0;

@@ -12,20 +12,15 @@
  * <http://www.gnu.org/licenses/>.
  *
  */
+#ifndef _LEDS_H
+#define _LEDS_H
+void led_tick(void);
+void set_led_mode(int mode);
+int led_mode;
+//0 - inactive
+//1 - pulsing on
+//2 - pulsing off
+//3 - drim
 
-#ifndef _PWM_H
-#define _PWM_H
-
-#include "lpc17xx_pwm.h"
-#include "lpc17xx.h"
-#include "lpc17xx_pinsel.h"
-
-int pwm_set_duty_cycle(int channel, int32_t duty);
-void pwm_set_enable(int pwm_channel);
-void pwm_set_disable(int pwm_channel);
-void init_global_match(int pwm_channel);
-void init_pwm_peripheral(void);
-void pwm_pins_init(int port,int pin);
-
-#endif  /* _PWM_H */
+#endif  /* _LEDS_H */
 
