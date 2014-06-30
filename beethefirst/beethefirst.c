@@ -305,22 +305,20 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("tog ");
-
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
               if(res != FR_OK) {
                   serwrite_uint32(res);
                   serial_writestr(" - error writing file\n");
-              }/*no need for else*/
+              }else{
+                  serial_writestr("tog\n");
+              }
               counter = 0;
-              md5_append(sector, SD_BUF_SIZE);
+              //md5_append(sector, SD_BUF_SIZE);
 
           }/*no need for else*/
 
           if (number_of_bytes == bytes_to_transfer){
-              serial_writestr("tog\n");
-              delay_ms(100);
 
               /*if the array to be written is full, it is write*/
               if (counter != 0){
@@ -330,11 +328,13 @@ int app_main (void){
                   if(res != FR_OK) {
                       serwrite_uint32(res);
                       serial_writestr(" - error writing file\n");
-                  }/*no need for else*/
+                  }else{
+                      serial_writestr("tog\n");
+                  }
               }/*no need for else*/
 
-              md5_append(sector, counter);
-              md5_finish( md5_word);
+              //md5_append(sector, counter);
+              //md5_finish( md5_word);
 
               f_sync(&file);
 

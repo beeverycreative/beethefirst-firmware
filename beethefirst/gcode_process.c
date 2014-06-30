@@ -756,7 +756,7 @@ eParseResult process_gcode_command(){
             transfer_mode = 1;
 
             //saved to be used by md5
-            md5_init();
+            //md5_init();
 
             //status = transfering
             config.status = 6;
