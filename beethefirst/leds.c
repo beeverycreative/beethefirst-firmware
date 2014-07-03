@@ -16,36 +16,49 @@
 #include "leds.h"
 
 void led_tick(){
-
+  int output =0;
   if(led_mode==0){
       pwm_set_duty_cycle(2, 0);
       pwm_set_enable(2);
   }else if(led_mode==1){
       pwm_set_duty_cycle(2, 100);
       pwm_set_enable(2);
-      led_mode=2;
   }else if(led_mode==2){
+      freq_counter++;
+      pwm_set_duty_cycle(2, 100);
+      pwm_set_enable(2);
+      if(freq_counter >= 20){
+          led_mode=3;
+          freq_counter = 0;
+      }
+  }else if(led_mode==3){
+      freq_counter++;
       pwm_set_duty_cycle(2, 0);
       pwm_set_enable(2);
-      led_mode=1;
-  }else if(led_mode>=42){
-      pwm_set_duty_cycle(2, 0);
-      pwm_set_enable(2);
-      led_mode=3;
-  }else if((led_mode)>22&&(led_mode)<42){
-      int output = (42-led_mode)*5;
+      if(freq_counter >= 20){
+          led_mode=2;
+          freq_counter = 0;
+      }
+  }else if(led_mode>=173){
+      //pwm_set_duty_cycle(2, 0);
+      //pwm_set_enable(2);
+      led_mode=24;
+
+  }else if((led_mode)>93&&(led_mode)<163){
+      output = 183-led_mode;
       pwm_set_duty_cycle(2, output);
       pwm_set_enable(2);
       led_mode+=1;
-  }else{
-      int output = (led_mode-2)*5;
+}else{
+      output = led_mode-3;
       pwm_set_duty_cycle(2, output);
       pwm_set_enable(2);
       led_mode+=1;
-  }
+}
+
 }
 void set_led_mode(int mode){
-  if(mode<0||mode>3){
+  if(mode<0){
       return;
   }else{
       led_mode = mode;

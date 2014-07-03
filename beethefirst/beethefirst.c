@@ -168,8 +168,9 @@ void init(void)
   temperatureTimer.AutoReload = 1;
 
   led_mode = 0;
+  freq_counter = 0;
   AddSlowTimer (&ledsTimer);
-  StartSlowTimer (&ledsTimer, 500, ledsTimerCallback);
+  StartSlowTimer (&ledsTimer, 33, ledsTimerCallback);
   ledsTimer.AutoReload = 1;
 
 }
@@ -193,9 +194,11 @@ int app_main (void){
   // set up pid default variables
   last_error = 0;
   dterm_temp = 0;
-  iterm_temp = 0;
+  pterm = 0;
+  dterm = 0;
+  iterm = 0;
   output = 0;
-  PID_FUNTIONAL_RANGE = 0;
+  PID_FUNTIONAL_RANGE = 80;
   estimated_time = 0;
   time_elapsed = 0;
   number_of_lines = 0;
@@ -347,22 +350,20 @@ int app_main (void){
 
           /*if the array to be written is full, it is write*/
           if (counter == SD_BUF_SIZE){
-              serial_writestr("tog ");
-
               /* writes to the file*/
               res = sd_write_to_file(sector, SD_BUF_SIZE);
               if(res != FR_OK) {
                   serwrite_uint32(res);
                   serial_writestr(" - error writing file\n");
-              }/*no need for else*/
+              }else{
+                  serial_writestr("tog\n");
+              }
               counter = 0;
-              md5_append(sector, SD_BUF_SIZE);
+              //md5_append(sector, SD_BUF_SIZE);
 
           }/*no need for else*/
 
           if (number_of_bytes == bytes_to_transfer){
-              serial_writestr("tog\n");
-              delay_ms(100);
 
               /*if the array to be written is full, it is write*/
               if (counter != 0){
@@ -372,11 +373,13 @@ int app_main (void){
                   if(res != FR_OK) {
                       serwrite_uint32(res);
                       serial_writestr(" - error writing file\n");
-                  }/*no need for else*/
+                  }else{
+                      serial_writestr("tog\n");
+                  }
               }/*no need for else*/
 
-              md5_append(sector, counter);
-              md5_finish( md5_word);
+              //md5_append(sector, counter);
+              //md5_finish( md5_word);
 
               f_sync(&file);
 

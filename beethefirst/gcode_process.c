@@ -756,7 +756,7 @@ eParseResult process_gcode_command(){
             transfer_mode = 1;
 
             //saved to be used by md5
-            md5_init();
+            //md5_init();
 
             //status = transfering
             config.status = 6;
@@ -964,7 +964,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.28.1");
+                serial_writestr(" 3.29.0");
                 serial_writestr(" ");
             }
           }

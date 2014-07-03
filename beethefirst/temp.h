@@ -64,7 +64,9 @@ void print_pwm(void);
 
 #define NUMTEMPS 14
 double last_error;
-double iterm_temp;
+double pterm;
+double iterm;
+double dterm;
 double dterm_temp;
 int PID_FUNTIONAL_RANGE;
 double output;

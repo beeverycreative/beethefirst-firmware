@@ -21,6 +21,6 @@ int led_mode;
 //1 - pulsing on
 //2 - pulsing off
 //3 - drim
-
+int freq_counter;
 #endif  /* _LEDS_H */
 

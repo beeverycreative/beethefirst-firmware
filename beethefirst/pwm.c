@@ -24,8 +24,7 @@ int pwm_set_duty_cycle(int channel, int32_t duty){
     return -1;
 
   /* Set up match value */
-  PWM_MatchUpdate(LPC_PWM1, channel, duty*10, PWM_MATCH_UPDATE_NOW);
-
+  PWM_MatchUpdate(LPC_PWM1, channel, duty*10, PWM_MATCH_UPDATE_NEXT_RST);
   return 0;
 }
 

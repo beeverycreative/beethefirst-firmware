@@ -114,12 +114,7 @@ void temp_print()
 
 void temp_tick(void)
 {
-
-
   double pid_error = 0;
-  double pterm = 0;
-  double iterm = 0;
-  double dterm = 0;
 
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
@@ -127,13 +122,14 @@ void temp_tick(void)
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
   pterm = config.kp * pid_error;
-  iterm_temp += pid_error;
+  iterm += (config.ki*pid_error);
 
-  if(iterm_temp > PID_FUNTIONAL_RANGE){
-      iterm_temp = PID_FUNTIONAL_RANGE;
-  }/*No need for else*/
+  if(iterm > PID_FUNTIONAL_RANGE){
+      iterm = PID_FUNTIONAL_RANGE;
+  }else if(iterm < 0){
+      iterm = 0;
+  }
 
-  iterm = config.ki * iterm_temp;
   dterm_temp = pid_error - last_error;
   dterm = config.kd * dterm_temp;
 
@@ -145,16 +141,21 @@ void temp_tick(void)
       output = 100;
   }else if(output<0 ) {
       output = 0;
-  }else if(target_temp[EXTRUDER_0] == 0){
+  }
+
+  if(target_temp[EXTRUDER_0] == 0){
       output = 0;
       pterm = 0;
       iterm = 0;
       dterm = 0;
+      pid_error = 0;
+      dterm_temp = 0;
   }
 
   pwm_set_duty_cycle(5, output);
   pwm_set_enable(5);
 }
+
 
 /* Read and average the ADC input signal */
 static double read_temp(uint8_t sensor_number)
@@ -241,5 +242,5 @@ double temp_get_table_entry (uint8_t sensor_number, double temp)
 }
 
 void print_pwm(void){
-  sersendf("pwm:%g p:%g i:%g d:%g ", output, last_error,iterm_temp,dterm_temp);
+  sersendf("pwm:%g p:%g i:%g d:%g ", output, pterm,iterm,dterm);
 }
