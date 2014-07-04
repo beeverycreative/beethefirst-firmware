@@ -47,11 +47,32 @@
 #include "planner.h"
 #include "stepper.h"
 #include "sbl_config.h"
+#include "pwm.h"
+#include "leds.h"
 
 tTimer temperatureTimer;
+tTimer ledsTimer;
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
+
+/* initialize PWM */
+void pwm_init(void){
+  //pwm_pins_init(2,0);
+  //pwm_pins_init(2,1);
+  pwm_pins_init(2,2);
+  //pwm_pins_init(2,3);
+  pwm_pins_init(2,4);
+
+  init_pwm_peripheral();
+
+  //init_global_match(1);
+  //init_global_match(2);
+  init_global_match(3);
+  //init_global_match(4);
+  init_global_match(5);
+
+}
 
 /* Initialize ADC for reading sensors */
 void adc_init(void)
@@ -77,14 +98,6 @@ void adc_init(void)
 
 void io_init(void)
 {
-  /* Extruder 0 Heater pin */
-  pin_mode(EXTRUDER_0_HEATER_PORT, EXTRUDER_0_HEATER_PIN, OUTPUT);
-  extruder_heater_off();
-
-  /* Heated Bed 0 Heater pin */
-  pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
-  heated_bed_off();
-
   /* setup I/O pins */
   pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
   digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
@@ -115,7 +128,16 @@ void io_init(void)
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
 
-  adc_init();
+  /*
+  pin_mode(VENTOINHA_EXTRUSOR_PORT, VENTOINHA_EXTRUSOR_PIN, OUTPUT);
+  ventoinha_extrusor_off();
+
+  pin_mode(VENTOINHA_R2C2_PORT, VENTOINHA_R2C2_PIN, OUTPUT);
+  ventoinha_r2c2_off();
+
+  pin_mode(LEDS_PORT, LEDS_PIN, OUTPUT);
+  leds_off();
+  */
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -124,22 +146,35 @@ void temperatureTimerCallback (tTimer *pTimer)
   temp_tick();
 }
 
+//void ledsTimerCallback (tTimer *pTimer)
+//{
+//  /* Manage the temperatures */
+//  led_tick();
+//}
+
 void init(void)
 {
   // set up inputs and outputs
   io_init();
+  //temperature read
+  adc_init();
+  //pwm
+  pwm_init();
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
 
-  // set up default feedrate
-//TODO  current_position.F = startpoint.F = next_target.target.F =       config.search_feedrate_z;
-
+  //temperature interruption
   AddSlowTimer (&temperatureTimer);
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
-
-  //sd_init();
+/*
+  led_mode = 0;
+  freq_counter = 0;
+  AddSlowTimer (&ledsTimer);
+  StartSlowTimer (&ledsTimer, 33, ledsTimerCallback);
+  ledsTimer.AutoReload = 1;
+*/
 }
 
 
@@ -158,13 +193,21 @@ int app_main (void){
   unsigned int BytesWritten;
   FRESULT res;
 
+  // set up pid default variables
+  last_error = 0;
+  dterm_temp = 0;
+  pterm = 0;
+  dterm = 0;
+  iterm = 0;
+  output = 0;
+  PID_FUNTIONAL_RANGE = 80;
+  estimated_time = 0;
+  time_elapsed = 0;
+  number_of_lines = 0;
+  time_elapsed = 0;
+  //debug bip
   bip = 2;
   bip_switch = 0;
-
-  buzzer_init();
-  buzzer_play(1500, 100); /* low beep */
-  buzzer_wait();
-  buzzer_play(2500, 200); /* high beep */
 
   init();
   read_config();
@@ -176,6 +219,10 @@ int app_main (void){
   WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
   WDT_Start (30000000);
 
+  buzzer_init();
+  buzzer_play(1000); /* low beep */
+  buzzer_wait();
+
   // main loop
   for (;;){
       WDT_Feed();
@@ -183,7 +230,7 @@ int app_main (void){
       //bip a cada +-20s
       if(bip == 1){
           if(bip_switch){
-              buzzer_play(2500, 100);
+              buzzer_play(200);
           }
       }else if(bip == 2000000){
           bip=0;

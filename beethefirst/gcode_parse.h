@@ -32,7 +32,7 @@
 #define	GCODE_PARSE_H
 
 #include <stdint.h>
-#include "md5.h"
+//#include "md5.h"
 #include "planner.h"
 uint32_t bip_switch;
 
@@ -87,7 +87,8 @@ typedef struct {
         uint8_t                                 seen_A  :1;
         uint8_t                                 seen_L  :1;
         uint8_t                                 seen_T  :1;
-
+        uint8_t                                 seen_U  :1;
+        uint8_t                                 seen_V  :1;
 	uint8_t                                 seen_B  :1;
         uint8_t                                 seen_D  :1;
 
@@ -100,8 +101,9 @@ typedef struct {
 	uint8_t					option_inches				:1;
 
 	uint8_t						G;
-        uint8_t                                         T;
-
+        double                                         T;
+        double                                         U;
+        double                                           V;
 	uint16_t				  M;
 	tTarget						target;
 
@@ -148,8 +150,8 @@ uint32_t estimated_time;
 uint32_t time_elapsed;
 uint32_t number_of_lines;
 uint32_t executed_lines;
-md5_byte_t md5_word[16];
-md5_state_t file_md5;
+//md5_byte_t md5_word[16];
+//md5_state_t file_md5;
 
 // utility functions
 //int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);

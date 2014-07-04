@@ -814,8 +814,6 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B){
 
-              int temp = 0;
-              temp = estimated_time;
               serial_writestr("A");
               serwrite_uint32(estimated_time);
               serial_writestr(" B");
@@ -859,9 +857,10 @@ eParseResult process_gcode_command(){
 
             if(!next_target.seen_B){
                 serial_writestr("transfer completed ");
-                for(int i=0; i<16; i++){
+              /*  for(int i=0; i<16; i++){
                     serwrite_hex8(md5_word[i]);
                 }
+                */
                 serial_writestr(" ");
 
             }/*No need for else*/
@@ -966,7 +965,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.27.0");
+                serial_writestr(" 3.29.0");
                 serial_writestr(" ");
             }
           }
@@ -1011,6 +1010,89 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          // M130 temperature PID
+          case 130:
+          {
+              if(!next_target.seen_B ){
+                  if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+                      serial_writestr("kp:");
+                      serwrite_double(config.kp);
+                      serial_writestr(" ki:");
+                      serwrite_double(config.ki);
+                      serial_writestr(" kd:");
+                      serwrite_double(config.kd);
+                      serial_writestr(" ");
+                  }/*No need for else*/
+              }/*No need for else*/
+          }
+          break;
+
+          case 131:
+          {
+              print_pwm();
+          }
+          break;
+/*
+          case 132:
+          {
+              ventoinha_extrusor_on();
+          }
+          break;
+
+          case 133:
+          {
+              ventoinha_extrusor_off();
+          }
+          break;
+
+          case 134:
+          {
+              ventoinha_r2c2_on();
+          }
+          break;
+
+          case 135:
+          {
+              ventoinha_r2c2_off();
+          }
+          break;
+
+          case 136:
+          {
+              leds_on();
+          }
+          break;
+
+          case 137:
+          {
+              leds_off();
+          }
+          break;
+
+          case 138:
+          {
+
+            if (next_target.seen_P){
+
+                set_led_mode(next_target.P );
+            }else{
+                serial_writestr("not seen P ");
+
+            }
+          }
+          break;
+          */
+          case 139:
+          {
+              if (next_target.seen_P){
+
+                  max_set(next_target.P );
+              }else{
+                  serial_writestr("max: ");
+                  serwrite_int32(PID_FUNTIONAL_RANGE);
+              }
+          }
+          break;
           // M200 - set steps per mm
           case 200:
           {
@@ -1073,19 +1155,14 @@ eParseResult process_gcode_command(){
           // P: duration
           case 300:
           {
-            uint16_t frequency = 1000;  // 1kHz
             uint16_t duration = 1000; // 1 second
 
-            if (next_target.seen_S){
-                frequency = next_target.S;
-            }/*No need for else*/
-
-            if (next_target.seen_P){
+            if (next_target.seen_P && next_target.P<11000){
                 duration = next_target.P;
             }/*No need for else*/
 
             buzzer_wait ();
-            buzzer_play (frequency, duration);
+            buzzer_play (duration);
 
             if(sd_printing){
                 reply_sent = 1;
@@ -1105,6 +1182,59 @@ eParseResult process_gcode_command(){
             }
           }
           break;
+
+          //set pwm
+          case 401:
+          {
+            int duty_cicle = 50;
+
+            if(next_target.seen_P){
+                if(next_target.seen_P<0||next_target.seen_P>100){
+                    serial_writestr("invalid pwm duty cicle ");
+                    break;
+                }
+                duty_cicle = next_target.P;
+            }
+
+            if (next_target.seen_S){
+
+                if(next_target.seen_S<1 || next_target.seen_S>5){
+                    serial_writestr("invalid pwm channel ");
+                    break;
+                }
+
+                pwm_set_duty_cycle(next_target.S, duty_cicle);
+                pwm_set_enable(next_target.S);
+            }
+          }
+          break;
+
+          //disable pwm
+          case 402:
+          {
+            if (next_target.seen_S){
+                if(next_target.seen_S<1 || next_target.seen_S>5){
+                    serial_writestr("invalid pwm channel ");
+                    break;
+                }
+                pwm_set_duty_cycle(next_target.S, 0);
+                pwm_set_enable(next_target.S);
+            }else{
+                pwm_set_duty_cycle(1, 0);
+                pwm_set_duty_cycle(2, 0);
+                pwm_set_duty_cycle(3, 0);
+                pwm_set_duty_cycle(4, 0);
+                pwm_set_duty_cycle(5, 0);
+
+                pwm_set_enable(1);
+                pwm_set_enable(2);
+                pwm_set_enable(3);
+                pwm_set_enable(4);
+                pwm_set_enable(5);
+            }
+          }
+          break;
+
           // M600 print the values read from the config file
           case 600:
           {

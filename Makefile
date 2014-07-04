@@ -142,18 +142,9 @@ APPSRC = \
 	$(APPDIR)/endstops.c \
 	$(APPDIR)/geometry.c \
 	$(APPDIR)/bootloader.c \
+	$(APPDIR)/pwm.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
-
-#	app/grbl/print.c \
-#	app/grbl/eeprom.c \
-#	app/grbl/settings.c \
-# $(APPDIR)/dda_queue.c \
-#	$(APPDIR)/dda.c \
-
-
-#APPDIR = sample
-#APPSRC = $(APPDIR)/sample_app.c
 
 # Utility variables
 APPLIBDIR    = libraries
@@ -163,7 +154,6 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/FatFs/src \
 	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/iap/ \
-	 $(APPLIBDIR)/md5a/ \
 	 app/grbl/ \
 	 $(APPDIR)
 
@@ -189,7 +179,6 @@ SRC = \
 	$(APPLIBDIR)/R2C2/buzzer.c \
 	$(APPLIBDIR)/R2C2/uart.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
-	$(APPLIBDIR)/md5a/md5.c \
 	$(APPSRC) \
 	main.c
 	

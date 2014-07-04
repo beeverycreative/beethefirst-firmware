@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013 BEEVC - Electronic Systems        */
+/* Copyright (c) 2011-2014 BEEVC - Electronic Systems        */
 /*
  * This file is part of BEESOFT software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License
@@ -12,19 +12,15 @@
  * <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _BUZZER_
-#define _BUZZER_
-
-
-void buzzer_init (void);
-
-/* put a PWM signal of 50% duty cycle, with a specified frequency and duration.
- * 20Hz <= frequency <= 20000
- * 10ms <= duration <= (2^16 - 1)ms
- */
-void buzzer_play (uint16_t duration);
-void buzzer_wait(void);
-void buzzer_pwm_start (void);
-#endif  /* _BUZZER_ */
+#ifndef _LEDS_H
+#define _LEDS_H
+void led_tick(void);
+void set_led_mode(int mode);
+int led_mode;
+//0 - inactive
+//1 - pulsing on
+//2 - pulsing off
+//3 - drim
+int freq_counter;
+#endif  /* _LEDS_H */
 

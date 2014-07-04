@@ -33,9 +33,11 @@
 #include "pinout.h"
 #include "sersendf.h"
 #include "stepper.h"
+#include "config.h"
+#include "pwm.h"
 
 /* {ADC value Extruder0, ADC value HeatedBed0, temperature} */
-uint16_t temptable[NUMTEMPS][3] = {
+double temptable[NUMTEMPS][3] = {
   {860, 60, 300},
   {1849, 95, 248},
   {2208, 119, 226},
@@ -52,17 +54,17 @@ uint16_t temptable[NUMTEMPS][3] = {
   {4080, 4085, 0}
 };
 
-static uint16_t current_temp [NUMBER_OF_SENSORS] = {0};
-static uint16_t target_temp  [NUMBER_OF_SENSORS] = {0};
+static double current_temp [NUMBER_OF_SENSORS] = {0};
+static double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
 
-static uint16_t read_temp(uint8_t sensor_number);
+static double read_temp(uint8_t sensor_number);
 
-void temp_set(uint16_t t, uint8_t sensor_number)
+void temp_set(double t, uint8_t sensor_number)
 {
   if (t)
   {
@@ -71,15 +73,20 @@ void temp_set(uint16_t t, uint8_t sensor_number)
   }
 
   target_temp[sensor_number] = t;
+
 }
 
-uint16_t temp_get(uint8_t sensor_number)
+void max_set(int range){
+  PID_FUNTIONAL_RANGE =range;
+}
+
+double temp_get(uint8_t sensor_number)
 {
   current_temp[sensor_number] = read_temp(sensor_number);
   return current_temp[sensor_number];
 }
 
-uint16_t temp_get_target(uint8_t sensor_number)
+double temp_get_target(uint8_t sensor_number)
 {
   return target_temp[sensor_number];
 }
@@ -102,42 +109,59 @@ uint8_t temps_achieved (void)
 
 void temp_print()
 {
-  sersendf("T:%u.0 B:%u.0 ", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0]);
+  sersendf("T:%g B:%g ", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0]);
 }
 
 void temp_tick(void)
 {
+  double pid_error = 0;
+
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
-  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
 
-  /* Manage heater using simple ON/OFF logic, no PID */
-  if (current_temp[EXTRUDER_0] < target_temp[EXTRUDER_0])
-  {
-    extruder_heater_on();
-  }
-  else
-  {
-    extruder_heater_off();
+  pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
+
+  pterm = config.kp * pid_error;
+  iterm += (config.ki*pid_error);
+
+  if(iterm > PID_FUNTIONAL_RANGE){
+      iterm = PID_FUNTIONAL_RANGE;
+  }else if(iterm < 0){
+      iterm = 0;
   }
 
-  /* Manage heater using simple ON/OFF logic, no PID */
-  if (current_temp[HEATED_BED_0] < target_temp[HEATED_BED_0])
-  {
-    heated_bed_on();
+  dterm_temp = pid_error - last_error;
+  dterm = config.kd * dterm_temp;
+
+  output = pterm + iterm + dterm;
+
+  last_error = pid_error;
+
+  if(output > 100) {
+      output = 100;
+  }else if(output<0 ) {
+      output = 0;
   }
-  else
-  {
-    heated_bed_off();
+
+  if(target_temp[EXTRUDER_0] == 0){
+      output = 0;
+      pterm = 0;
+      iterm = 0;
+      dterm = 0;
+      pid_error = 0;
+      dterm_temp = 0;
   }
+
+  pwm_set_duty_cycle(5, output);
+  pwm_set_enable(5);
 }
 
+
 /* Read and average the ADC input signal */
-static uint16_t read_temp(uint8_t sensor_number)
+static double read_temp(uint8_t sensor_number)
 {
   int32_t raw = 4095; // initialize raw with value equal to lowest temperature.
-  static int32_t raw_correct = 4095;
-  int16_t celsius = 0;
+  double celsius = 0;
   uint8_t i;
 
   if (sensor_number == EXTRUDER_0){
@@ -146,19 +170,6 @@ static uint16_t read_temp(uint8_t sensor_number)
   }else if (sensor_number == HEATED_BED_0){
 
     raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
-
-    /* There is a problem with LPC1768 ADC being overdrive with > 3.3V on ADC extruder channel and that makes
-     * error readings on ADC bed channel (only when extruder is cold less than ~15ºC).
-     * Try to avoid the bad readings that usually are raw =< 300.
-     */
-    if (raw < 300) // error, assume last correct value
-    {
-      raw = raw_correct;
-    }
-    else // no error, save current raw
-    {
-      raw_correct = raw;
-    }
   }
   
   // filter the ADC values with simple IIR
@@ -194,7 +205,7 @@ static uint16_t read_temp(uint8_t sensor_number)
   return celsius;
 }
 
-bool temp_set_table_entry (uint8_t sensor_number, uint16_t temp, uint16_t adc_val)
+bool temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val)
 {
   if (sensor_number < NUMBER_OF_SENSORS)
   {
@@ -212,9 +223,9 @@ bool temp_set_table_entry (uint8_t sensor_number, uint16_t temp, uint16_t adc_va
     return false;
 }
 
-uint16_t temp_get_table_entry (uint8_t sensor_number, uint16_t temp)
+double temp_get_table_entry (uint8_t sensor_number, double temp)
 {
-  uint16_t result = 0xffff;
+  double result = 0xffffffff;
   
   if (sensor_number < NUMBER_OF_SENSORS)
   {
@@ -228,4 +239,8 @@ uint16_t temp_get_table_entry (uint8_t sensor_number, uint16_t temp)
     }
   }
   return result;
+}
+
+void print_pwm(void){
+  sersendf("pwm:%g p:%g i:%g d:%g ", output, pterm,iterm,dterm);
 }

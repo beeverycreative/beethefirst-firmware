@@ -149,7 +149,9 @@ void serwrite_double(double v)
   /* print last part after '.' */
   v = v - (int32_t)v;
 
-  v = v * 1000.0;
+  v = v * 10000.0;
+  if (v < 1000.0)
+         serial_writechar('0');
   if (v < 100.0)
   	serial_writechar('0');
   if (v < 10.0)

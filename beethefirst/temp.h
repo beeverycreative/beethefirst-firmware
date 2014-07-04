@@ -40,13 +40,13 @@
 #include "adc.h"
 
 // set target temperature
-void temp_set(uint16_t t, uint8_t sensor_number);
+void temp_set(double t, uint8_t sensor_number);
 
 // return last read temperature
-uint16_t temp_get(uint8_t sensor_number);
+double temp_get(uint8_t sensor_number);
 
 // return target temperature
-uint16_t temp_get_target(uint8_t sensor_number);
+double temp_get_target(uint8_t sensor_number);
 
 // true if last read temp is close to target temp, false otherwise
 uint8_t temp_achieved(uint8_t sensor_number);
@@ -60,10 +60,19 @@ void temp_print(void);
 // periodically read temperature and update heater with PID
 void temp_tick(void);
 
-#define NUMTEMPS 14
-extern uint16_t temptable[NUMTEMPS][3];
+void print_pwm(void);
 
-bool      temp_set_table_entry (uint8_t sensor_number, uint16_t temp, uint16_t adc_val);
-uint16_t  temp_get_table_entry (uint8_t sensor_number, uint16_t temp);
+#define NUMTEMPS 14
+double last_error;
+double pterm;
+double iterm;
+double dterm;
+double dterm_temp;
+int PID_FUNTIONAL_RANGE;
+double output;
+extern double temptable[NUMTEMPS][3];
+void max_set(int range);
+bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val);
+double  temp_get_table_entry (uint8_t sensor_number, double temp);
 
 #endif	/* _TIMER_H */
