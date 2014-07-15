@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-4.32.0-beta+20140715173900
+introduzidas seguranças
+
 BEETHEFIRST-firmware-3.31.0-beta+20140715101100
 novamente serie
 

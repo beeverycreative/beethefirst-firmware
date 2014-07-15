@@ -208,7 +208,7 @@ int app_main (void){
   //debug bip
   bip = 2;
   bip_switch = 0;
-
+  position_ok = 0;
   init();
   read_config();
 

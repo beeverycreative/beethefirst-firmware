@@ -75,6 +75,27 @@ static void enqueue_moved (tTarget *pTarget)
   // grbl
   tActionRequest request;
 
+  if (pTarget->x <= -96){
+      pTarget->x = -96;
+  }
+  if (pTarget->x > 90 ){
+        pTarget->x = 90;
+  }
+
+
+  if (pTarget->y <= -75){
+      pTarget->y = -75;
+  }
+  if (pTarget->y > 70 ){
+        pTarget->y = 70;
+  }
+
+  if (pTarget->z <= -70){
+      pTarget->z = -70;
+  }
+  if (pTarget->z > 150 ){
+        pTarget->z = 150;
+  }
 
   if (pTarget->x != startpoint.x || pTarget->y != startpoint.y ||
       pTarget->z != startpoint.z || pTarget->e != startpoint.e
@@ -467,9 +488,15 @@ eParseResult process_gcode_command(){
           next_targetd.feed_rate = next_target.target.feed_rate;
       }/*No need for else*/
   }else{
+
+      if (next_target.seen_F){
+          next_targetd.feed_rate = next_target.target.feed_rate;
+      }/*No need for else*/
+
       // absolute
       if (next_target.seen_X){
           next_targetd.x = next_target.target.x;
+
       }/*No need for else*/
 
       if (next_target.seen_Y){
@@ -481,12 +508,13 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_E){
-          next_targetd.e = next_target.target.e;
+          if(temp_get(EXTRUDER_0) < 180){
+              serial_writestr("temperature to low ");
+          }else{
+              next_targetd.e = next_target.target.e;
+          }
       }/*No need for else*/
 
-      if (next_target.seen_F){
-          next_targetd.feed_rate = next_target.target.feed_rate;
-      }/*No need for else*/
   }
 
   if (next_target.seen_G){
@@ -497,6 +525,11 @@ eParseResult process_gcode_command(){
         case 0:
         case 1:
         {
+          if(!position_ok){
+              serial_writestr("position not ok ");
+              break;
+          }
+
           if(!sd_printing){
               config.status = 4;
           }else{
@@ -537,10 +570,6 @@ eParseResult process_gcode_command(){
               axisSelected = 1;
           }/*No need for else*/
 
-          if (next_target.seen_E){
-              zero_e();
-              axisSelected = 1;
-          }/*No need for else*/
 
           if(!axisSelected){
               if (config.machine_model == MM_RAPMAN){
@@ -554,7 +583,6 @@ eParseResult process_gcode_command(){
               zero_x();
               zero_y();
               zero_z();
-              zero_e();
           }/*No need for else*/
 
           config.acceleration = aux ;
@@ -562,6 +590,8 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+
+          position_ok = 1;
         }
         break;
 
@@ -852,7 +882,7 @@ eParseResult process_gcode_command(){
           }
           break;
 
-          case 34: //M33 - FINISH SD print
+          case 34:
           {
 
             if(!next_target.seen_B){
@@ -965,7 +995,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 4.31.0");
+                serial_writestr(" 4.32.0");
                 serial_writestr(" ");
             }
           }
@@ -1104,24 +1134,6 @@ eParseResult process_gcode_command(){
                         config.steps_per_mm_z,
                         config.steps_per_mm_e);
                 }/*No need for else*/
-            }else{
-                if (next_target.seen_X){
-                    config.steps_per_mm_x = next_target.target.x;
-                }/*No need for else*/
-
-                if (next_target.seen_Y){
-                    config.steps_per_mm_y = next_target.target.y;
-                }/*No need for else*/
-
-                if (next_target.seen_Z){
-                    config.steps_per_mm_z = next_target.target.z;
-                }/*No need for else*/
-
-                if (next_target.seen_E){
-                    config.steps_per_mm_e = next_target.target.e;
-                }/*No need for else*/
-
-                gcode_parse_init();
             }
 
             if(sd_printing){
@@ -1140,6 +1152,11 @@ eParseResult process_gcode_command(){
               }/*No need for else*/
             }else{
                 if (next_target.seen_X){
+
+                    if(next_target.target.x > 2000){
+                        next_target.target.x = 2000;
+                    }
+
                     config.acceleration = next_target.target.x;
                 }/*No need for else*/
             }
@@ -1183,6 +1200,7 @@ eParseResult process_gcode_command(){
           }
           break;
 
+/*
           //set pwm
           case 401:
           {
@@ -1234,6 +1252,7 @@ eParseResult process_gcode_command(){
             }
           }
           break;
+*/
 
           // M600 print the values read from the config file
           case 600:
