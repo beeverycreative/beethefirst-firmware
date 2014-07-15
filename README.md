@@ -24,5 +24,5 @@ On the firmware sources folder you should execute make all to build the firmware
 Resources
 ------------
 
-[g-codes implemented](https://raw.githubusercontent.com/beeverycreative/beeconnect/develop/beetf/gcode.md)
+[g-codes implemented](https://githubusercontent.com/beeverycreative/beeconnect/develop/beetf/gcode.md)
 
