@@ -75,32 +75,12 @@ static void enqueue_moved (tTarget *pTarget)
   // grbl
   tActionRequest request;
 
-  if (pTarget->x <= -96){
-      pTarget->x = -96;
-  }
-  if (pTarget->x > 90 ){
-        pTarget->x = 90;
-  }
 
+  if (pTarget->x != startpoint.x
+      || pTarget->y != startpoint.y
+      || pTarget->z != startpoint.z
+      || pTarget->e != startpoint.e){
 
-  if (pTarget->y <= -75){
-      pTarget->y = -75;
-  }
-  if (pTarget->y > 70 ){
-        pTarget->y = 70;
-  }
-
-  if (pTarget->z <= -70){
-      pTarget->z = -70;
-  }
-  if (pTarget->z > 150 ){
-        pTarget->z = 150;
-  }
-
-  if (pTarget->x != startpoint.x || pTarget->y != startpoint.y ||
-      pTarget->z != startpoint.z || pTarget->e != startpoint.e
-  )
-  {
     request.ActionType = AT_MOVE;
     request.target= *pTarget;
     request.target.invert_feed_rate =  false;
@@ -530,6 +510,28 @@ eParseResult process_gcode_command(){
               break;
           }
 
+          if (next_targetd.x < -96){
+              next_targetd.x = -96;
+          }
+          if (next_targetd.x > 90 ){
+              next_targetd.x = 90;
+          }
+
+
+          if (next_targetd.y < -75){
+              next_targetd.y = -75;
+          }
+          if (next_targetd.y > 70 ){
+              next_targetd.y = 70;
+          }
+
+          if (next_targetd.z < -70){
+              next_targetd.z = -70;
+          }
+          if (next_targetd.z > 150 ){
+              next_targetd.z = 150;
+          }
+
           if(!sd_printing){
               config.status = 4;
           }else{
@@ -550,6 +552,7 @@ eParseResult process_gcode_command(){
           next_targetd.feed_rate = config.homing_feedrate_z;
           double aux = config.acceleration;
           config.acceleration = 1000;
+
           if(!sd_printing){
               config.status = 4;
           }else{
@@ -570,19 +573,11 @@ eParseResult process_gcode_command(){
               axisSelected = 1;
           }/*No need for else*/
 
-
           if(!axisSelected){
-              if (config.machine_model == MM_RAPMAN){
-                  // move stage down to clear Z endstop
-                  // Rapman only?
-                  next_targetd = startpoint;
-                  next_targetd.z += 3;
-                  enqueue_moved(&next_targetd);
-              }/*No need for else*/
-
               zero_x();
               zero_y();
               zero_z();
+
           }/*No need for else*/
 
           config.acceleration = aux ;
@@ -995,7 +990,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.32.0");
+                serial_writestr(" 3.32.1");
                 serial_writestr(" ");
             }
           }

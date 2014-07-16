@@ -1,3 +1,8 @@
+BEETHEFIRST-firmware-3.32.1-beta+20140716110700
+introduzidas novas seguranças:
+só pode movimentar-se depois de ter ido ao home
+só pode extrudir depois de atingir os 180C
+
 BEETHEFIRST-firmware-4.32.0-beta+20140715173900
 introduzidas seguranças
 
