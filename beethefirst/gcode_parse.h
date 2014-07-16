@@ -35,7 +35,7 @@
 //#include "md5.h"
 #include "planner.h"
 uint32_t bip_switch;
-
+char position_ok;
 // whether the asterisk (checksum-command) is included for checksum calculation
 // undefined for RepRap host software
 //#define ASTERISK_IN_CHECKSUM_INCLUDED

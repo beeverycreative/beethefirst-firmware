@@ -58,18 +58,13 @@ tLineBuffer sd_line_buf;
 
 /* initialize PWM */
 void pwm_init(void){
-  //pwm_pins_init(2,0);
-  //pwm_pins_init(2,1);
+
   pwm_pins_init(2,2);
-  //pwm_pins_init(2,3);
   pwm_pins_init(2,4);
 
   init_pwm_peripheral();
 
-  //init_global_match(1);
-  //init_global_match(2);
   init_global_match(3);
-  //init_global_match(4);
   init_global_match(5);
 
 }
@@ -127,17 +122,6 @@ void io_init(void)
 
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
-
-  /*
-  pin_mode(VENTOINHA_EXTRUSOR_PORT, VENTOINHA_EXTRUSOR_PIN, OUTPUT);
-  ventoinha_extrusor_off();
-
-  pin_mode(VENTOINHA_R2C2_PORT, VENTOINHA_R2C2_PIN, OUTPUT);
-  ventoinha_r2c2_off();
-
-  pin_mode(LEDS_PORT, LEDS_PIN, OUTPUT);
-  leds_off();
-  */
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -146,11 +130,6 @@ void temperatureTimerCallback (tTimer *pTimer)
   temp_tick();
 }
 
-//void ledsTimerCallback (tTimer *pTimer)
-//{
-//  /* Manage the temperatures */
-//  led_tick();
-//}
 
 void init(void)
 {
@@ -168,13 +147,7 @@ void init(void)
   AddSlowTimer (&temperatureTimer);
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
-/*
-  led_mode = 0;
-  freq_counter = 0;
-  AddSlowTimer (&ledsTimer);
-  StartSlowTimer (&ledsTimer, 33, ledsTimerCallback);
-  ledsTimer.AutoReload = 1;
-*/
+
 }
 
 
@@ -208,6 +181,7 @@ int app_main (void){
   //debug bip
   bip = 2;
   bip_switch = 0;
+  position_ok = 0;
 
   init();
   read_config();
