@@ -1260,6 +1260,8 @@ eParseResult process_gcode_command(){
             if(!next_target.seen_B){
                 serial_writestr("last N:");
                 serwrite_uint32(next_target.N);
+                serial_writestr(" sdpos:");
+                serwrite_uint32(executed_lines);
                 serial_writestr(" ");
             }/*No need for else*/
           }
