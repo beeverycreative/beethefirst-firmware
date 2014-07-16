@@ -32,7 +32,6 @@
 #define	GCODE_PARSE_H
 
 #include <stdint.h>
-//#include "md5.h"
 #include "planner.h"
 uint32_t bip_switch;
 char position_ok;
@@ -150,8 +149,7 @@ uint32_t estimated_time;
 uint32_t time_elapsed;
 uint32_t number_of_lines;
 uint32_t executed_lines;
-//md5_byte_t md5_word[16];
-//md5_state_t file_md5;
+
 
 // utility functions
 //int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);

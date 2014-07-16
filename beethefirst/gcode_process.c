@@ -482,7 +482,9 @@ eParseResult process_gcode_command(){
 
       if (next_target.seen_E){
         if(temp_get(EXTRUDER_0) < 180){
-            serial_writestr("temperature to low ");
+            if(!next_target.seen_B && !sd_printing){
+                serial_writestr("temperature to low ");
+            }/* No need for else */
         }else{
             next_targetd.e = next_target.target.e;
         }
@@ -501,7 +503,7 @@ eParseResult process_gcode_command(){
         case 0:
         case 1:
         {
-          if(!position_ok){
+          if(!position_ok && !next_target.seen_B && !sd_printing){
               serial_writestr("position not ok ");
               break;
           }
@@ -763,9 +765,6 @@ eParseResult process_gcode_command(){
             number_of_bytes = 0;
             transfer_mode = 1;
 
-            //saved to be used by md5
-            //md5_init();
-
             //status = transfering
             config.status = 6;
           }
@@ -844,7 +843,7 @@ eParseResult process_gcode_command(){
           {
 
             FRESULT res;
-            res = f_lseek(&file, 0);
+            res = f_lseek(&file, sd_pos);
 
             if(res != FR_OK){
                 if(!next_target.seen_B){
@@ -865,10 +864,6 @@ eParseResult process_gcode_command(){
 
             if(!next_target.seen_B){
                 serial_writestr("transfer completed ");
-              /*  for(int i=0; i<16; i++){
-                    serwrite_hex8(md5_word[i]);
-                }
-                */
                 serial_writestr(" ");
 
             }/*No need for else*/
@@ -1260,6 +1255,8 @@ eParseResult process_gcode_command(){
             if(!next_target.seen_B){
                 serial_writestr("last N:");
                 serwrite_uint32(next_target.N);
+                serial_writestr(" sdpos:");
+                serwrite_uint32(executed_lines);
                 serial_writestr(" ");
             }/*No need for else*/
           }
@@ -1279,6 +1276,16 @@ eParseResult process_gcode_command(){
             }/*No need for else*/
           }
           break;
+
+          case 640:
+          {
+            if(sd_printing){
+                config.status = 7;
+                sd_printing = 0;
+            }/* No need for else */
+          }
+          break;
+
 
           // unknown mcode: spit an error
           default:
