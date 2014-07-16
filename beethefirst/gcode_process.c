@@ -1282,6 +1282,16 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 640:
+          {
+            if(sd_printing){
+                config.status = 7;
+                sd_printing = 0;
+            }/* No need for else */
+          }
+          break;
+
+
           // unknown mcode: spit an error
           default:
           {

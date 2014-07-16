@@ -155,14 +155,6 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
         gcode_parse_char (pLine->data [j]);
     }
 
-    //echo
- /*   if(sd_printing){
-        for (j=0; j < pLine->len; j++){
-          serial_writechar(pLine->data [j]);
-      }
-    }
-*/
-
     // process
     result = process_gcode_command();
 

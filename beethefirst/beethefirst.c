@@ -212,6 +212,7 @@ int app_main (void){
 
       bip++;
 
+
       //if not executing movements
       //nor in a error state
       //nor printing form sd card
@@ -264,7 +265,9 @@ int app_main (void){
       }
 
       // process SD file if no serial command pending
-      if (!sd_line_buf.seen_lf && sd_printing && (plan_queue_size() < 10)){
+      if (!sd_line_buf.seen_lf
+          && sd_printing
+          && (plan_queue_size() < 10)){
 
           if (sd_read_file (&sd_line_buf)){
               sd_line_buf.seen_lf = 1;
