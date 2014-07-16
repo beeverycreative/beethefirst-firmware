@@ -338,7 +338,6 @@ int app_main (void){
                   serial_writestr("tog\n");
               }
               counter = 0;
-              //md5_append(sector, SD_BUF_SIZE);
 
           }/*no need for else*/
 
@@ -357,8 +356,6 @@ int app_main (void){
                   }
               }/*no need for else*/
 
-              //md5_append(sector, counter);
-              //md5_finish( md5_word);
 
               f_sync(&file);
 

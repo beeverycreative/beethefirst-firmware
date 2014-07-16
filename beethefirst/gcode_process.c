@@ -763,9 +763,6 @@ eParseResult process_gcode_command(){
             number_of_bytes = 0;
             transfer_mode = 1;
 
-            //saved to be used by md5
-            //md5_init();
-
             //status = transfering
             config.status = 6;
           }
@@ -844,7 +841,7 @@ eParseResult process_gcode_command(){
           {
 
             FRESULT res;
-            res = f_lseek(&file, 0);
+            res = f_lseek(&file, sd_pos);
 
             if(res != FR_OK){
                 if(!next_target.seen_B){
@@ -865,10 +862,6 @@ eParseResult process_gcode_command(){
 
             if(!next_target.seen_B){
                 serial_writestr("transfer completed ");
-              /*  for(int i=0; i<16; i++){
-                    serwrite_hex8(md5_word[i]);
-                }
-                */
                 serial_writestr(" ");
 
             }/*No need for else*/
