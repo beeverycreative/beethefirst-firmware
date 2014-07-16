@@ -147,6 +147,7 @@ uint32_t transfer_mode;
 uint32_t number_of_bytes;
 uint32_t estimated_time;
 uint32_t time_elapsed;
+uint32_t rest_time;
 uint32_t number_of_lines;
 uint32_t executed_lines;
 

@@ -53,6 +53,8 @@ FIL       file;
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 bool      sd_printing = false;      // printing from SD file
+bool      enter_power_saving = false;      // printing from SD file
+bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
@@ -1326,6 +1328,12 @@ eParseResult process_gcode_command(){
               //next_target.N = 0;
           }/*No need for else*/
           serial_writestr("\r\n");
+      }/*No need for else*/
+  }/*No need for else*/
+
+  if(next_target.seen_M){
+      if(!(next_target.M == 625 || next_target.M == 637)){
+          rest_time = 0;
       }/*No need for else*/
   }/*No need for else*/
 

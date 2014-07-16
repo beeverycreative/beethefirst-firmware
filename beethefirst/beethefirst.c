@@ -51,7 +51,6 @@
 #include "leds.h"
 
 tTimer temperatureTimer;
-tTimer ledsTimer;
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
@@ -177,7 +176,8 @@ int app_main (void){
   estimated_time = 0;
   time_elapsed = 0;
   number_of_lines = 0;
-  time_elapsed = 0;
+  rest_time = 0;
+
   //debug bip
   bip = 2;
   bip_switch = 0;
@@ -211,6 +211,25 @@ int app_main (void){
       }
 
       bip++;
+
+      if(enter_power_saving && (rest_time > 30000)){
+
+          zero_z();
+
+          while(!(plan_queue_empty())){
+              continue;
+          }
+
+          x_disable();
+          y_disable();
+          z_disable();
+          e_disable();
+
+          temp_set(0, EXTRUDER_0);
+
+          extruder_fan_off();
+
+      }/* No need for else */
 
 
       //if not executing movements
