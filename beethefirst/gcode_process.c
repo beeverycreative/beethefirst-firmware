@@ -482,7 +482,9 @@ eParseResult process_gcode_command(){
 
       if (next_target.seen_E){
         if(temp_get(EXTRUDER_0) < 180){
-            serial_writestr("temperature to low ");
+            if(!next_target.seen_B && !sd_printing){
+                serial_writestr("temperature to low ");
+            }/* No need for else */
         }else{
             next_targetd.e = next_target.target.e;
         }
@@ -501,7 +503,7 @@ eParseResult process_gcode_command(){
         case 0:
         case 1:
         {
-          if(!position_ok){
+          if(!position_ok && !next_target.seen_B && !sd_printing){
               serial_writestr("position not ok ");
               break;
           }
