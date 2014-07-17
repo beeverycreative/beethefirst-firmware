@@ -41,9 +41,13 @@ extern FIL       file;
 extern uint32_t  filesize;
 extern uint32_t  sd_pos;
 extern bool      sd_printing;     // printing from SD file
+extern bool      enter_power_saving;      // printing from SD file
+extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
-
+void zero_x(void);
+void zero_y(void);
+void zero_z(void);
 extern void sd_close (FIL *pFile);
 extern void sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);

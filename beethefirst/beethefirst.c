@@ -212,14 +212,15 @@ int app_main (void){
 
       bip++;
 
-      if(enter_power_saving && (rest_time > 30000)){
+      if(enter_power_saving && (rest_time > 30000) && !sd_printing){
 
           zero_z();
 
           while(!(plan_queue_empty())){
               continue;
           }
-
+          //pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
+          //digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 0); /* Disable reset for all stepper motors */
           x_disable();
           y_disable();
           z_disable();
@@ -229,6 +230,8 @@ int app_main (void){
 
           extruder_fan_off();
 
+          leave_power_saving = 1;
+          enter_power_saving = 0;
       }/* No need for else */
 
 
