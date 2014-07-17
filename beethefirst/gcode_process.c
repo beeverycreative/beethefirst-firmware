@@ -53,6 +53,8 @@ FIL       file;
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 bool      sd_printing = false;      // printing from SD file
+bool      enter_power_saving = false;      // printing from SD file
+bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
@@ -159,7 +161,7 @@ static void SpecialMoveE (double e, double feed_rate)
   }
 }
 
-static void zero_x(void)
+void zero_x(void)
 {
   int dir;
   int max_travel;
@@ -194,7 +196,7 @@ static void zero_x(void)
   plan_set_current_position (&new_pos);
 }
 
-static void zero_y(void)
+void zero_y(void)
 {
   int dir;
   int max_travel;
@@ -229,7 +231,7 @@ static void zero_y(void)
   plan_set_current_position (&new_pos);
 }
 
-static void zero_z(void)
+void zero_z(void)
 {
   int dir;
   int max_travel;
@@ -443,6 +445,23 @@ void sd_init(){
   }
 }
 
+void reinit_system(){
+  leave_power_saving = 0;
+
+  x_enable();
+  y_enable();
+  z_enable();
+  e_enable();
+
+  zero_x();
+  zero_y();
+  zero_z();
+
+  while(!(plan_queue_empty())){
+      continue;
+  }
+}
+
 /****************************************************************************
  *                                                                          *
  * Command Received - process it                                             *
@@ -494,6 +513,19 @@ eParseResult process_gcode_command(){
           next_targetd.feed_rate = next_target.target.feed_rate;
       }/*No need for else*/
   }
+
+  if(leave_power_saving){
+      if(next_target.seen_M){
+          if((next_target.M == 625
+              || next_target.M == 637)){
+
+          }else{
+              reinit_system();
+          }
+      }else{
+          reinit_system();
+      }
+  }/*No need for else*/
 
   if (next_target.seen_G){
 
@@ -661,14 +693,6 @@ eParseResult process_gcode_command(){
             sd_init();
           }
           break;
-/*
-          case 22: // M22 - release SD card
-          {
-            sd_close(&file);
-            sd_printing = false;
-          }
-          break;
-*/
 
           //M28 - transfer size and begin if valid
           case 23:
@@ -855,7 +879,6 @@ eParseResult process_gcode_command(){
             config.status = 5;
             sd_printing = true;
             time_elapsed = 0;
-            executed_lines = 0;
           }
           break;
 
@@ -976,7 +999,7 @@ eParseResult process_gcode_command(){
 
           case 117:
           {
-            //try to read the unique ID - not working in this LCP Revision
+            //try to read the unique ID - not working in this LPC Revision
             /*
              serial_writestr(" ");
              read_device_serial_number();
@@ -1286,6 +1309,15 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 641:
+          {
+            enter_power_saving = 1;
+            if(sd_printing){
+                reply_sent = 1;
+            }/*No need for else*/
+          }
+          break;
+
 
           // unknown mcode: spit an error
           default:
@@ -1326,6 +1358,12 @@ eParseResult process_gcode_command(){
               //next_target.N = 0;
           }/*No need for else*/
           serial_writestr("\r\n");
+      }/*No need for else*/
+  }/*No need for else*/
+
+  if(next_target.seen_M){
+      if(!(next_target.M == 625 || next_target.M == 637)){
+          rest_time = 0;
       }/*No need for else*/
   }/*No need for else*/
 
