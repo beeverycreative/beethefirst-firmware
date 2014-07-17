@@ -320,6 +320,16 @@ void read_config (void)
         }
     }
 
+    if(config.kp == 0
+        && config.ki == 0
+        && config.kd == 0){
+
+        config.kp = config_lookup[43].val_d;
+        config.ki = config_lookup[44].val_d;
+        config.kd = config_lookup[45].val_d;
+
+    }/*No need for else*/
+
     if(read_err){
         reset_config();
     }/*No need for else*/
