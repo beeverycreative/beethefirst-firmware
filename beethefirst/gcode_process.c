@@ -698,7 +698,10 @@ eParseResult process_gcode_command(){
           case 23:
           {
             executed_lines = 0;
+            __disable_irq();
+
             time_elapsed = 0;
+            __enable_irq();
 
             //closes file
             sd_close(&file);
@@ -848,7 +851,13 @@ eParseResult process_gcode_command(){
               serial_writestr("A");
               serwrite_uint32(estimated_time);
               serial_writestr(" B");
-              serwrite_uint32(time_elapsed);
+
+              __disable_irq();
+              int temp_time_elapsed = time_elapsed;
+              __enable_irq();
+
+              serwrite_uint32(temp_time_elapsed);
+
               serial_writestr(" C");
               serwrite_uint32(number_of_lines);
               serial_writestr(" D");
@@ -878,7 +887,11 @@ eParseResult process_gcode_command(){
 
             config.status = 5;
             sd_printing = true;
+            __disable_irq();
+
             time_elapsed = 0;
+            __enable_irq();
+
           }
           break;
 
@@ -991,7 +1004,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.29.0");
+                serial_writestr(" 3.33.0");
                 serial_writestr(" ");
             }
           }
@@ -1361,9 +1374,13 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
   }/*No need for else*/
 
-  if(next_target.seen_M){
+  if(next_target.seen_M && enter_power_saving){
       if(!(next_target.M == 625 || next_target.M == 637)){
+          __disable_irq();
+
           rest_time = 0;
+          __enable_irq();
+
       }/*No need for else*/
   }/*No need for else*/
 
