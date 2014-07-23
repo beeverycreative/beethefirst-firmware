@@ -163,7 +163,6 @@ int app_main (void){
   unsigned char sector[SD_BUF_SIZE] = {0};
   unsigned int BytesWritten;
   FRESULT res;
-  int temp_rest_time = 0;
   // set up pid default variables
   last_error = 0;
   dterm_temp = 0;
@@ -173,14 +172,12 @@ int app_main (void){
   output = 0;
   PID_FUNTIONAL_RANGE = 80;
   estimated_time = 0;
-  __disable_irq();
 
   time_elapsed = 0;
 
   number_of_lines = 0;
 
   rest_time = 0;
-  __enable_irq();
 
   //debug bip
   bip = 2;
@@ -215,9 +212,6 @@ int app_main (void){
       }
 
       bip++;
-      __disable_irq();
-      temp_rest_time = rest_time;
-      __enable_irq();
 
       if(enter_power_saving && (rest_time > 30000) && !sd_printing){
 

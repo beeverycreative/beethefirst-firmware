@@ -74,5 +74,6 @@ extern double temptable[NUMTEMPS][3];
 void max_set(int range);
 bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val);
 double  temp_get_table_entry (uint8_t sensor_number, double temp);
+double get_temp(uint8_t sensor_number);
 
 #endif	/* _TIMER_H */
