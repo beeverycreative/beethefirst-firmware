@@ -58,77 +58,78 @@ void USBIntHandler(void);
 
 static U8 abDescriptors[] = {
 
-    // device descriptor
-      0x12,
-      DESC_DEVICE,
-      LE_WORD(0x0110),            // bcdUSB
-      0xFF,                       // bDeviceClass
-      0x00,                       // bDeviceSubClass
-      0x00,                       // bDeviceProtocol
-      MAX_PACKET_SIZE0,           // bMaxPacketSize
-      LE_WORD(0xFFFF),            // idVendor
-      LE_WORD(334),               // idProduct
-      LE_WORD(0x0100),            // bcdDevice
-      0x01,                       // iManufacturer
-      0x02,                       // iProduct
-      0x03,                       // iSerialNumber
-      0x01,                       // bNumConfigurations
+// device descriptor
+  0x12,
+  DESC_DEVICE,
+  LE_WORD(0x0110),            // bcdUSB
+  0xFF,                       // bDeviceClass
+  0x00,                       // bDeviceSubClass
+  0x00,                       // bDeviceProtocol
+  MAX_PACKET_SIZE0,           // bMaxPacketSize
+  LE_WORD(0x29c9),            // idVendor
+  LE_WORD(0x0001),               // idProduct
+  LE_WORD(0x0100),            // bcdDevice
+  0x01,                       // iManufacturer
+  0x02,                       // iProduct
+  0x03,                       // iSerialNumber
+  0x01,                       // bNumConfigurations
 
-    // configuration descriptor
-      0x09,
-      DESC_CONFIGURATION,
-      LE_WORD(32),                // wTotalLength
-      0x01,                       // bNumInterfaces
-      0x01,                       // bConfigurationValue
-      0x00,                       // iConfiguration
-      0xC0,                       // bmAttributes
-      0x32,                       // bMaxPower -- 0X32 ==> 100mA
+// configuration descriptor
+  0x09,
+  DESC_CONFIGURATION,
+  LE_WORD(32),                // wTotalLength
+  0x01,                       // bNumInterfaces
+  0x01,                       // bConfigurationValue
+  0x00,                       // iConfiguration
+  0xC0,                       // bmAttributes
+  0x32,                       // bMaxPower -- 0X32 ==> 100mA
 
-    // generic class interface descriptor
-      0x09,
-      DESC_INTERFACE,
-      0x00,                       // bInterfaceNumber
-      0x00,                       // bAlternateSetting
-      0x02,                       // bNumEndPoints
-      0xFF,                       // bInterfaceClass = generic
-      0x00,                       // bInterfaceSubClass
-      0x00,                       // bInterfaceProtocol
-      0x00,                       // iInterface
-    // data EP OUT
-      0x07,
-      DESC_ENDPOINT,
-      BULK_OUT_EP,                // bEndpointAddress
-      0x02,                       // bmAttributes = bulk
-      LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
-      0x00,                       // bInterval
-    // data EP in
-      0x07,
-      DESC_ENDPOINT,
-      BULK_IN_EP,                 // bEndpointAddress
-      0x02,                       // bmAttributes = bulk
-      LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
-      0x00,                       // bInterval
+// generic class interface descriptor
+  0x09,
+  DESC_INTERFACE,
+  0x00,                       // bInterfaceNumber
+  0x00,                       // bAlternateSetting
+  0x02,                       // bNumEndPoints
+  0xFF,                       // bInterfaceClass = generic
+  0x00,                       // bInterfaceSubClass
+  0x00,                       // bInterfaceProtocol
+  0x00,                       // iInterface
+// data EP OUT
+  0x07,
+  DESC_ENDPOINT,
+  BULK_OUT_EP,                // bEndpointAddress
+  0x02,                       // bmAttributes = bulk
+  LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
+  0x00,                       // bInterval
+// data EP in
+  0x07,
+  DESC_ENDPOINT,
+  BULK_IN_EP,                 // bEndpointAddress
+  0x02,                       // bmAttributes = bulk
+  LE_WORD(MAX_PACKET_SIZE),   // wMaxPacketSize
+  0x00,                       // bInterval
 
-    // string descriptors122
-      0x04,
-      DESC_STRING,
-      LE_WORD(0x0409),
+// string descriptors122
+  0x04,
+  DESC_STRING,
+  LE_WORD(0x0409),
 
-      32,
-      DESC_STRING,
-      'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
+  32,
+  DESC_STRING,
+  'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
 
-      50,
-      DESC_STRING,
-      'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'b', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0, 'a', 0, 'd', 0, 'e', 0, 'r', 0,
+  24,
+  DESC_STRING,
+  'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0,
 
-      24,
-      DESC_STRING,
-      '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,/* bootloader version 3.x.x */
+  24,
+  DESC_STRING,
+  '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,/* bootloader version 3.x.x */
 
-    // terminating zero
-      0
+// terminating zero
+  0
 };
+
 
 
 /**
@@ -175,7 +176,7 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
 {
   int i, iLen;
 
-  // Verifica se não há data para enviar ao PC
+  // Verifica se não há dados do txfifo para enviar ao PC
   if (_fifo_avail(&txfifo) == 0)
   {
     // no more data, disable further NAK interrupts until next USB frame
@@ -186,17 +187,17 @@ static void BulkIn(U8 bEP, U8 bEPStatus)
   // get bytes from transmit FIFO into intermediate buffer
   for (i = 0; i < MAX_PACKET_SIZE; i++)
   {
-    if (!_fifo_get(&txfifo, &abBulkBuf[i]))
-    {
-      break; // sai do ciclo quando o fifo fica vazio, terminando a transferência de informação do &txfifo para &abBulkBuf[].
-    }
+        if (!_fifo_get(&txfifo, &abBulkBuf[i]))
+        {
+          break; // sai do ciclo quando o fifo fica vazio, terminando a transferência de informação do &txfifo para &abBulkBuf[].
+        }
   }
   iLen = i;
 
   // send over USB
   if (iLen > 0)
   {
-    USBHwEPWrite(bEP, abBulkBuf, iLen);
+        USBHwEPWrite(bEP, abBulkBuf, iLen);
   }
 }
 
@@ -230,52 +231,53 @@ void enable_USB_interrupts(void);
 
 void USBSerial_Init(void)
 {
-    char serialnumber[10] = {0};
-    char *pmem117;
 
-    pmem117 = SECTOR_14_START;
-    int serialnumber_present = 0;
-    for (int i = 0; i < 10; i++) {
-        serialnumber[9 - i] = *pmem117;
-        pmem117++;
-        if(*pmem117 != 0xFF)
-            serialnumber_present = 1;
-    }
-    if(serialnumber_present == 1){
-            abDescriptors[138] = serialnumber[0];
-            abDescriptors[140] = serialnumber[1];
-            abDescriptors[142] = serialnumber[2];
-            abDescriptors[144] = serialnumber[3];
-            abDescriptors[146] = serialnumber[4];
-            abDescriptors[148] = serialnumber[5];
-            abDescriptors[150] = serialnumber[6];
-            abDescriptors[152] = serialnumber[7];
-            abDescriptors[154] = serialnumber[8];
-            abDescriptors[156] = serialnumber[9];
-    }
+        char serialnumber[10] = {0};
+        char *pmem117;
 
-    // initialise stack
-    USBInit();
+        pmem117 = SECTOR_14_START;
+        int serialnumber_present = 0;
+        for (int i = 0; i < 10; i++) {
+                serialnumber[9 - i] = *pmem117;
+                pmem117++;
+                if(*pmem117 != 0xFF)
+                        serialnumber_present = 1;
+        }
+        if(serialnumber_present == 1){
+                abDescriptors[112] = serialnumber[0];
+                abDescriptors[114] = serialnumber[1];
+                abDescriptors[116] = serialnumber[2];
+                abDescriptors[118] = serialnumber[3];
+                abDescriptors[120] = serialnumber[4];
+                abDescriptors[122] = serialnumber[5];
+                abDescriptors[124] = serialnumber[6];
+                abDescriptors[126] = serialnumber[7];
+                abDescriptors[128] = serialnumber[8];
+                abDescriptors[130] = serialnumber[9];
+        }
 
-    // register descriptors
-    USBRegisterDescriptors(abDescriptors);
+        // initialise stack
+        USBInit();
 
-    // register endpoint handlers
-    USBHwRegisterEPIntHandler(BULK_IN_EP, BulkIn);
-    USBHwRegisterEPIntHandler(BULK_OUT_EP, BulkOut);
+        // register descriptors
+        USBRegisterDescriptors(abDescriptors);
 
-    // register frame handler
-    USBHwRegisterFrameHandler(USBFrameHandler);
+        // register endpoint handlers
+        USBHwRegisterEPIntHandler(BULK_IN_EP, BulkIn);
+        USBHwRegisterEPIntHandler(BULK_OUT_EP, BulkOut);
 
-    // enable bulk-in interrupts on NAKs
-    USBHwNakIntEnable(INACK_BI); // é gerada uma interrupção sempre que o host tenta ler do EP IN mas este está vazio.
+        // register frame handler
+        USBHwRegisterFrameHandler(USBFrameHandler);
 
-    // initialise VCOM
-    fifo_init(&rxfifo, rxbuf);
-    fifo_init(&txfifo, txbuf);
+        // enable bulk-in interrupts on NAKs
+        USBHwNakIntEnable(INACK_BI); // é gerada uma interrupção sempre que o host tenta ler do EP IN mas este está vazio.
 
-    NVIC_EnableIRQ(USB_IRQn);
+        // initialise VCOM
+        fifo_init(&rxfifo, rxbuf);
+        fifo_init(&txfifo, txbuf);
 
-    // connect to bus
-    USBHwConnect(TRUE);
+        NVIC_EnableIRQ(USB_IRQn);
+
+        // connect to bus
+        USBHwConnect(TRUE);
 }
