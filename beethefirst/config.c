@@ -320,9 +320,9 @@ void read_config (void)
         }
     }
 
-    if(config.kp == 0
-        && config.ki == 0
-        && config.kd == 0){
+    if(config.kp < 0.0001
+        && config.ki < 0.0001
+        && config.kd < 0.0001){
 
         config.kp = config_lookup[43].val_d;
         config.ki = config_lookup[44].val_d;

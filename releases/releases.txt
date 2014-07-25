@@ -1,3 +1,6 @@
+BEETHEFIRST-firmware-4.33.3-beta+20140725102300
+corrigido bug no config
+
 BEETHEFIRST-firmware-4.33.2-beta+20140723120200
 corrigido o mesmo bug na temperatura
 
