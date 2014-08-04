@@ -172,12 +172,11 @@ int app_main (void){
   output = 0;
   PID_FUNTIONAL_RANGE = 80;
   estimated_time = 0;
-
   time_elapsed = 0;
-
   number_of_lines = 0;
-
   rest_time = 0;
+  last_target_e = 0;
+  filament_coeff = 1;
 
   //debug bip
   bip = 2;
@@ -297,6 +296,7 @@ int app_main (void){
               executed_lines++;
           }else{
               sd_printing = false;
+              filament_coeff = 1;
           }
 
       }/*no need for else*/

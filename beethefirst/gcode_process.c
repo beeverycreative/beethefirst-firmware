@@ -502,10 +502,19 @@ eParseResult process_gcode_command(){
       if (next_target.seen_E){
         if(get_temp(EXTRUDER_0) < 180){
             if(!next_target.seen_B && !sd_printing){
-                serial_writestr("temperature to low ");
+                serial_writestr("temperature too low ");
             }/* No need for else */
         }else{
-            next_targetd.e = next_target.target.e;
+            if(sd_printing && (filament_coeff != 1)){
+                // in the case of a filament change
+                next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
+
+            }else{
+                next_targetd.e = next_target.target.e;
+            }
+
+            //save this value
+            last_target_e = next_target.target.e;
         }
       }/*No need for else*/
 
@@ -993,7 +1002,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 3.33.3");
+                serial_writestr(" 3.34.0");
                 serial_writestr(" ");
             }
           }
@@ -1321,7 +1330,21 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 642:
+           {
+             if(next_target.seen_W){
+                 filament_coeff = next_target.W;
+             }else{
+                 serial_writestr("filament coefficient:");
+                 serwrite_double(filament_coeff);
+                 serial_writestr(" ");
 
+             }
+             if(sd_printing){
+                 reply_sent = 1;
+             }/*No need for else*/
+           }
+           break;
           // unknown mcode: spit an error
           default:
           {
