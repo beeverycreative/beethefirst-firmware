@@ -172,7 +172,10 @@ int app_main (void){
   output = 0;
   PID_FUNTIONAL_RANGE = 80;
   estimated_time = 0;
+  __disable_irq();
   time_elapsed = 0;
+  __enable_irq();
+
   number_of_lines = 0;
   rest_time = 0;
   last_target_e = 0;

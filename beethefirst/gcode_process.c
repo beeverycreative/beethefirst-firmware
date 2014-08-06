@@ -707,8 +707,6 @@ eParseResult process_gcode_command(){
           case 23:
           {
             executed_lines = 0;
-            time_elapsed = 0;
-
             //closes file
             sd_close(&file);
 
@@ -852,23 +850,33 @@ eParseResult process_gcode_command(){
 
           case 32: //M32 - variables to software
           {
-            if(!next_target.seen_B){
+            if(next_target.seen_A){
+                __disable_irq();
+                time_elapsed = next_target.A;
+                __enable_irq();
 
-              serial_writestr("A");
-              serwrite_uint32(estimated_time);
-              serial_writestr(" B");
-              serwrite_uint32(time_elapsed);
-              serial_writestr(" C");
-              serwrite_uint32(number_of_lines);
-              serial_writestr(" D");
-              serwrite_uint32(executed_lines);
-              serial_writestr(" ");
+            }else{
+                if(!next_target.seen_B){
 
-              if(number_of_lines == executed_lines){
-                  serial_writestr("Done printing file\n");
-              }/*No need for else*/
-            }/*No need for else*/
+                    serial_writestr("A");
+                    serwrite_uint32(estimated_time);
+                    serial_writestr(" B");
 
+                    __disable_irq();
+                    serwrite_uint32(time_elapsed);
+                    __enable_irq();
+
+                    serial_writestr(" C");
+                    serwrite_uint32(number_of_lines);
+                    serial_writestr(" D");
+                    serwrite_uint32(executed_lines);
+                    serial_writestr(" ");
+
+                    if(number_of_lines == executed_lines){
+                        serial_writestr("Done printing file\n");
+                    }/*No need for else*/
+                  }/*No need for else*/
+            }
           }
           break;
 
@@ -888,7 +896,6 @@ eParseResult process_gcode_command(){
             config.status = 5;
             sd_printing = true;
 
-            time_elapsed = 0;
 
           }
           break;
@@ -1002,7 +1009,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 4.34.0");
+                serial_writestr(" 4.35.0");
                 serial_writestr(" ");
             }
           }
