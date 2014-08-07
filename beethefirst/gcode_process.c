@@ -53,6 +53,8 @@ FIL       file;
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 bool      sd_printing = false;      // printing from SD file
+bool      enter_power_saving = false;      // printing from SD file
+bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
@@ -160,7 +162,7 @@ static void SpecialMoveE (double e, double feed_rate)
   }
 }
 
-static void zero_x(void)
+void zero_x(void)
 {
   int dir;
   int max_travel;
@@ -195,7 +197,7 @@ static void zero_x(void)
   plan_set_current_position (&new_pos);
 }
 
-static void zero_y(void)
+void zero_y(void)
 {
   int dir;
   int max_travel;
@@ -230,7 +232,7 @@ static void zero_y(void)
   plan_set_current_position (&new_pos);
 }
 
-static void zero_z(void)
+void zero_z(void)
 {
   int dir;
   int max_travel;
@@ -444,6 +446,23 @@ void sd_init(){
   }
 }
 
+void reinit_system(){
+  leave_power_saving = 0;
+
+  x_enable();
+  y_enable();
+  z_enable();
+  e_enable();
+
+  zero_x();
+  zero_y();
+  zero_z();
+
+  while(!(plan_queue_empty())){
+      continue;
+  }
+}
+
 /****************************************************************************
  *                                                                          *
  * Command Received - process it                                             *
@@ -488,14 +507,39 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_E){
-          if(temp_get(EXTRUDER_0) < 180){
-              serial_writestr("temperature to low ");
-          }else{
-              next_targetd.e = next_target.target.e;
-          }
+
+        if(get_temp(EXTRUDER_0) < 180){
+            if(!next_target.seen_B && !sd_printing){
+                serial_writestr("temperature too low ");
+            }/* No need for else */
+        }else{
+            if(sd_printing && (filament_coeff != 1)){
+                // in the case of a filament change
+                next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
+
+            }else{
+                next_targetd.e = next_target.target.e;
+            }
+
+            //save this value
+            last_target_e = next_target.target.e;
+        }
       }/*No need for else*/
 
   }
+
+  if(leave_power_saving){
+      if(next_target.seen_M){
+          if((next_target.M == 625
+              || next_target.M == 637)){
+
+          }else{
+              reinit_system();
+          }
+      }else{
+          reinit_system();
+      }
+  }/*No need for else*/
 
   if (next_target.seen_G){
 
@@ -505,10 +549,6 @@ eParseResult process_gcode_command(){
         case 0:
         case 1:
         {
-          if(!position_ok){
-              serial_writestr("position not ok ");
-              break;
-          }
 
           if (next_targetd.x < -96){
               next_targetd.x = -96;
@@ -530,6 +570,11 @@ eParseResult process_gcode_command(){
           }
           if (next_targetd.z > 150 ){
               next_targetd.z = 150;
+          }
+
+          if(!position_ok && !next_target.seen_B && !sd_printing){
+              serial_writestr("position not ok ");
+              break;
           }
 
           if(!sd_printing){
@@ -581,7 +626,7 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
 
           config.acceleration = aux ;
-
+          position_ok = 1;
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -676,21 +721,11 @@ eParseResult process_gcode_command(){
             sd_init();
           }
           break;
-/*
-          case 22: // M22 - release SD card
-          {
-            sd_close(&file);
-            sd_printing = false;
-          }
-          break;
-*/
 
           //M28 - transfer size and begin if valid
           case 23:
           {
             executed_lines = 0;
-            time_elapsed = 0;
-
             //closes file
             sd_close(&file);
 
@@ -780,9 +815,6 @@ eParseResult process_gcode_command(){
             number_of_bytes = 0;
             transfer_mode = 1;
 
-            //saved to be used by md5
-            //md5_init();
-
             //status = transfering
             config.status = 6;
           }
@@ -837,23 +869,33 @@ eParseResult process_gcode_command(){
 
           case 32: //M32 - variables to software
           {
-            if(!next_target.seen_B){
+            if(next_target.seen_A){
+                __disable_irq();
+                time_elapsed = next_target.A;
+                __enable_irq();
 
-              serial_writestr("A");
-              serwrite_uint32(estimated_time);
-              serial_writestr(" B");
-              serwrite_uint32(time_elapsed);
-              serial_writestr(" C");
-              serwrite_uint32(number_of_lines);
-              serial_writestr(" D");
-              serwrite_uint32(executed_lines);
-              serial_writestr(" ");
+            }else{
+                if(!next_target.seen_B){
 
-              if(number_of_lines == executed_lines){
-                  serial_writestr("Done printing file\n");
-              }/*No need for else*/
-            }/*No need for else*/
+                    serial_writestr("A");
+                    serwrite_uint32(estimated_time);
+                    serial_writestr(" B");
 
+                    __disable_irq();
+                    serwrite_uint32(time_elapsed);
+                    __enable_irq();
+
+                    serial_writestr(" C");
+                    serwrite_uint32(number_of_lines);
+                    serial_writestr(" D");
+                    serwrite_uint32(executed_lines);
+                    serial_writestr(" ");
+
+                    if(number_of_lines == executed_lines){
+                        serial_writestr("Done printing file\n");
+                    }/*No need for else*/
+                  }/*No need for else*/
+            }
           }
           break;
 
@@ -861,7 +903,7 @@ eParseResult process_gcode_command(){
           {
 
             FRESULT res;
-            res = f_lseek(&file, 0);
+            res = f_lseek(&file, sd_pos);
 
             if(res != FR_OK){
                 if(!next_target.seen_B){
@@ -872,8 +914,8 @@ eParseResult process_gcode_command(){
 
             config.status = 5;
             sd_printing = true;
-            time_elapsed = 0;
-            executed_lines = 0;
+
+
           }
           break;
 
@@ -882,10 +924,6 @@ eParseResult process_gcode_command(){
 
             if(!next_target.seen_B){
                 serial_writestr("transfer completed ");
-              /*  for(int i=0; i<16; i++){
-                    serwrite_hex8(md5_word[i]);
-                }
-                */
                 serial_writestr(" ");
 
             }/*No need for else*/
@@ -990,7 +1028,8 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 4.32.1");
+                serial_writestr(" 5.35.0");
+
                 serial_writestr(" ");
             }
           }
@@ -998,7 +1037,7 @@ eParseResult process_gcode_command(){
 
           case 117:
           {
-            //try to read the unique ID - not working in this LCP Revision
+            //try to read the unique ID - not working in this LPC Revision
             /*
              serial_writestr(" ");
              read_device_serial_number();
@@ -1057,67 +1096,7 @@ eParseResult process_gcode_command(){
               print_pwm();
           }
           break;
-/*
-          case 132:
-          {
-              ventoinha_extrusor_on();
-          }
-          break;
 
-          case 133:
-          {
-              ventoinha_extrusor_off();
-          }
-          break;
-
-          case 134:
-          {
-              ventoinha_r2c2_on();
-          }
-          break;
-
-          case 135:
-          {
-              ventoinha_r2c2_off();
-          }
-          break;
-
-          case 136:
-          {
-              leds_on();
-          }
-          break;
-
-          case 137:
-          {
-              leds_off();
-          }
-          break;
-
-          case 138:
-          {
-
-            if (next_target.seen_P){
-
-                set_led_mode(next_target.P );
-            }else{
-                serial_writestr("not seen P ");
-
-            }
-          }
-          break;
-          */
-          case 139:
-          {
-              if (next_target.seen_P){
-
-                  max_set(next_target.P );
-              }else{
-                  serial_writestr("max: ");
-                  serwrite_int32(PID_FUNTIONAL_RANGE);
-              }
-          }
-          break;
           // M200 - set steps per mm
           case 200:
           {
@@ -1151,8 +1130,8 @@ eParseResult process_gcode_command(){
                     if(next_target.target.x > 2000){
                         next_target.target.x = 2000;
                     }
-
                     config.acceleration = next_target.target.x;
+
                 }/*No need for else*/
             }
 
@@ -1194,60 +1173,6 @@ eParseResult process_gcode_command(){
             }
           }
           break;
-
-/*
-          //set pwm
-          case 401:
-          {
-            int duty_cicle = 50;
-
-            if(next_target.seen_P){
-                if(next_target.seen_P<0||next_target.seen_P>100){
-                    serial_writestr("invalid pwm duty cicle ");
-                    break;
-                }
-                duty_cicle = next_target.P;
-            }
-
-            if (next_target.seen_S){
-
-                if(next_target.seen_S<1 || next_target.seen_S>5){
-                    serial_writestr("invalid pwm channel ");
-                    break;
-                }
-
-                pwm_set_duty_cycle(next_target.S, duty_cicle);
-                pwm_set_enable(next_target.S);
-            }
-          }
-          break;
-
-          //disable pwm
-          case 402:
-          {
-            if (next_target.seen_S){
-                if(next_target.seen_S<1 || next_target.seen_S>5){
-                    serial_writestr("invalid pwm channel ");
-                    break;
-                }
-                pwm_set_duty_cycle(next_target.S, 0);
-                pwm_set_enable(next_target.S);
-            }else{
-                pwm_set_duty_cycle(1, 0);
-                pwm_set_duty_cycle(2, 0);
-                pwm_set_duty_cycle(3, 0);
-                pwm_set_duty_cycle(4, 0);
-                pwm_set_duty_cycle(5, 0);
-
-                pwm_set_enable(1);
-                pwm_set_enable(2);
-                pwm_set_enable(3);
-                pwm_set_enable(4);
-                pwm_set_enable(5);
-            }
-          }
-          break;
-*/
 
           // M600 print the values read from the config file
           case 600:
@@ -1393,6 +1318,8 @@ eParseResult process_gcode_command(){
             if(!next_target.seen_B){
                 serial_writestr("last N:");
                 serwrite_uint32(next_target.N);
+                serial_writestr(" sdpos:");
+                serwrite_uint32(executed_lines);
                 serial_writestr(" ");
             }/*No need for else*/
           }
@@ -1413,6 +1340,39 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 640:
+          {
+            if(sd_printing){
+                config.status = 7;
+                sd_printing = 0;
+            }/* No need for else */
+          }
+          break;
+
+          case 641:
+          {
+            enter_power_saving = 1;
+            if(sd_printing){
+                reply_sent = 1;
+            }/*No need for else*/
+          }
+          break;
+
+          case 642:
+           {
+             if(next_target.seen_W){
+                 filament_coeff = next_target.W;
+             }else{
+                 serial_writestr("filament coefficient:");
+                 serwrite_double(filament_coeff);
+                 serial_writestr(" ");
+
+             }
+             if(sd_printing){
+                 reply_sent = 1;
+             }/*No need for else*/
+           }
+           break;
           // unknown mcode: spit an error
           default:
           {
@@ -1452,6 +1412,13 @@ eParseResult process_gcode_command(){
               //next_target.N = 0;
           }/*No need for else*/
           serial_writestr("\r\n");
+      }/*No need for else*/
+  }/*No need for else*/
+
+  if(next_target.seen_M && enter_power_saving){
+      if(!(next_target.M == 625 || next_target.M == 637)){
+          rest_time = 0;
+
       }/*No need for else*/
   }/*No need for else*/
 

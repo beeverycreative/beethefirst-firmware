@@ -155,14 +155,6 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
         gcode_parse_char (pLine->data [j]);
     }
 
-    //echo
- /*   if(sd_printing){
-        for (j=0; j < pLine->len; j++){
-          serial_writechar(pLine->data [j]);
-      }
-    }
-*/
-
     // process
     result = process_gcode_command();
 
@@ -174,7 +166,8 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.seen_T = next_target.seen_U = next_target.seen_V = \
     next_target.seen_checksum = next_target.seen_semi_comment = \
     next_target.seen_parens_comment = next_target.checksum_read = \
-    next_target.checksum_calculated = next_target.seen_D = next_target.seen_L = 0;
+    next_target.checksum_calculated = next_target.seen_D = \
+    next_target.seen_W = next_target.seen_L = 0;
     next_target.chpos = 0;
     last_field = 0;
     read_digit.sign = read_digit.exponent = 0;
@@ -347,6 +340,10 @@ void gcode_parse_char(uint8_t c)
         config.kd = value;
         break;
 
+        case 'W':
+        next_target.W = value;
+        break;
+
         case '*':
         next_target.checksum_read = value;
         break;
@@ -464,6 +461,10 @@ void gcode_parse_char(uint8_t c)
 
       case 'V':
       next_target.seen_V = 1;
+      break;
+
+      case 'W':
+      next_target.seen_W = 1;
       break;
 
       case '*':

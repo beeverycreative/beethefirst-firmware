@@ -1,3 +1,19 @@
+
+BEETHEFIRST-firmware-3.35.0-beta+20140806172900
+alterado a forma como é contado o tempo
+
+BEETHEFIRST-firmware-3.34.0-beta+20140804165600
+introduzida a pausa
+
+BEETHEFIRST-firmware-4.33.3-beta+20140725102300
+corrigido bug no config
+
+BEETHEFIRST-firmware-4.33.2-beta+20140723120200
+corrigido o mesmo bug na temperatura
+
+BEETHEFIRST-firmware-3.33.1-beta+20140723100900
+corrigo bug na temperatura
+
 BEETHEFIRST-firmware-3.32.1-beta+20140716110700
 introduzidas novas seguranças:
 só pode movimentar-se depois de ter ido ao home
@@ -8,7 +24,6 @@ introduzidas seguranças
 
 BEETHEFIRST-firmware-3.31.0-beta+20140715101100
 novamente serie
-
 BEETHEFIRST-firmware-3.28.1-beta+20140505122800
 corrigido bug no pwm
 

@@ -86,6 +86,10 @@ double temp_get(uint8_t sensor_number)
   return current_temp[sensor_number];
 }
 
+double get_temp(uint8_t sensor_number)
+{
+  return current_temp[sensor_number];
+}
 double temp_get_target(uint8_t sensor_number)
 {
   return target_temp[sensor_number];

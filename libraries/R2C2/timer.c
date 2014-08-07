@@ -199,6 +199,7 @@ void SysTick_Handler(void)
   tTimer *pTimer;
   time_elapsed++;
   millis_ticks++;
+  rest_time++;
 
   /* 100ms tick for SDCard ***********************************************/
   counter++;
