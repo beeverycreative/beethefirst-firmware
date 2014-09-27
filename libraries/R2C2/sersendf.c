@@ -101,3 +101,69 @@ void sersendf(char *format, ...) {
         }
         va_end(args);
 }
+void sersendf_one(char *format, ...) {
+        va_list args;
+        va_start(args, format);
+
+        unsigned int i = 0;
+        unsigned char c, j = 0;
+        while ((c = format[i++])) {
+                if (j) {
+                        switch(c) {
+                                case 'l':
+                                        j = 4;
+                                        break;
+                                case 'u':
+                                        if (j == 4)
+                                                serwrite_uint32(va_arg(args, unsigned int));
+                                        else
+                                                serwrite_uint16(va_arg(args, unsigned int));
+                                        j = 0;
+                                        break;
+                                case 'd':
+                                        if (j == 4)
+                                                serwrite_int32(va_arg(args, int));
+                                        else
+                                                serwrite_int16(va_arg(args, int));
+                                        j = 0;
+                                        break;
+
+                                /* print a double in normal notation */
+                                case 'g':
+                                serwrite_double_one(va_arg(args, double));
+                                j = 0;
+                                break;
+
+                                case 'p':
+                                case 'x':
+                                        serial_writestr(str_ox);
+                                        if (j == 4)
+                                                serwrite_hex32(va_arg(args, unsigned int));
+                                        else
+                                                serwrite_hex16(va_arg(args, unsigned int));
+                                        j = 0;
+                                        break;
+                                case 'c':
+                                        serial_writechar(va_arg(args, unsigned int));
+                                        j = 0;
+                                        break;
+                                case 's':
+                                        serial_writestr(va_arg(args, char *));
+                                        j = 0;
+                                        break;
+                                default:
+                                        j = 0;
+                                        break;
+                        }
+                }
+                else {
+                        if (c == '%') {
+                                j = 2;
+                        }
+                        else {
+                                serial_writechar(c);
+                        }
+                }
+        }
+        va_end(args);
+}

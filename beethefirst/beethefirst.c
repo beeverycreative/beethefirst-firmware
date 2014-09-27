@@ -170,6 +170,7 @@ int app_main (void){
   dterm = 0;
   iterm = 0;
   output = 0;
+  protection_temperature = 180;
   PID_FUNTIONAL_RANGE = 80;
   estimated_time = 0;
   __disable_irq();

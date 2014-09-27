@@ -1,3 +1,9 @@
+BEETHEFIRST-firmware-5.36.0-beta+20140927132700
+M105: Get Extruder Temperature
+M110: Set Current Line Number
+G90: Set to Absolute Positioning
+G91: Set to Relative Positioning
+M302: Allow cold extrudes
 
 BEETHEFIRST-firmware-3.35.0-beta+20140806172900
 alterado a forma como é contado o tempo

@@ -69,6 +69,7 @@ double iterm;
 double dterm;
 double dterm_temp;
 int PID_FUNTIONAL_RANGE;
+int protection_temperature;
 double output;
 extern double temptable[NUMTEMPS][3];
 void max_set(int range);

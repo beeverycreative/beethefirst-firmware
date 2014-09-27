@@ -34,5 +34,6 @@
 #include        <stdarg.h>
 
 void sersendf(char *format, ...); // ((format (printf, 1, 2)));
+void sersendf_one(char *format, ...); // ((format (printf, 1, 2)));
 
 #endif	/* _SERSENDF_H */

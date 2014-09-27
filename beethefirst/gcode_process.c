@@ -477,56 +477,46 @@ eParseResult process_gcode_command(){
 
   tTarget next_targetd = startpoint;
 
-  // convert relative to absolute
-  if (next_target.option_relative){
-      next_targetd.x = startpoint.x + next_target.target.x;
-      next_targetd.y = startpoint.y + next_target.target.y;
-      next_targetd.z = startpoint.z + next_target.target.z;
-      next_targetd.e = startpoint.e + next_target.target.e;
-      if (next_target.seen_F){
-          next_targetd.feed_rate = next_target.target.feed_rate;
-      }/*No need for else*/
-  }else{
 
-      if (next_target.seen_F){
-          next_targetd.feed_rate = next_target.target.feed_rate;
-      }/*No need for else*/
+  if (next_target.seen_F){
+      next_targetd.feed_rate = next_target.target.feed_rate;
+  }/*No need for else*/
 
-      // absolute
-      if (next_target.seen_X){
-          next_targetd.x = next_target.target.x;
+  // absolute
+  if (next_target.seen_X){
+      next_targetd.x = next_target.target.x;
 
-      }/*No need for else*/
+  }/*No need for else*/
 
-      if (next_target.seen_Y){
-          next_targetd.y = next_target.target.y;
-      }/*No need for else*/
+  if (next_target.seen_Y){
+      next_targetd.y = next_target.target.y;
+  }/*No need for else*/
 
-      if (next_target.seen_Z){
-          next_targetd.z = next_target.target.z;
-      }/*No need for else*/
+  if (next_target.seen_Z){
+      next_targetd.z = next_target.target.z;
+  }/*No need for else*/
 
-      if (next_target.seen_E){
+  if (next_target.seen_E){
 
-        if(get_temp(EXTRUDER_0) < 180){
-            if(!next_target.seen_B && !sd_printing){
-                serial_writestr("temperature too low ");
-            }/* No need for else */
+    if(get_temp(EXTRUDER_0) < protection_temperature){
+        if(!next_target.seen_B && !sd_printing){
+            serial_writestr("temperature too low ");
+        }/* No need for else */
+    }else{
+        if(sd_printing && (filament_coeff != 1)){
+            // in the case of a filament change
+            next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
+
         }else{
-            if(sd_printing && (filament_coeff != 1)){
-                // in the case of a filament change
-                next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
-
-            }else{
-                next_targetd.e = next_target.target.e;
-            }
-
-            //save this value
-            last_target_e = next_target.target.e;
+            next_targetd.e = next_target.target.e;
         }
-      }/*No need for else*/
 
-  }
+        //save this value
+        last_target_e = next_target.target.e;
+    }
+  }/*No need for else*/
+
+
 
   if(leave_power_saving){
       if(next_target.seen_M){
@@ -634,6 +624,21 @@ eParseResult process_gcode_command(){
           position_ok = 1;
         }
         break;
+
+        // G90 - absolute positioning
+        case 90:
+        {
+            next_target.option_relative = 0;
+        }
+        break;
+
+        // G91 - relative positioning
+        case 91:
+        {
+            next_target.option_relative = 1;
+        }
+        break;
+
 
         //G92 - set current position
         case 92:
@@ -961,9 +966,8 @@ eParseResult process_gcode_command(){
                   temp_print();
               }/*No need for else*/
 
-              if(sd_printing){
-                  reply_sent = 1;
-              }/*No need for else*/
+
+              reply_sent = 1;
           }
           break;
 
@@ -1009,6 +1013,13 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 110:
+          {
+            //nothing to do here
+          }
+          break;
+
+
           // M112- immediate stop
           case 112:
           {
@@ -1023,12 +1034,20 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 114:
+          {
+            if(!next_target.seen_B && !sd_printing){
+                sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+            }/*No need for else*/
+          }
+          break;
+
           // M115 - report firmware version
           case 115:
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 5.35.0");
+                serial_writestr(" 5.36.0");
 
                 serial_writestr(" ");
             }
@@ -1161,6 +1180,15 @@ eParseResult process_gcode_command(){
           }
           break;
 
+          case 302:
+          {
+            if (next_target.seen_S){
+                protection_temperature=next_target.S;
+            }else{
+                protection_temperature=0;
+            }
+          }
+          break;
           // M400 bcode
           case 400:
           {

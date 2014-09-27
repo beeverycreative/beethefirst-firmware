@@ -49,5 +49,6 @@ void serwrite_uint32(uint32_t v);
 void serwrite_int32(int32_t v);
 
 void serwrite_double(double v);
+void serwrite_double_one(double v);
 
 #endif	/* _SERMSG_H */

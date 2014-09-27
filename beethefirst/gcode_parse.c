@@ -96,7 +96,11 @@ static int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denom
   if (df->sign)
   {
     r = -r;
-  }
+  } if (next_target.option_inches)
+    {
+      next_target.target.x = inch_to_mm(value);
+    }
+    else
 
   // exponent- try to keep divides to a minimum for common (small) values at expense of slightly more code
   while (e >= 5)
@@ -242,46 +246,79 @@ void gcode_parse_char(uint8_t c)
         break;
 
         case 'X':
+
         if (next_target.option_inches)
         {
-          next_target.target.x = inch_to_mm(value);
+            if(next_target.option_relative){
+                next_target.target.x = inch_to_mm(value)+startpoint.x;
+            }else{
+                next_target.target.x = inch_to_mm(value);
+            }
         }
         else
         {
-          next_target.target.x = value;
+            if(next_target.option_relative){
+                next_target.target.x = value+startpoint.x;
+            }else{
+                next_target.target.x = value;
+            }
         }
         break;
 
         case 'Y':
         if (next_target.option_inches)
         {
-          next_target.target.y = inch_to_mm(value);
+            if(next_target.option_relative){
+                next_target.target.y = inch_to_mm(value)+startpoint.y;
+            }else{
+                next_target.target.y = inch_to_mm(value);
+            }
         }
         else
         {
-          next_target.target.y = value;
+            if(next_target.option_relative){
+                next_target.target.y = value+startpoint.y;
+            }else{
+                next_target.target.y = value;
+            }
         }
         break;
 
         case 'Z':
         if (next_target.option_inches)
         {
-          next_target.target.z = inch_to_mm(value);
+            if(next_target.option_relative){
+                next_target.target.z = inch_to_mm(value)+startpoint.z;
+            }else{
+                next_target.target.z = inch_to_mm(value);
+            }
         }
         else
         {
-          next_target.target.z = value;
+            if(next_target.option_relative){
+                next_target.target.z = value+startpoint.z;
+            }else{
+                next_target.target.z = value;
+            }
         }
         break;
 
         case 'E':
         if (next_target.option_inches)
         {
-          next_target.target.e = inch_to_mm(value);
+            if(next_target.option_relative){
+                next_target.target.e = inch_to_mm(value)+startpoint.e;
+            }else{
+                next_target.target.e = inch_to_mm(value);
+            }
         }
         else
         {
-          next_target.target.e = value;
+            if(next_target.option_relative){
+                next_target.target.e = value+startpoint.e;
+            }else{
+                next_target.target.e = value;
+            }
         }
         break;
 
