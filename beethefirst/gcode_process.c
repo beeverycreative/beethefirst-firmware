@@ -964,6 +964,8 @@ eParseResult process_gcode_command(){
           {
               if(!next_target.seen_B && !sd_printing){
                   temp_print();
+		serial_writestr("\r\n");
+ 
               }/*No need for else*/
 
 
@@ -1037,7 +1039,9 @@ eParseResult process_gcode_command(){
           case 114:
           {
             if(!next_target.seen_B && !sd_printing){
-                sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+                sersendf_one("ok C: X:%g Y:%g Z:%g E:%g", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+		serial_writestr("\r\n");
+		reply_sent = 1;
             }/*No need for else*/
           }
           break;

@@ -176,10 +176,10 @@ void serwrite_double_one(double v)
   /* print last part after '.' */
   v = v - (int32_t)v;
 
-  v = v * 10;
+  v = v * 100;
 
-  /*if (v < 10.0)
+  if (v < 10.0)
         serial_writechar('0');
-  */serwrite_uint32((uint32_t) v);
+  serwrite_uint32((uint32_t) v);
 
 }
