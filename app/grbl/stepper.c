@@ -68,9 +68,11 @@ static uint16_t led_on_time;
 static uint16_t led_off_time;
 
 static tTimer blinkTimer;
+static uint32_t m109Timer;
 
 
 // Locals
+initial_time  = 0;
 
 // DAC scale is calculated as voltage range * 10 (3.3V=33/10) and seconds, steps per mm, and finally mm/s per volt divided by DAC range (10 bits)
 const uint32_t mm_per_sec_per_volt = 200;
@@ -522,6 +524,15 @@ void st_interrupt (void)
     }
     else if (current_block->action_type == AT_WAIT_TEMPS) 
     {
+        // every 20s printout the current temperature
+      if(m109Timer == 0){
+	m109Timer= millis() + 20000;
+      }
+      if(millis() > m109Timer){
+	temp_print();
+	serial_writestr("\r\n");
+	m109Timer= millis() + 20000;
+      }
       step_bits_xyz = step_bits_e = 0;
       if (temp_achieved(EXTRUDER_0))
       {
