@@ -80,21 +80,21 @@ struct configuration
   int32_t printing_vol_z;
   
   // dump pos
-  int32_t have_dump_pos;
-  int32_t dump_pos_x;
-  int32_t dump_pos_y;
+  //int32_t have_dump_pos;
+  //int32_t dump_pos_x;
+  //int32_t dump_pos_y;
   
   // rest pos
-  int32_t have_rest_pos;
-  int32_t rest_pos_x;
-  int32_t rest_pos_y;
+  //int32_t have_rest_pos;
+  //int32_t rest_pos_x;
+  //int32_t rest_pos_y;
 
   // wipe pos
-  int32_t have_wipe_pos;
-  int32_t wipe_entry_pos_x;
-  int32_t wipe_entry_pos_y;
-  int32_t wipe_exit_pos_x;
-  int32_t wipe_exit_pos_y;
+  //int32_t have_wipe_pos;
+  //int32_t wipe_entry_pos_x;
+  //int32_t wipe_entry_pos_y;
+  //int32_t wipe_exit_pos_x;
+  //int32_t wipe_exit_pos_y;
   
   //
   int32_t steps_per_revolution_e;
@@ -106,9 +106,23 @@ struct configuration
   int32_t status;
   int32_t bcode;
 
+  // pid
   double kp;
   double ki;
   double kd;
+
+  // autonomous
+  char filename[10];
+  int32_t  sd_pos;
+  int32_t estimated_time;
+  int32_t time_elapsed;
+  int32_t number_of_lines;
+  int32_t executed_lines;
+  double  startpoint_x;
+  double  startpoint_y;
+  double  startpoint_z;
+  double  startpoint_e;
+
 };
 
 extern struct configuration config;

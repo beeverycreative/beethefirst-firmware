@@ -215,6 +215,7 @@ int app_main (void){
 
       bip++;
 
+      //Power saving check
       if(enter_power_saving && (rest_time > 30000) && !sd_printing){
 
           zero_z();
@@ -240,10 +241,12 @@ int app_main (void){
 
       //if not executing movements
       //nor in a error state
+      //nor recovering from shutdown
       //nor printing form sd card
       //then is ready
       if((plan_queue_empty())
           && (config.status != 0)
+          && (config.status != 9)
           && (!sd_printing)){
 
           config.status = 3;

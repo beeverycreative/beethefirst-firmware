@@ -5,13 +5,13 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
      notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the
      distribution.
-   * Neither the name of the copyright holders nor the names of
+ * Neither the name of the copyright holders nor the names of
      contributors may be used to endorse or promote products derived
      from this software without specific prior written permission.
 
@@ -26,7 +26,7 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #include <string.h>
 #include "gcode_parse.h"
@@ -52,6 +52,7 @@
 FIL       file;
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
+
 bool      sd_printing = false;      // printing from SD file
 bool      enter_power_saving = false;      // printing from SD file
 bool      leave_power_saving = false;      // printing from SD file
@@ -81,21 +82,21 @@ static void enqueue_moved (tTarget *pTarget)
   if (pTarget->x != startpoint.x || pTarget->y != startpoint.y ||
       pTarget->z != startpoint.z || pTarget->e != startpoint.e
   )
-  {
-    request.ActionType = AT_MOVE;
-    request.target= *pTarget;
-    request.target.invert_feed_rate =  false;
+    {
+      request.ActionType = AT_MOVE;
+      request.target= *pTarget;
+      request.target.invert_feed_rate =  false;
 
-    if (config.enable_extruder_1 == 0)
-      request.target.e = startpoint.e;
+      if (config.enable_extruder_1 == 0)
+        request.target.e = startpoint.e;
 
-    plan_buffer_action (&request);
-  }
+      plan_buffer_action (&request);
+    }
   else
-  {
-    // no move, just set feed rate
-    plan_set_feed_rate (pTarget);
-  }
+    {
+      // no move, just set feed rate
+      plan_set_feed_rate (pTarget);
+    }
 }
 
 static void enqueue_wait_temp (void)
@@ -153,12 +154,12 @@ static void SpecialMoveE (double e, double feed_rate)
   tTarget next_targetd;
 
   if (config.enable_extruder_1)
-  {
-    next_targetd = startpoint;
-    next_targetd.e = startpoint.e + e;
-    next_targetd.feed_rate = feed_rate;
-    enqueue_moved(&next_targetd);
-  }
+    {
+      next_targetd = startpoint;
+      next_targetd.e = startpoint.e + e;
+      next_targetd.feed_rate = feed_rate;
+      enqueue_moved(&next_targetd);
+    }
 }
 
 void zero_x(void)
@@ -167,13 +168,13 @@ void zero_x(void)
   int max_travel;
 
   if (config.home_direction_x < 0)
-  {
-    dir = -1;
-  }
+    {
+      dir = -1;
+    }
   else
-  {
-    dir = 1;
-  }
+    {
+      dir = 1;
+    }
   max_travel = max (300, config.printing_vol_x);
 
   // move to endstop
@@ -202,13 +203,13 @@ void zero_y(void)
   int max_travel;
 
   if (config.home_direction_y < 0)
-  {
-    dir = -1;
-  }
+    {
+      dir = -1;
+    }
   else
-  {
-    dir = 1;
-  }
+    {
+      dir = 1;
+    }
   max_travel = max (300, config.printing_vol_y);
 
   // move to endstop
@@ -237,13 +238,13 @@ void zero_z(void)
   int max_travel;
 
   if (config.home_direction_z < 0)
-  {
-    dir = -1;
-  }
+    {
+      dir = -1;
+    }
   else
-  {
-    dir = 1;
-  }
+    {
+      dir = 1;
+    }
   max_travel = max (300, config.printing_vol_z);
 
   // move to endstop
@@ -255,18 +256,18 @@ void zero_z(void)
    * Normal move Z
    **/
 
-    tTarget next_targetd = startpoint;
-      next_targetd.x = startpoint.x;
-      next_targetd.y = startpoint.y;
-      next_targetd.z = startpoint.z - dir * 10;
-      next_targetd.e = startpoint.e;
-      next_targetd.feed_rate =  config.homing_feedrate_z;
-      enqueue_moved(&next_targetd);
-      synch_queue();
+  tTarget next_targetd = startpoint;
+  next_targetd.x = startpoint.x;
+  next_targetd.y = startpoint.y;
+  next_targetd.z = startpoint.z - dir * 10;
+  next_targetd.e = startpoint.e;
+  next_targetd.feed_rate =  config.homing_feedrate_z;
+  enqueue_moved(&next_targetd);
+  synch_queue();
   /*
    * end
    */
-  // move forward a bit
+   // move forward a bit
   //SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
   //synch_queue();
 
@@ -311,41 +312,41 @@ FRESULT sd_list_dir_sub (char *path)
   res = f_opendir(&dir, path);
 
   if (res == FR_OK)
-  {
-
-    i = strlen(path);
-    for (;;)
     {
-      res = f_readdir(&dir, &fno);
 
-      if (res != FR_OK || fno.fname[0] == 0) break;
-      if (fno.fname[0] == '.') continue;
-#if _USE_LFN
-      fn = *fno.lfname ? fno.lfname : fno.fname;
-#else
-      fn = fno.fname;
-#endif
-      if (fno.fattrib & AM_DIR)
-      {
-        sersendf("%s/%s/\r\n", path, fn);
-
-        strcat (path, "/");
-        strcat (path, fn);
-        // sprintf(&path[i], "/%s", fn);
-        res = sd_list_dir_sub(path);
-        if (res != FR_OK)
+      i = strlen(path);
+      for (;;)
         {
-          break;
-        }
-        path[i] = 0;
-      }
-      else
-      {
-        sersendf("%s/%s\r\n", path, fn);
-      }
-    }
+          res = f_readdir(&dir, &fno);
 
-  }
+          if (res != FR_OK || fno.fname[0] == 0) break;
+          if (fno.fname[0] == '.') continue;
+#if _USE_LFN
+          fn = *fno.lfname ? fno.lfname : fno.fname;
+#else
+          fn = fno.fname;
+#endif
+          if (fno.fattrib & AM_DIR)
+            {
+              sersendf("%s/%s/\r\n", path, fn);
+
+              strcat (path, "/");
+              strcat (path, fn);
+              // sprintf(&path[i], "/%s", fn);
+              res = sd_list_dir_sub(path);
+              if (res != FR_OK)
+                {
+                  break;
+                }
+              path[i] = 0;
+            }
+          else
+            {
+              sersendf("%s/%s\r\n", path, fn);
+            }
+        }
+
+    }
 
   return res;
 }
@@ -365,7 +366,7 @@ unsigned sd_open(FIL *pFile, char *path, uint8_t flags){
   res = f_open (pFile, path, flags);
 
   if (res == FR_OK){
-    return 1;
+      return 1;
   }else{
       if(!next_target.seen_B) {
           //debug
@@ -387,17 +388,17 @@ bool sd_read_file(tLineBuffer *pLine)
   ptr = f_gets(pLine->data, MAX_LINE, &file);
 
   if (ptr != NULL)
-  {
-    pLine->len = strlen(ptr);
-    sd_pos += pLine->len;
-    return true;
-  }
+    {
+      pLine->len = strlen(ptr);
+      sd_pos += pLine->len;
+      return true;
+    }
   else
-  {
+    {
 
 
-    return false;
-  }
+      return false;
+    }
 }
 
 bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
@@ -406,12 +407,12 @@ bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
   FRESULT result;
   //int res = 0;
   result = f_write (&file, pStr, bytes_to_write, &bytes_written);
-/*
+  /*
   res = memcmp(&pStr,&bytes_written,bytes_to_write);
 
   if(res)
     serial_writestr("error comparing\n");
-*/
+   */
   return result;
 }
 
@@ -500,22 +501,22 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_E){
-        if(get_temp(EXTRUDER_0) < 180){
-            if(!next_target.seen_B && !sd_printing){
-                serial_writestr("temperature too low ");
-            }/* No need for else */
-        }else{
-            if(sd_printing && (filament_coeff != 1)){
-                // in the case of a filament change
-                next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
+          if(get_temp(EXTRUDER_0) < 180){
+              if(!next_target.seen_B && !sd_printing){
+                  serial_writestr("temperature too low ");
+              }/* No need for else */
+          }else{
+              if(sd_printing && (filament_coeff != 1)){
+                  // in the case of a filament change
+                  next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
 
-            }else{
-                next_targetd.e = next_target.target.e;
-            }
+              }else{
+                  next_targetd.e = next_target.target.e;
+              }
 
-            //save this value
-            last_target_e = next_target.target.e;
-        }
+              //save this value
+              last_target_e = next_target.target.e;
+          }
       }/*No need for else*/
 
       if (next_target.seen_F){
@@ -540,9 +541,9 @@ eParseResult process_gcode_command(){
 
       switch (next_target.G)
       {
-        // G1 - synchronised motion
-        case 0:
-        case 1:
+      // G1 - synchronised motion
+      case 0:
+      case 1:
         {
           if(!position_ok && !next_target.seen_B && !sd_printing){
               serial_writestr("position not ok ");
@@ -563,7 +564,7 @@ eParseResult process_gcode_command(){
         break;
 
         //G28 - go home
-        case 28:
+      case 28:
         {
           next_targetd.feed_rate = config.homing_feedrate_z;
           double aux = config.acceleration;
@@ -617,305 +618,343 @@ eParseResult process_gcode_command(){
         break;
 
         //G92 - set current position
-        case 92:
+      case 92:
         {
 
-            tTarget new_pos;
+          tTarget new_pos;
 
-            // must have no moves pending if changing position
-            synch_queue();
+          // must have no moves pending if changing position
+          synch_queue();
 
-            new_pos = startpoint;
+          new_pos = startpoint;
 
-            if (next_target.seen_X){
-                new_pos.x = next_target.target.x;
-                axisSelected = 1;
-            }/*No need for else*/
+          if (next_target.seen_X){
+              new_pos.x = next_target.target.x;
+              axisSelected = 1;
+          }/*No need for else*/
 
-            if (next_target.seen_Y){
-                new_pos.y = next_target.target.y;
-                axisSelected = 1;
-            }/*No need for else*/
+          if (next_target.seen_Y){
+              new_pos.y = next_target.target.y;
+              axisSelected = 1;
+          }/*No need for else*/
 
-            if (next_target.seen_Z){
-                new_pos.z = next_target.target.z;
-                axisSelected = 1;
-            }/*No need for else*/
+          if (next_target.seen_Z){
+              new_pos.z = next_target.target.z;
+              axisSelected = 1;
+          }/*No need for else*/
 
-            if (next_target.seen_E){
-                new_pos.e = next_target.target.e;
-                axisSelected = 1;
-            }/*No need for else*/
+          if (next_target.seen_E){
+              new_pos.e = next_target.target.e;
+              axisSelected = 1;
+          }/*No need for else*/
 
-            if(!axisSelected){
-                new_pos.x = 0;
-                new_pos.y = 0;
-                new_pos.z = 0;
-                new_pos.e = 0;
-            }/*No need for else*/
+          if(!axisSelected){
+              new_pos.x = 0;
+              new_pos.y = 0;
+              new_pos.z = 0;
+              new_pos.e = 0;
+          }/*No need for else*/
 
-            plan_set_current_position (&new_pos);
+          plan_set_current_position (&new_pos);
 
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
 
-          // unknown gcode: spit an error
-          default:
-          {
-            config.status = 0;
-            if(!next_target.seen_B && !sd_printing){
-                serial_writestr("ok - Error: Bad G-code ");
-                serwrite_uint8(next_target.G);
-                if(next_target.seen_N){
-                    serial_writestr(" N:");
-                    serwrite_uint32(next_target.N);
-                }/*No need for else*/
-                serial_writestr("\r\n");
-            }/*No need for else*/
-            reply_sent = 1;
-          }
+        // unknown gcode: spit an error
+      default:
+        {
+          config.status = 0;
+          if(!next_target.seen_B && !sd_printing){
+              serial_writestr("ok - Error: Bad G-code ");
+              serwrite_uint8(next_target.G);
+              if(next_target.seen_N){
+                  serial_writestr(" N:");
+                  serwrite_uint32(next_target.N);
+              }/*No need for else*/
+              serial_writestr("\r\n");
+          }/*No need for else*/
+          reply_sent = 1;
+        }
       }
-    }else if (next_target.seen_M){
+  }else if (next_target.seen_M){
 
-        switch (next_target.M)
+      switch (next_target.M)
+      {
+
+      // SD File functions
+      case 20: // M20 - list SD Card files
         {
-
-          // SD File functions
-          case 20: // M20 - list SD Card files
-          {
-            if(!next_target.seen_B){
+          if(!next_target.seen_B){
               serial_writestr("Begin file list\n");
 
               // list files in root folder
               sd_list_dir();
               serial_writestr("End file list\r\n");
-            }/*No need for else*/
+          }/*No need for else*/
+        }
+        break;
+
+      case 21: // M21 - init SD card
+        {
+          sd_printing = false;
+          sd_init();
+        }
+        break;
+
+        //M23 Make a new file with name filename
+      case 23:
+        {
+          executed_lines = 0;
+          //closes file
+          sd_close(&file);
+
+          //opens a file
+          if (sd_open(&file, next_target.filename, FA_READ)) {
+              if(!next_target.seen_B) {
+                  sersendf("File opened\n");
+              }/*No need for else*/
+              sd_pos = 0;
+              //save current filename to config
+              strcpy(config.filename, next_target.filename);
+          }else{
+              if(!next_target.seen_B){
+                  sersendf("error opening file\n");
+                  serial_writestr(next_target.filename);
+                  serial_writestr("\n");
+              }/*No need for else*/
           }
-          break;
+        }
+        break;
 
-          case 21: // M21 - init SD card
-          {
-            sd_printing = false;
-            sd_init();
-          }
-          break;
-
-          //M28 - transfer size and begin if valid
-          case 23:
-          {
-            executed_lines = 0;
-            //closes file
-            sd_close(&file);
-
-            //opens a file
-            if (sd_open(&file, next_target.filename, FA_READ)) {
-                if(!next_target.seen_B) {
-                    sersendf("File opened\n");
-                }/*No need for else*/
-                sd_pos = 0;
-            }else{
-                if(!next_target.seen_B){
-                    sersendf("error opening file\n");
-                    serial_writestr(next_target.filename);
-                    serial_writestr("\n");
-                }/*No need for else*/
-            }
-          }
-          break;
-
-          case 25: //M25 - Pause SD print
-          {
-            if(sd_printing)
+      case 25: //M25 - Pause SD print
+        {
+          if(sd_printing)
             {
               sd_printing = false;
               config.status = 3;
             }/*No need for else*/
+        }
+        break;
+
+      case 26: //M26 - Set SD file pos
+        {
+          if(next_target.seen_S){
+              sd_pos = next_target.S;  // 16 bit
+              sd_seek(&file, sd_pos);
+          }/*No need for else*/
+        }
+        break;
+
+        //M28 - transfer size and begin if valid
+      case 28:
+        {
+          if(!next_target.seen_A){
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen A\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          if(!next_target.seen_D){
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen D\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          bytes_to_transfer = next_target.D - next_target.A + 1;
+
+          if ((bytes_to_transfer < 1) || (next_target.A > next_target.D)){
+              if(!next_target.seen_B){
+                  serial_writestr("error - invalid number of bytes to transfer\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          if (bytes_to_transfer > 0){
+              if(!next_target.seen_B){
+                  serial_writestr("will write ");
+                  serwrite_uint32((bytes_to_transfer));
+                  serial_writestr(" bytes ");
+              }/*No need for else*/
+          }/*No need for else*/
+
+          FRESULT res;
+          res = f_lseek(&file, next_target.A);
+
+          if(res != FR_OK){
+              if(!next_target.seen_B){
+                  serial_writestr("error seeking position on file\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          number_of_bytes = 0;
+          transfer_mode = 1;
+
+          //status = transfering
+          config.status = 6;
+        }
+        break;
+
+        //M30 <filename>
+      case 30:
+        {
+          //closes file
+          sd_close(&file);
+
+          //opens as empty file
+          if (sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
+              if(!next_target.seen_B) {
+                  sersendf("File created\n");
+              }/*No need for else*/
+              sd_pos = 0;
+              //save current filename to config
+              strcpy(config.filename, next_target.filename);
+          }else{
+              if(!next_target.seen_B){
+                  sersendf("error creating file\n");
+                  serial_writestr(next_target.filename);
+                  serial_writestr("\n");
+              }/*No need for else*/
           }
-          break;
+          executed_lines = 0;
+        }
+        break;
 
-          case 26: //M26 - Set SD file pos
-          {
-            if(next_target.seen_S){
-                sd_pos = next_target.S;  // 16 bit
-                sd_seek(&file, sd_pos);
-            }/*No need for else*/
+      case 31: //M31 -variables from software
+        {
+          if(next_target.seen_A){
+              estimated_time = next_target.A;
+          }else{
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen A\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
           }
-          break;
 
-          //M28 - transfer size and begin if valid
-          case 28:
-          {
-            if(!next_target.seen_A){
-                if(!next_target.seen_B){
-                    serial_writestr("error - not seen A\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }/*No need for else*/
-
-            if(!next_target.seen_D){
-                if(!next_target.seen_B){
-                    serial_writestr("error - not seen D\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }/*No need for else*/
-
-            bytes_to_transfer = next_target.D - next_target.A + 1;
-
-            if ((bytes_to_transfer < 1) || (next_target.A > next_target.D)){
-                if(!next_target.seen_B){
-                    serial_writestr("error - invalid number of bytes to transfer\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }/*No need for else*/
-
-            if (bytes_to_transfer > 0){
-                if(!next_target.seen_B){
-                    serial_writestr("will write ");
-                    serwrite_uint32((bytes_to_transfer));
-                    serial_writestr(" bytes ");
-                }/*No need for else*/
-            }/*No need for else*/
-
-            FRESULT res;
-            res = f_lseek(&file, next_target.A);
-
-            if(res != FR_OK){
-                if(!next_target.seen_B){
-                    serial_writestr("error seeking position on file\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }/*No need for else*/
-
-            number_of_bytes = 0;
-            transfer_mode = 1;
-
-            //status = transfering
-            config.status = 6;
+          if(next_target.seen_L){
+              number_of_lines = next_target.L;
+          }else{
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen L\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
           }
-          break;
+        }
+        break;
 
-          //M30 <filename>
-          case 30:
-          {
-            //closes file
-            sd_close(&file);
+      case 32: //M32 - variables to software
+        {
+          if(next_target.seen_A){
+              __disable_irq();
+              time_elapsed = next_target.A;
+              __enable_irq();
 
-            //opens as empty file
-            if (sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
-                if(!next_target.seen_B) {
-                    sersendf("File created\n");
-                }/*No need for else*/
-                sd_pos = 0;
-            }else{
-                if(!next_target.seen_B){
-                    sersendf("error creating file\n");
-                    serial_writestr(next_target.filename);
-                    serial_writestr("\n");
-                }/*No need for else*/
-            }
-            executed_lines = 0;
-          }
-          break;
+          }else{
+              if(!next_target.seen_B){
 
-          case 31: //M31 -variables from software
-          {
-            if(next_target.seen_A){
-                estimated_time = next_target.A;
-            }else{
-                if(!next_target.seen_B){
-                    serial_writestr("error - not seen A\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }
+                  serial_writestr("A");
+                  serwrite_uint32(estimated_time);
+                  serial_writestr(" B");
 
-            if(next_target.seen_L){
-                number_of_lines = next_target.L;
-            }else{
-                if(!next_target.seen_B){
-                    serial_writestr("error - not seen L\n");
-                    reply_sent = 1;
-                }/*No need for else*/
-                break;
-            }
-          }
-          break;
+                  __disable_irq();
+                  serwrite_uint32(time_elapsed);
+                  __enable_irq();
 
-          case 32: //M32 - variables to software
-          {
-            if(next_target.seen_A){
-                __disable_irq();
-                time_elapsed = next_target.A;
-                __enable_irq();
+                  serial_writestr(" C");
+                  serwrite_uint32(number_of_lines);
+                  serial_writestr(" D");
+                  serwrite_uint32(executed_lines);
+                  serial_writestr(" ");
 
-            }else{
-                if(!next_target.seen_B){
-
-                    serial_writestr("A");
-                    serwrite_uint32(estimated_time);
-                    serial_writestr(" B");
-
-                    __disable_irq();
-                    serwrite_uint32(time_elapsed);
-                    __enable_irq();
-
-                    serial_writestr(" C");
-                    serwrite_uint32(number_of_lines);
-                    serial_writestr(" D");
-                    serwrite_uint32(executed_lines);
-                    serial_writestr(" ");
-
-                    if(number_of_lines == executed_lines){
-                        serial_writestr("Done printing file\n");
-                    }/*No need for else*/
+                  if(number_of_lines == executed_lines){
+                      serial_writestr("Done printing file\n");
                   }/*No need for else*/
-            }
+              }/*No need for else*/
           }
-          break;
+        }
+        break;
 
-          case 33: //M33 - Start SD print
-          {
+      case 33: //M33 - Start SD print
+        {
 
-            FRESULT res;
-            res = f_lseek(&file, sd_pos);
+          FRESULT res;
+          res = f_lseek(&file, sd_pos);
 
-            if(res != FR_OK){
-                if(!next_target.seen_B){
-                    serial_writestr("error seeking position on file\n");
-                }/*No need for else*/
-                break;
-            }/*No need for else*/
+          if(res != FR_OK){
+              if(!next_target.seen_B){
+                  serial_writestr("error seeking position on file\n");
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
 
-            config.status = 5;
-            sd_printing = true;
+          config.status = 5;
+          sd_printing = true;
+        }
+        break;
 
+      case 34: //M33 - FINISH SD print
+        {
 
+          if(!next_target.seen_B){
+              serial_writestr("transfer completed ");
+              serial_writestr(" ");
+
+          }/*No need for else*/
+
+        }
+        break;
+
+        //resume print from shutdown, get vars from config
+      case 35:
+        {
+          //get all the vars from config
+          strcpy(next_target.filename, config.filename);
+          sd_pos              = config.sd_pos;
+          estimated_time      = config.estimated_time;
+          time_elapsed        = config.time_elapsed;
+          number_of_lines     = config.number_of_lines;
+          executed_lines      = config.executed_lines;
+
+          sd_close(&file);
+          //opens a file
+          if (sd_open(&file, next_target.filename, FA_READ)) {
+              if(!next_target.seen_B) {
+                  sersendf("File opened\n");
+              }/*No need for else*/
+          }else{
+              if(!next_target.seen_B){
+                  sersendf("error opening file\n");
+                  serial_writestr(next_target.filename);
+                  serial_writestr("\n");
+              }/*No need for else*/
           }
-          break;
+        } break;
 
-          case 34: //M33 - FINISH SD print
-          {
+        //Prepare to shutdown save vars to config
+        //Only use during prints, after M640 - which prepares the config
+      case 36: //M36
+        {
+          //set status to shutdown
+          config.status = 9;
 
-            if(!next_target.seen_B){
-                serial_writestr("transfer completed ");
-                serial_writestr(" ");
+          write_config();
+        }break;
 
-            }/*No need for else*/
-
-          }
-          break;
-
-          // M104- set temperature
-          case 104:
-          {
-            if (config.enable_extruder_1){
+        // M104- set temperature
+      case 104:
+        {
+          if (config.enable_extruder_1){
 
               if(next_target.S > 250){
                   temp_set(250, EXTRUDER_0);
@@ -927,386 +966,398 @@ eParseResult process_gcode_command(){
                   enqueue_wait_temp();
               }/*No need for else*/
 
-            }/*No need for else*/
+          }/*No need for else*/
 
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M105- get temperature
+      case 105:
+        {
+          if(!next_target.seen_B && !sd_printing){
+              temp_print();
+          }/*No need for else*/
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M106- fan on
+      case 106:
+        {
+          extruder_fan_on();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M107- fan off
+      case 107:
+        {
+          extruder_fan_off();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M109- set temp and wait
+      case 109:
+        {
+          if(!sd_printing){
+              config.status = 4;
+          }else{
+              config.status = 5;
           }
-          break;
 
-          // M105- get temperature
-          case 105:
-          {
-              if(!next_target.seen_B && !sd_printing){
-                  temp_print();
-              }/*No need for else*/
+          if (config.enable_extruder_1){
+              temp_set(next_target.S, EXTRUDER_0);
+              enqueue_wait_temp();
+          }/*No need for else*/
 
-              if(sd_printing){
-                  reply_sent = 1;
-              }/*No need for else*/
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M112- immediate stop
+      case 112:
+        {
+          config.status = 0;
+
+          queue_flush();
+          reset_current_block();
+
+          if(sd_printing){
+              sd_printing = false;
+          }/*No need for else*/
+        }
+        break;
+
+        // M115 - report firmware version
+      case 115:
+        {
+          if(!next_target.seen_B && !sd_printing){
+
+              serial_writestr(" 3.36.0");
+              serial_writestr(" ");
           }
-          break;
+        }
+        break;
 
-          // M106- fan on
-          case 106:
-          {
-              extruder_fan_on();
-
-              if(sd_printing){
-                  reply_sent = 1;
-              }/*No need for else*/
-          }
-          break;
-
-          // M107- fan off
-          case 107:
-          {
-            extruder_fan_off();
-
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
-
-          // M109- set temp and wait
-          case 109:
-          {
-            if(!sd_printing){
-                config.status = 4;
-            }else{
-                config.status = 5;
-            }
-
-            if (config.enable_extruder_1){
-                temp_set(next_target.S, EXTRUDER_0);
-                enqueue_wait_temp();
-            }/*No need for else*/
-
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
-
-          // M112- immediate stop
-          case 112:
-          {
-            config.status = 0;
-
-            queue_flush();
-            reset_current_block();
-
-            if(sd_printing){
-                sd_printing = false;
-            }/*No need for else*/
-          }
-          break;
-
-          // M115 - report firmware version
-          case 115:
-          {
-            if(!next_target.seen_B && !sd_printing){
-
-                serial_writestr(" 3.35.0");
-                serial_writestr(" ");
-            }
-          }
-          break;
-
-          case 117:
-          {
-            //try to read the unique ID - not working in this LPC Revision
-            /*
+      case 117:
+        {
+          //try to read the unique ID - not working in this LPC Revision
+          /*
              serial_writestr(" ");
              read_device_serial_number();
              serial_writestr("\r\n");
-             */
+           */
 
-            char serialnumber[10] = {0};
-            char *pmem117;
+          char serialnumber[10] = {0};
+          char *pmem117;
 
-            pmem117 = SECTOR_14_START;
+          pmem117 = SECTOR_14_START;
 
-            for (int i = 0; i < 10; i++) {
-                serialnumber[9 - i] = *pmem117;
-                pmem117++;
-            }
-
-            if(!next_target.seen_B){
-                serial_writeblock(serialnumber, 10);
-                serial_writestr(" ");
-            }/*No need for else*/
+          for (int i = 0; i < 10; i++) {
+              serialnumber[9 - i] = *pmem117;
+              pmem117++;
           }
-          break;
 
-          /*M114- report XYZE to host */
-          case 121:
-          {
-            if (next_target.option_inches){
-               config.status = 0;
-            }else{
-                if(!next_target.seen_B && !sd_printing){
-                    sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
-                }/*No need for else*/
-            }
-          }
-          break;
+          if(!next_target.seen_B){
+              serial_writeblock(serialnumber, 10);
+              serial_writestr(" ");
+          }/*No need for else*/
+        }
+        break;
 
-          // M130 temperature PID
-          case 130:
-          {
-              if(!next_target.seen_B ){
-                  if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
-                      serial_writestr("kp:");
-                      serwrite_double(config.kp);
-                      serial_writestr(" ki:");
-                      serwrite_double(config.ki);
-                      serial_writestr(" kd:");
-                      serwrite_double(config.kd);
-                      serial_writestr(" ");
-                  }/*No need for else*/
+        /*M121- report XYZE to host */
+      case 121:
+        {
+          if (next_target.option_inches){
+              config.status = 0;
+          }else{
+              if(!next_target.seen_B && !sd_printing){
+                  sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
               }/*No need for else*/
           }
-          break;
+        }
+        break;
 
-          case 131:
-          {
-              print_pwm();
+        /*M122- report XYZE from config to host  */
+      case 122:
+        {
+          if (next_target.option_inches){
+              config.status = 0;
+          }else{
+              if(!next_target.seen_B && !sd_printing){
+                  sersendf(" C: X:%g Y:%g Z:%g E:%g ", config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e);
+              }/*No need for else*/
           }
-          break;
+        }
+        break;
 
-          // M200 - set steps per mm
-          case 200:
-          {
-            if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
-                if(!next_target.seen_B && !sd_printing){
-                    sersendf ("X%g Y%g Z%g E%g ",
-                        config.steps_per_mm_x,
-                        config.steps_per_mm_y,
-                        config.steps_per_mm_z,
-                        config.steps_per_mm_e);
-                }/*No need for else*/
-            }
+        // M130 temperature PID
+      case 130:
+        {
+          if(!next_target.seen_B ){
+              if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+                  serial_writestr("kp:");
+                  serwrite_double(config.kp);
+                  serial_writestr(" ki:");
+                  serwrite_double(config.ki);
+                  serial_writestr(" kd:");
+                  serwrite_double(config.kd);
+                  serial_writestr(" ");
+              }/*No need for else*/
+          }/*No need for else*/
+        }
+        break;
 
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
+      case 131:
+        {
+          print_pwm();
+        }
+        break;
+
+        // M200 - set steps per mm
+      case 200:
+        {
+          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
+              if(!next_target.seen_B && !sd_printing){
+                  sersendf ("X%g Y%g Z%g E%g ",
+                      config.steps_per_mm_x,
+                      config.steps_per_mm_y,
+                      config.steps_per_mm_z,
+                      config.steps_per_mm_e);
+              }/*No need for else*/
           }
-          break;
 
-          // M206 - set accel in mm/sec^2
-          case 206:
-          {
-            if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M206 - set accel in mm/sec^2
+      case 206:
+        {
+          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
               if(!next_target.seen_B && !sd_printing){
                   sersendf (" X%g ",
-                        config.acceleration);
+                      config.acceleration);
               }/*No need for else*/
-            }else{
-                if (next_target.seen_X){
-                    if(next_target.target.x > 2000){
-                        next_target.target.x = 2000;
-                    }
-                    config.acceleration = next_target.target.x;
-
-                }/*No need for else*/
-            }
-
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
-
-          // M300 - beep
-          // S: frequency
-          // P: duration
-          case 300:
-          {
-            uint16_t duration = 1000; // 1 second
-
-            if (next_target.seen_P && next_target.P<11000){
-                duration = next_target.P;
-            }/*No need for else*/
-
-            buzzer_wait ();
-            buzzer_play (duration);
-
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
-
-          // M400 bcode
-          case 400:
-          {
-            if(next_target.seen_A){
-              config.bcode= next_target.A;
-            }else{
-                serial_writestr(" bcode:A");
-                serwrite_int32(config.bcode);
-                serial_writestr(" ");
-            }
-          }
-          break;
-
-          // M600 print the values read from the config file
-          case 600:
-          {
-              if(!next_target.seen_B){
-                  print_config();
-              }/*No need for else*/
-          }
-          break;
-
-          case 601:
-          {
-             write_config();
-          }
-          break;
-
-          //calibrate
-          case 603:
-          {
-              tTarget new_pos;
-
-              //recalculate distante from home
-              config.home_pos_z -= startpoint.z;
-
-              //my position is zero
-              new_pos = startpoint;
-              new_pos.z = 0;
-              plan_set_current_position (&new_pos);
-
-          }
-          break;
-
-          //set home position absolute
-          case 604:
-          {
+          }else{
               if (next_target.seen_X){
-                  config.home_pos_x = next_target.target.x;
-                  axisSelected = 1;
-              }//no need for else
+                  if(next_target.target.x > 2000){
+                      next_target.target.x = 2000;
+                  }
+                  config.acceleration = next_target.target.x;
 
-              if (next_target.seen_Y){
-                  config.home_pos_y = next_target.target.y;
-                  axisSelected = 1;
-              }//no need for else
-
-              if (next_target.seen_Z){
-                  config.home_pos_z = next_target.target.z;
-                  axisSelected = 1;
-              }//no need for else
-
-              if(!axisSelected) {
-                  config.home_pos_x = 0.0;
-                  config.home_pos_y = 0.0;
-                  config.home_pos_z = 0.0;
-              }//no need for else
-
-              if(sd_printing){
-                  reply_sent = 1;
               }/*No need for else*/
           }
-          break;
 
-          //set home position
-          case 605:
-          {
-              if (next_target.seen_X){
-                  config.home_pos_x -= next_target.target.x;
-                  axisSelected = 1;
-              }//no need for else
-
-              if (next_target.seen_Y){
-                config.home_pos_y -= next_target.target.y;
-                axisSelected = 1;
-              }//no need for else
-
-              if (next_target.seen_Z){
-                  config.home_pos_z -= next_target.target.z;
-                  axisSelected = 1;
-              }//no need for else
-
-              if(!axisSelected){
-                  config.home_pos_x = 0.0;
-                  config.home_pos_y = 0.0;
-                  config.home_pos_z = 0.0;
-              }//no need for else
-
-              if(sd_printing){
-                  reply_sent = 1;
-              }/*No need for else*/
-          }
-          break;
-
-
-          case 607:
-          {
-              reset_config();
-          }
-          break;
-
-          case 609:
-          {
-              delay_ms(1000);
-              USBHwConnect(FALSE);
-              go_to_reset(); // reinicia o sistema
-          }
-          break;
-
-          case 625:
-          {
-              if(!next_target.seen_B){
-                  serial_writestr(" S:");
-                  serwrite_int32(config.status);
-                  serial_writestr(" ");
-                  if(config.status == 0){
-                      if(!sd_printing){
-                          config.status = 3;
-                      }else{
-                          config.status = 5;
-                      }
-                  }/*No need for else*/
-              }/*No need for else*/
-          }
-          break;
-
-          case 636:
-          {
-              if(bip_switch == 0){
-                  bip_switch = 1;
-              }else{
-                  bip_switch = 0;
-              }
-          }
-          break;
-
-          case 637:
-          {
+          if(sd_printing){
               reply_sent = 1;
-          }
-          break;
+          }/*No need for else*/
+        }
+        break;
 
-          case 638:
-          {
-            if(!next_target.seen_B){
-                serial_writestr("last N:");
-                serwrite_uint32(next_target.N);
-                serial_writestr(" sdpos:");
-                serwrite_uint32(executed_lines);
-                serial_writestr(" ");
-            }/*No need for else*/
-          }
-          break;
+        // M300 - beep
+        // S: frequency
+        // P: duration
+      case 300:
+        {
+          uint16_t duration = 1000; // 1 second
 
-          case 639:
-          {
-            if(!next_target.seen_B ){
+          if (next_target.seen_P && next_target.P<11000){
+              duration = next_target.P;
+          }/*No need for else*/
+
+          buzzer_wait ();
+          buzzer_play (duration);
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M400 bcode
+      case 400:
+        {
+          if(next_target.seen_A){
+              config.bcode= next_target.A;
+          }else{
+              serial_writestr(" bcode:A");
+              serwrite_int32(config.bcode);
+              serial_writestr(" ");
+          }
+        }
+        break;
+
+        // M600 print the values read from the config file
+      case 600:
+        {
+          if(!next_target.seen_B){
+              print_config();
+          }/*No need for else*/
+        }
+        break;
+
+      case 601:
+        {
+          write_config();
+        }
+        break;
+
+        //calibrate
+      case 603:
+        {
+          tTarget new_pos;
+
+          //recalculate distante from home
+          config.home_pos_z -= startpoint.z;
+
+          //my position is zero
+          new_pos = startpoint;
+          new_pos.z = 0;
+          plan_set_current_position (&new_pos);
+
+        }
+        break;
+
+        //set home position absolute
+      case 604:
+        {
+          if (next_target.seen_X){
+              config.home_pos_x = next_target.target.x;
+              axisSelected = 1;
+          }//no need for else
+
+          if (next_target.seen_Y){
+              config.home_pos_y = next_target.target.y;
+              axisSelected = 1;
+          }//no need for else
+
+          if (next_target.seen_Z){
+              config.home_pos_z = next_target.target.z;
+              axisSelected = 1;
+          }//no need for else
+
+          if(!axisSelected) {
+              config.home_pos_x = 0.0;
+              config.home_pos_y = 0.0;
+              config.home_pos_z = 0.0;
+          }//no need for else
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //set home position
+      case 605:
+        {
+          if (next_target.seen_X){
+              config.home_pos_x -= next_target.target.x;
+              axisSelected = 1;
+          }//no need for else
+
+          if (next_target.seen_Y){
+              config.home_pos_y -= next_target.target.y;
+              axisSelected = 1;
+          }//no need for else
+
+          if (next_target.seen_Z){
+              config.home_pos_z -= next_target.target.z;
+              axisSelected = 1;
+          }//no need for else
+
+          if(!axisSelected){
+              config.home_pos_x = 0.0;
+              config.home_pos_y = 0.0;
+              config.home_pos_z = 0.0;
+          }//no need for else
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+
+      case 607:
+        {
+          reset_config();
+        }
+        break;
+
+        {
+          delay_ms(1000);
+          USBHwConnect(FALSE);
+          go_to_reset(); // reinicia o sistema
+        }
+        break;
+
+      case 625:
+        {
+          if(!next_target.seen_B){
+              serial_writestr(" S:");
+              serwrite_int32(config.status);
+              serial_writestr(" ");
+              if(config.status == 0){
+                  if(!sd_printing){
+                      config.status = 3;
+                  }else{
+                      config.status = 5;
+                  }
+              }/*No need for else*/
+          }/*No need for else*/
+        }
+        break;
+
+      case 636:
+        {
+          if(bip_switch == 0){
+              bip_switch = 1;
+          }else{
+              bip_switch = 0;
+          }
+        }
+        break;
+
+      case 637:
+        {
+          reply_sent = 1;
+        }
+        break;
+
+      case 638:
+        {
+          if(!next_target.seen_B){
+              serial_writestr("last N:");
+              serwrite_uint32(next_target.N);
+              serial_writestr(" sdpos:");
+              serwrite_uint32(executed_lines);
+              serial_writestr(" ");
+          }/*No need for else*/
+        }
+        break;
+
+      case 639:
+        {
+          if(!next_target.seen_B ){
               for(int i=0;i<120;i++){
                   if(next_target.filename[i]){
                       serial_writechar(next_target.filename[i]);
@@ -1315,61 +1366,75 @@ eParseResult process_gcode_command(){
                   }
               }
               serial_writestr(" ");
-            }/*No need for else*/
+          }/*No need for else*/
+        }
+        break;
+
+
+        //stop sd_printing and copy state to config
+      case 640:
+        {
+          if(sd_printing){
+
+              //save vars
+              config.sd_pos          = sd_pos;
+              config.estimated_time  = estimated_time;
+              config.time_elapsed    = time_elapsed;
+              config.number_of_lines = number_of_lines;
+              config.executed_lines  = executed_lines;
+              config.startpoint_x    = startpoint.x;
+              config.startpoint_y    = startpoint.y;
+              config.startpoint_z    = startpoint.z;
+              config.startpoint_e    = startpoint.e;
+
+              config.status = 7;
+              sd_printing = 0;
+          }/* No need for else */
+        }
+        break;
+
+      case 641:
+        {
+          enter_power_saving = 1;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+      case 642:
+        {
+          if(next_target.seen_W){
+              filament_coeff = next_target.W;
+          }else{
+              serial_writestr("filament coefficient:");
+              serwrite_double(filament_coeff);
+              serial_writestr(" ");
+
           }
-          break;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+        // unknown mcode: spit an error
+      default:
+        {
+          config.status = 0;
+          if(!next_target.seen_B && !sd_printing){
+              serial_writestr("ok - E: Bad M-code ");
+              serwrite_uint8(next_target.M);
+              if(next_target.seen_N){
+                  serial_writestr(" N:");
+                  serwrite_uint32(next_target.N);
+                  //next_target.N = 0;
 
-          case 640:
-          {
-            if(sd_printing){
-                config.status = 7;
-                sd_printing = 0;
-            }/* No need for else */
+              }/*No need for else*/
+              serial_writestr("\r\n");
           }
-          break;
-
-          case 641:
-          {
-            enter_power_saving = 1;
-            if(sd_printing){
-                reply_sent = 1;
-            }/*No need for else*/
-          }
-          break;
-
-          case 642:
-           {
-             if(next_target.seen_W){
-                 filament_coeff = next_target.W;
-             }else{
-                 serial_writestr("filament coefficient:");
-                 serwrite_double(filament_coeff);
-                 serial_writestr(" ");
-
-             }
-             if(sd_printing){
-                 reply_sent = 1;
-             }/*No need for else*/
-           }
-           break;
-          // unknown mcode: spit an error
-          default:
-          {
-            config.status = 0;
-            if(!next_target.seen_B && !sd_printing){
-                serial_writestr("ok - E: Bad M-code ");
-                serwrite_uint8(next_target.M);
-                if(next_target.seen_N){
-                    serial_writestr(" N:");
-                    serwrite_uint32(next_target.N);
-                    //next_target.N = 0;
-
-                }/*No need for else*/
-                serial_writestr("\r\n");
-            }
-            reply_sent = 1;
-          }
-    }
+          reply_sent = 1;
+        }
+      }
   }else if(next_target.seen_semi_comment || next_target.seen_parens_comment){
       reply_sent = 1;
   }else{

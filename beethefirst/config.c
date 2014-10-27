@@ -49,6 +49,7 @@ struct configuration config;
 
 #define TYPE_INT    0
 #define TYPE_DOUBLE 1
+#define TYPE_STRING 2
 #define BAD_DOUBLE  0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 #define BAD_INT     0xFFFFFFFFFFFFFFFF
 typedef struct {
@@ -58,6 +59,7 @@ typedef struct {
   union {
     int32_t   val_i;
     double    val_d;
+    char*       val_s;
   };
 } tConfigItem;
 
@@ -95,8 +97,8 @@ tConfigItem config_lookup [] =
         { "home_direction_y", &config.home_direction_y, TYPE_INT, {.val_i=-1}},
         { "home_direction_z", &config.home_direction_z, TYPE_INT, {.val_i=1}},
 
-        { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=0.0}},
-        { "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=0.0}},
+        { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=-90.0}},
+        { "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=-65.0}},
         { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=123.495}},
 
         { "printing_vol_x", &config.printing_vol_x , TYPE_INT, {.val_i=120}},
@@ -104,21 +106,21 @@ tConfigItem config_lookup [] =
         { "printing_vol_z", &config.printing_vol_z , TYPE_INT, {.val_i=85}},
 
         // dump pos
-        { "have_dump_pos", &config.have_dump_pos , TYPE_INT, {.val_i=0}},
-        { "dump_pos_x", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
-        { "dump_pos_y", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
+        //{ "have_dump_pos", &config.have_dump_pos , TYPE_INT, {.val_i=0}},
+        //{ "dump_pos_x", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
+        //{ "dump_pos_y", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
 
         // rest pos
-        { "have_rest_pos", &config.have_rest_pos , TYPE_INT, {.val_i=1}},
-        { "rest_pos_x", &config.rest_pos_x , TYPE_INT, {.val_i=120}},
-        { "rest_pos_y", &config.rest_pos_y , TYPE_INT, {.val_i=120}},
+        //{ "have_rest_pos", &config.have_rest_pos , TYPE_INT, {.val_i=1}},
+        //{ "rest_pos_x", &config.rest_pos_x , TYPE_INT, {.val_i=120}},
+        //{ "rest_pos_y", &config.rest_pos_y , TYPE_INT, {.val_i=120}},
 
         // wipe pos
-        { "have_wipe_pos",   &config.have_wipe_pos , TYPE_INT, {.val_i=0}},
-        { "wipe_entry_pos_x", &config.wipe_entry_pos_x , TYPE_INT, {.val_i=0}},
-        { "wipe_entry_pos_y", &config.wipe_entry_pos_y , TYPE_INT, {.val_i=0}},
-        { "wipe_exit_pos_x", &config.wipe_exit_pos_x , TYPE_INT, {.val_i=0}},
-        { "wipe_exit_pos_y", &config.wipe_exit_pos_y , TYPE_INT, {.val_i=0}},
+        //{ "have_wipe_pos",   &config.have_wipe_pos , TYPE_INT, {.val_i=0}},
+        //{ "wipe_entry_pos_x", &config.wipe_entry_pos_x , TYPE_INT, {.val_i=0}},
+        //{ "wipe_entry_pos_y", &config.wipe_entry_pos_y , TYPE_INT, {.val_i=0}},
+        //{ "wipe_exit_pos_x", &config.wipe_exit_pos_x , TYPE_INT, {.val_i=0}},
+        //{ "wipe_exit_pos_y", &config.wipe_exit_pos_y , TYPE_INT, {.val_i=0}},
 
         { "steps_per_revolution_e", &config.steps_per_revolution_e, TYPE_INT, {.val_i=3200}},  // 200 * 16
 
@@ -132,6 +134,16 @@ tConfigItem config_lookup [] =
         { "ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
         { "kd", &config.kd, TYPE_DOUBLE, {.val_d=80}},
 
+        {"filename",config.filename , TYPE_STRING, {.val_s=0}},
+        {"sd_pos",&config.sd_pos , TYPE_INT, {.val_i=0}},
+        {"estimated_time",&config.estimated_time , TYPE_INT, {.val_i=0}},
+        {"time_elapsed",&config.time_elapsed , TYPE_INT, {.val_i=0}},
+        {"number_of_lines",&config.number_of_lines , TYPE_INT, {.val_i=0}},
+        {"executed_lines",&config.executed_lines , TYPE_INT, {.val_i=0}},
+        { "startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))
@@ -281,6 +293,13 @@ void print_config (void)
           sersendf ("%s = %g\r\n", config_lookup[j].name, *pVal);
           break;
         }
+        // ToDo
+      case TYPE_STRING:
+        {
+          char* pVal = config_lookup[j].pValue;
+          sersendf ("%s = %s\r\n", config_lookup[j].name, pVal);
+          break;
+        }
       }
     }
 }
@@ -316,6 +335,16 @@ void read_config (void)
                     read_err = 1;
                 }/*No need for else*/
                 break;
+            }
+
+            // TODO
+            case TYPE_STRING:
+            {
+              char* pVal = config_lookup[j].pValue;
+              if(pVal[0]=='\0'){
+                  read_err = 1;
+              }
+              break;
             }
         }
     }
@@ -357,6 +386,11 @@ void reset_config (void)
                 *pVal = config_lookup[j].val_d;
                 break;
             }
+            case TYPE_STRING:
+            {
+              char* pVal = config_lookup[j].pValue;
+              strcpy(pVal, "_no_file");
+            }
         }
     }
 
@@ -390,7 +424,6 @@ void write_config (void)
 {
     size_t bytes = sizeof(config)/sizeof(char);
     char sector[bytes];
-
     char* pConfig = &config;
 
     memcpy(&sector, pConfig, bytes);
