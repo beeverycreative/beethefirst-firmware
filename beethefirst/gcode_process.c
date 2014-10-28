@@ -526,9 +526,8 @@ eParseResult process_gcode_command(){
 
   if(leave_power_saving){
       if(next_target.seen_M){
-          if((next_target.M == 625
-              || next_target.M == 637)){
-
+          if((next_target.M == 625 || next_target.M == 637)){
+                //do nothing
           }else{
               reinit_system();
           }
@@ -1395,7 +1394,19 @@ eParseResult process_gcode_command(){
 
       case 641:
         {
-          enter_power_saving = 1;
+          if(next_target.seen_A){
+
+              if (next_target.A == 1){
+                  enter_power_saving = 1;
+                  rest_time = 0;
+              }
+              if (next_target.A == 0){
+                  enter_power_saving = 0;
+              }
+          } else {
+              enter_power_saving = 0;
+          }
+
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
