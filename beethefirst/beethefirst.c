@@ -181,6 +181,9 @@ int app_main (void){
   last_target_e = 0;
   filament_coeff = 1;
 
+  // Set initial protection_temperature
+  protection_temperature = 180;
+
   //debug bip
   bip = 2;
   bip_switch = 0;

@@ -68,6 +68,7 @@ double pterm;
 double iterm;
 double dterm;
 double dterm_temp;
+int protection_temperature;
 int PID_FUNTIONAL_RANGE;
 double output;
 extern double temptable[NUMTEMPS][3];
