@@ -501,7 +501,7 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_E){
-          if(get_temp(EXTRUDER_0) < 180){
+          if(get_temp(EXTRUDER_0) < protection_temperature){
               if(!next_target.seen_B && !sd_printing){
                   serial_writestr("temperature too low ");
               }/* No need for else */
@@ -1190,6 +1190,17 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
         }
         break;
+
+      // M302 set safe temp
+      case 302:
+      {
+        if (next_target.seen_S){
+            protection_temperature=next_target.S;
+        }else{
+            protection_temperature=0;
+        }
+      }
+      break;
 
         // M400 bcode
       case 400:
