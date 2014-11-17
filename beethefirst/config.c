@@ -124,9 +124,6 @@ tConfigItem config_lookup [] =
 
         { "steps_per_revolution_e", &config.steps_per_revolution_e, TYPE_INT, {.val_i=3200}},  // 200 * 16
 
-        { "wait_on_temp", &config.wait_on_temp, TYPE_INT, {.val_i=0}},
-
-        { "enable_extruder_1", &config.enable_extruder_1, TYPE_INT, {.val_i=1}},
         { "status", &config.status, TYPE_INT, {.val_i=1}},
         { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
 

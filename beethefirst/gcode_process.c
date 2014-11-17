@@ -87,9 +87,6 @@ static void enqueue_moved (tTarget *pTarget)
       request.target= *pTarget;
       request.target.invert_feed_rate =  false;
 
-      if (config.enable_extruder_1 == 0)
-        request.target.e = startpoint.e;
-
       plan_buffer_action (&request);
     }
   else
@@ -153,13 +150,10 @@ static void SpecialMoveE (double e, double feed_rate)
 {
   tTarget next_targetd;
 
-  if (config.enable_extruder_1)
-    {
-      next_targetd = startpoint;
-      next_targetd.e = startpoint.e + e;
-      next_targetd.feed_rate = feed_rate;
-      enqueue_moved(&next_targetd);
-    }
+  next_targetd = startpoint;
+  next_targetd.e = startpoint.e + e;
+  next_targetd.feed_rate = feed_rate;
+  enqueue_moved(&next_targetd);
 }
 
 void zero_x(void)
@@ -953,19 +947,11 @@ eParseResult process_gcode_command(){
         // M104- set temperature
       case 104:
         {
-          if (config.enable_extruder_1){
-
-              if(next_target.S > 250){
-                  temp_set(250, EXTRUDER_0);
-              }else{
-                  temp_set(next_target.S, EXTRUDER_0);
-              }
-
-              if (config.wait_on_temp){
-                  enqueue_wait_temp();
-              }/*No need for else*/
-
-          }/*No need for else*/
+          if(next_target.S > 250){
+              temp_set(250, EXTRUDER_0);
+          }else{
+              temp_set(next_target.S, EXTRUDER_0);
+          }
 
           if(sd_printing){
               reply_sent = 1;
@@ -1017,10 +1003,8 @@ eParseResult process_gcode_command(){
               config.status = 5;
           }
 
-          if (config.enable_extruder_1){
-              temp_set(next_target.S, EXTRUDER_0);
-              enqueue_wait_temp();
-          }/*No need for else*/
+          temp_set(next_target.S, EXTRUDER_0);
+          enqueue_wait_temp();
 
           if(sd_printing){
               reply_sent = 1;
@@ -1047,7 +1031,7 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B && !sd_printing){
 
-              serial_writestr(" 3.37.0");
+              serial_writestr(" 6.0.0");
               serial_writestr(" ");
           }
         }
