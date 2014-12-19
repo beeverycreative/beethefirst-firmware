@@ -57,13 +57,22 @@ tLineBuffer sd_line_buf;
 /* initialize PWM */
 void pwm_init(void){
 
-  pwm_pins_init(2,2);
-  pwm_pins_init(2,4);
+  pwm_pins_init(2,2);           //Buzzer pwm
+  //pwm_pins_init(2,4);
+
+  pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
+  pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
+  pwm_pins_init(LOGO_ON_PORT,LOGO_ON_PIN);
+
 
   init_pwm_peripheral();
 
-  init_global_match(3);
-  init_global_match(5);
+  init_global_match(3);         //Buzzer
+  init_global_match(FAN_EXT_PWM_CHANNEL);
+  init_global_match(LOGO_PWM_CHANNEL);
+  init_global_match(BW_PWM_CHANNEL);
+  init_global_match(5);         //Heater
+
 
 }
 
@@ -120,6 +129,10 @@ void io_init(void)
 
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
+
+  pin_mode(R2C2_FAN_PORT,R2C2_FAN_PIN, OUTPUT);
+  r2c2_fan_on();
+
 }
 
 void temperatureTimerCallback (tTimer *pTimer)

@@ -975,7 +975,14 @@ eParseResult process_gcode_command(){
         // M106- fan on
       case 106:
         {
-          extruder_fan_on();
+
+          if(next_target.seen_S){
+              extruder_fan_on();
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,next_target.S);
+          } else {
+              extruder_fan_on();
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
+          }
 
           if(sd_printing){
               reply_sent = 1;
@@ -987,6 +994,7 @@ eParseResult process_gcode_command(){
       case 107:
         {
           extruder_fan_off();
+          pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
 
           if(sd_printing){
               reply_sent = 1;
@@ -1012,6 +1020,19 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M110 - turn R2C2 Fan on
+      case 110:
+        {
+          r2c2_fan_on();
+        }
+        break;
+
+        // M111 - turn R2C2 Fan off
+      case 111:
+        {
+          r2c2_fan_off();
+        }
+        break;
         // M112- immediate stop
       case 112:
         {
@@ -1297,6 +1318,14 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        {
+          delay_ms(1000);
+          USBHwConnect(FALSE);
+          go_to_reset(); // reinicia o sistema
+        }
+        break;
+
+      case 609:
         {
           delay_ms(1000);
           USBHwConnect(FALSE);
