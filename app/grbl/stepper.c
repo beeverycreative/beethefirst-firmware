@@ -198,6 +198,10 @@ static inline void  set_step_pins (void)
 #endif  
   
     GPIO_SetValue (E_STEP_PORT, step_bits_e);
+
+    for(uint32_t i32=0; i32 < 10; i32++){
+          asm("nop");
+    }
   }
   
 }

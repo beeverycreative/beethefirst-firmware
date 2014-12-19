@@ -1033,6 +1033,9 @@ eParseResult process_gcode_command(){
           r2c2_fan_off();
         }
         break;
+
+
+
         // M112- immediate stop
       case 112:
         {
@@ -1130,6 +1133,31 @@ eParseResult process_gcode_command(){
       case 131:
         {
           print_pwm();
+        }
+        break;
+
+        // M136 - turn logo on
+      case 136:
+        {
+          if(next_target.seen_S ){
+              //logo_on();
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
+              pwm_set_enable(LOGO_PWM_CHANNEL);
+          } else {
+              //logo_on();
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+              pwm_set_enable(LOGO_PWM_CHANNEL);
+          }
+
+        }
+        break;
+
+        // M137 - turn logo off
+      case 137:
+        {
+          //logo_off();
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+          pwm_set_disable(LOGO_PWM_CHANNEL);
         }
         break;
 
