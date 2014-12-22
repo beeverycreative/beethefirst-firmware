@@ -676,7 +676,30 @@ eParseResult process_gcode_command(){
 
       switch (next_target.M)
       {
-
+        // M3 Turn R2C2 fAN ON
+      case 3:
+        {
+          r2c2_fan_on();
+        }
+        break;
+        // M4 Turn R2C2 fAN ON
+      case 4:
+        {
+          r2c2_fan_off();
+        }
+        break;
+        // M5 Turn THE LIGHTS ON
+      case 5:
+        {
+          ilum_on();
+        }
+        break;
+        // M6 Turn THE LIGHTS OFF
+      case 6:
+        {
+          ilum_off();
+        }
+        break;
       // SD File functions
       case 20: // M20 - list SD Card files
         {
@@ -977,11 +1000,23 @@ eParseResult process_gcode_command(){
         {
 
           if(next_target.seen_S){
-              extruder_fan_on();
-              pwm_set_duty_cycle(BW_PWM_CHANNEL,next_target.S);
+              blower_on();
+
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
+              pwm_set_enable(BW_PWM_CHANNEL);
           } else {
-              extruder_fan_on();
+              blower_on();
               pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
+              pwm_set_enable(BW_PWM_CHANNEL);
           }
 
           if(sd_printing){
@@ -993,8 +1028,9 @@ eParseResult process_gcode_command(){
         // M107- fan off
       case 107:
         {
-          extruder_fan_off();
+          blower_off();
           pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
+          pwm_set_disable(BW_PWM_CHANNEL);
 
           if(sd_printing){
               reply_sent = 1;
@@ -1019,22 +1055,6 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
         }
         break;
-
-        // M110 - turn R2C2 Fan on
-      case 110:
-        {
-          r2c2_fan_on();
-        }
-        break;
-
-        // M111 - turn R2C2 Fan off
-      case 111:
-        {
-          r2c2_fan_off();
-        }
-        break;
-
-
 
         // M112- immediate stop
       case 112:
@@ -1133,6 +1153,49 @@ eParseResult process_gcode_command(){
       case 131:
         {
           print_pwm();
+        }
+        break;
+
+        // M132- Control Extruder fan on
+      case 132:
+        {
+
+          if(next_target.seen_S){
+              extruder_block_fan_on();
+
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          } else {
+              extruder_block_fan_on();
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M133- Extruder fan off
+      case 133:
+        {
+          extruder_block_fan_off();
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
