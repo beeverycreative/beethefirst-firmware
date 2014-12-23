@@ -59,6 +59,11 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+bool      start_logo_blink = false;      // start logo blink
+bool      stop_logo_blink = true;      // stop logo blink
+bool      logo_state = false;           // logo state
+uint32_t  blink_interval = 10000;
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -1199,10 +1204,22 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        // M136 - turn logo on
+        // M136 - start logo blink
       case 136:
         {
-          if(next_target.seen_S ){
+          blink_time = 0;
+          start_logo_blink = 1;
+          stop_logo_blink = 0;
+          logo_state = 0;
+
+          if(next_target.seen_S) {
+              blink_interval = next_target.S;
+          } else {
+              blink_interval = 5000;
+          }
+
+          /* PWM Control*/
+          /*if(next_target.seen_S ){
               //logo_on();
               pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
               pwm_set_enable(LOGO_PWM_CHANNEL);
@@ -1211,16 +1228,26 @@ eParseResult process_gcode_command(){
               pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
               pwm_set_enable(LOGO_PWM_CHANNEL);
           }
-
+          */
         }
         break;
 
         // M137 - turn logo off
       case 137:
         {
-          //logo_off();
+          blink_time = 0;
+          start_logo_blink = 0;
+          stop_logo_blink = 1;
+          logo_state = 1;
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+          ilum_on();
+          /*
           pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
-          pwm_set_disable(LOGO_PWM_CHANNEL);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+          //pwm_set_disable(LOGO_PWM_CHANNEL);
+          */
+
         }
         break;
 

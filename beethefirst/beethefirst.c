@@ -200,6 +200,7 @@ int app_main (void){
 
   number_of_lines = 0;
   rest_time = 0;
+  blink_time = 0;
   last_target_e = 0;
   filament_coeff = 1;
 
@@ -239,6 +240,26 @@ int app_main (void){
       }
 
       bip++;
+
+      //Logo Blink
+      if(start_logo_blink && (blink_time > blink_interval) && !sd_printing) {
+
+          if(logo_state) {
+              ilum_off();
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+              logo_state = 0;
+          } else {
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+              logo_state = 1;
+              ilum_on();
+              //buzzer_play(200);
+          }
+
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+
+          blink_time = 0;
+
+      }
 
       //Power saving check
       if(enter_power_saving && (rest_time > 30000) && !sd_printing){
