@@ -153,6 +153,7 @@ uint32_t estimated_time;
 uint32_t time_elapsed;
 uint32_t rest_time;
 uint32_t blink_time;
+uint32_t stop_fan_time;
 uint32_t number_of_lines;
 uint32_t executed_lines;
 double last_target_e;

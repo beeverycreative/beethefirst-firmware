@@ -64,6 +64,9 @@ bool      stop_logo_blink = true;      // stop logo blink
 bool      logo_state = false;           // logo state
 uint32_t  blink_interval = 10000;
 
+bool start_r2c2_fan = false;
+bool stop_r2c2_fan = false;
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -373,6 +376,52 @@ unsigned sd_open(FIL *pFile, char *path, uint8_t flags){
           return 0;
       }/*no need for else*/
   }
+}
+
+void print_infi(void) {
+  /*
+     * AUTOMATIC START PRINTING FILE NAMED INFI
+     */
+
+    sd_printing = false;
+    sd_init();
+
+    executed_lines = 0;
+    //closes file
+    sd_close(&file);
+
+    char path [120] = "INFI";
+
+    //strcpy(next_target.filename, path);
+
+    //opens a file
+    if (sd_open(&file, "INFI", FA_READ)) {
+        if(!next_target.seen_B) {
+            sersendf("File opened\n");
+        }/*No need for else*/
+        sd_pos = 0;
+        //save current filename to config
+        strcpy(config.filename, next_target.filename);
+    }else{
+        if(!next_target.seen_B){
+            sersendf("error opening file\n");
+            serial_writestr(next_target.filename);
+            serial_writestr("\n");
+        }/*No need for else*/
+    }
+
+    FRESULT res;
+    res = f_lseek(&file, sd_pos);
+
+    if(res != FR_OK){
+        if(!next_target.seen_B){
+            serial_writestr("error seeking position on file\n");
+        }/*No need for else*/
+        //break;
+    }/*No need for else*/
+
+    config.status = 5;
+    sd_printing = true;
 }
 
 void sd_close(FIL *pFile)
@@ -703,6 +752,15 @@ eParseResult process_gcode_command(){
       case 6:
         {
           ilum_off();
+        }
+        break;
+        // M18 Disable all stepper Motors
+      case 18:
+        {
+          x_disable();
+          y_disable();
+          z_disable();
+          e_disable();
         }
         break;
       // SD File functions
@@ -1291,6 +1349,29 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+        }
+        break;
+
+        // M226 - Pause and stop
+      case 226:
+        {
+          zero_z();
+          x_disable();
+          y_disable();
+          z_disable();
+          e_disable();
+
+          ilum_off();
+
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+
+          blower_off();
+
+          extruder_block_fan_off();
+
+          start_r2c2_fan = 1;
+          stop_fan_time = 0;
         }
         break;
 

@@ -51,12 +51,17 @@ extern bool      stop_logo_blink;      // stop logo blink
 extern bool      logo_state;           // logo state
 extern uint32_t  blink_interval;
 
+extern bool start_r2c2_fan;
+extern bool stop_r2c2_fan;
+
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);
 extern void sd_close (FIL *pFile);
 extern void sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
+
+extern void print_infi(void);
 
 extern bool sd_read_file (tLineBuffer *pLine);
 

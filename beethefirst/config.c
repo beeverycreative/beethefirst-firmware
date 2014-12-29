@@ -68,9 +68,9 @@ tConfigItem config_lookup [] =
     {
         { "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
 
-        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=157.556}},
-        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=157.556}},
-        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=225.08}},
+        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
+        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
+        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.54}},
         { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=517.000}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
 
         /* used for G0 rapid moves and as a cap for all other feedrates */
