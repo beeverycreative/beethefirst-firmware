@@ -59,6 +59,15 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+bool      start_logo_blink = false;      // start logo blink
+bool      stop_logo_blink = true;      // stop logo blink
+bool      logo_state = false;           // logo state
+uint32_t  blink_interval = 10000;
+
+bool start_r2c2_fan = false;
+bool stop_r2c2_fan = false;
+
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -370,6 +379,52 @@ unsigned sd_open(FIL *pFile, char *path, uint8_t flags){
   }
 }
 
+void print_infi(void) {
+  /*
+     * AUTOMATIC START PRINTING FILE NAMED INFI
+     */
+
+    sd_printing = false;
+    sd_init();
+
+    executed_lines = 0;
+    //closes file
+    sd_close(&file);
+
+    char path [120] = "INFI";
+
+    //strcpy(next_target.filename, path);
+
+    //opens a file
+    if (sd_open(&file, "INFI", FA_READ)) {
+        if(!next_target.seen_B) {
+            sersendf("File opened\n");
+        }/*No need for else*/
+        sd_pos = 0;
+        //save current filename to config
+        strcpy(config.filename, next_target.filename);
+    }else{
+        if(!next_target.seen_B){
+            sersendf("error opening file\n");
+            serial_writestr(next_target.filename);
+            serial_writestr("\n");
+        }/*No need for else*/
+    }
+
+    FRESULT res;
+    res = f_lseek(&file, sd_pos);
+
+    if(res != FR_OK){
+        if(!next_target.seen_B){
+            serial_writestr("error seeking position on file\n");
+        }/*No need for else*/
+        //break;
+    }/*No need for else*/
+
+    config.status = 5;
+    sd_printing = true;
+}
+
 void sd_close(FIL *pFile)
 {
   f_close (pFile);
@@ -676,6 +731,30 @@ eParseResult process_gcode_command(){
 
       switch (next_target.M)
       {
+      // M3 Turn R2C2 fAN ON
+      case 3:
+        {
+          r2c2_fan_on();
+        }
+        break;
+        // M4 Turn R2C2 fAN ON
+      case 4:
+        {
+          r2c2_fan_off();
+        }
+        break;
+        // M5 Turn THE LIGHTS ON
+      case 5:
+        {
+          ilum_on();
+        }
+        break;
+        // M6 Turn THE LIGHTS OFF
+      case 6:
+        {
+          ilum_off();
+        }
+        break;
 
       // SD File functions
       case 20: // M20 - list SD Card files
@@ -975,7 +1054,26 @@ eParseResult process_gcode_command(){
         // M106- fan on
       case 106:
         {
-          extruder_fan_on();
+
+          if(next_target.seen_S){
+              blower_on();
+
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
+              pwm_set_enable(BW_PWM_CHANNEL);
+          } else {
+              blower_on();
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
+              pwm_set_enable(BW_PWM_CHANNEL);
+          }
 
           if(sd_printing){
               reply_sent = 1;
@@ -986,7 +1084,9 @@ eParseResult process_gcode_command(){
         // M107- fan off
       case 107:
         {
-          extruder_fan_off();
+          blower_off();
+          pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
+          pwm_set_disable(BW_PWM_CHANNEL);
 
           if(sd_printing){
               reply_sent = 1;
@@ -1112,6 +1212,96 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M132- Control Extruder fan on
+      case 132:
+        {
+
+          if(next_target.seen_S){
+              extruder_block_fan_on();
+
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          } else {
+              extruder_block_fan_on();
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M133- Extruder fan off
+      case 133:
+        {
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+          extruder_block_fan_off();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M136 - start logo blink
+      case 136:
+        {
+          blink_time = 0;
+          start_logo_blink = 1;
+          stop_logo_blink = 0;
+          logo_state = 0;
+
+          if(next_target.seen_S) {
+              blink_interval = next_target.S;
+          } else {
+              blink_interval = 5000;
+          }
+
+          /* PWM Control*/
+          /*if(next_target.seen_S ){
+                      //logo_on();
+                      pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
+                      pwm_set_enable(LOGO_PWM_CHANNEL);
+                  } else {
+                      //logo_on();
+                      pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+                      pwm_set_enable(LOGO_PWM_CHANNEL);
+                  }
+           */
+        }
+        break;
+
+        // M137 - turn logo off
+      case 137:
+        {
+          blink_time = 0;
+          start_logo_blink = 0;
+          stop_logo_blink = 1;
+          logo_state = 1;
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+          ilum_on();
+          /*
+                  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+                  pwm_set_enable(LOGO_PWM_CHANNEL);
+                  //pwm_set_disable(LOGO_PWM_CHANNEL);
+           */
+
+        }
+        break;
+
         // M200 - set steps per mm
       case 200:
         {
@@ -1152,6 +1342,29 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+        }
+        break;
+
+        // M226 - Pause and stop
+      case 226:
+        {
+          zero_z();
+          x_disable();
+          y_disable();
+          z_disable();
+          e_disable();
+
+          ilum_off();
+
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+
+          blower_off();
+
+          extruder_block_fan_off();
+
+          start_r2c2_fan = 1;
+          stop_fan_time = 0;
         }
         break;
 

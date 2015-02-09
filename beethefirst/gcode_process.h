@@ -45,6 +45,15 @@ extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
+
+extern bool      start_logo_blink;      // start logo blink
+extern bool      stop_logo_blink;      // stop logo blink
+extern bool      logo_state;           // logo state
+extern uint32_t  blink_interval;
+
+extern bool start_r2c2_fan;
+extern bool stop_r2c2_fan;
+
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);

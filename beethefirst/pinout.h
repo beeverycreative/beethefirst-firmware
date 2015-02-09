@@ -112,6 +112,53 @@
 #define HEATED_BED_0_ADC_PIN            3        /* P0.3 */
 #define HEATED_BED_0_SENSOR_ADC_CHANNEL 6        /* P0.3 */
 
+/*
+        Expansion Board
+*/
+
+#define R2C2_TEMP_ADC_PORT              0       /* P0.25 */
+#define R2C2_TEMP_ADC_PIN               25      /* P0.25 */
+
+#define R2C2_FAN_PORT                   1       /* P1.22 */
+#define R2C2_FAN_PIN                    (1 << 22)      /* P1.22 */
+
+#define ILUM_PORT                       1       /* P1.4 */
+#define ILUM_PIN                        (1 << 4)      /* P1.4 */
+
+#define BW_ON_PORT                      1       /* P1.1 */
+#define BW_ON_PIN                       (1 << 1)       /* P1.1 */
+#define BW_V1_PORT                      2       /* P2.3 */
+#define BW_V1_PIN                       3       /* P2.3 */
+#define BW_PWM_CHANNEL                  4       /* PWM4 */
+
+#define SDOWN_PORT                      1       /* P1.31 */
+#define SDOWN_PIN                       (1 << 31)      /* P1.31 */
+
+#define FAN_EXT_ON_PORT                 1       /* P1.10 */
+#define FAN_EXT_ON_PIN                  (1 << 10)      /* P1.10 */
+#define FAN_EXT_V1_PORT                 2       /* P2.1 */
+#define FAN_EXT_V1_PIN                  1       /* P2.1 */
+#define FAN_EXT_PWM_CHANNEL             2       /* PWM2 */
+
+#define LOGO_ON_PORT                    2       /* P2.0 */
+#define LOGO_ON_PIN                     0       /* P2.0 */
+#define LOGO_PWM_CHANNEL                1       /* PWM1 */
+
+#define r2c2_fan_on() digital_write(R2C2_FAN_PORT, R2C2_FAN_PIN, HIGH);
+#define r2c2_fan_off() digital_write(R2C2_FAN_PORT, R2C2_FAN_PIN, LOW);
+
+#define blower_on() digital_write(BW_ON_PORT, BW_ON_PIN, HIGH);
+#define blower_off() digital_write(BW_ON_PORT, BW_ON_PIN, LOW);
+
+#define extruder_block_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
+#define extruder_block_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
+
+//#define logo_on() digital_write(LOGO_ON_PORT, LOGO_ON_PIN, HIGH);
+//#define logo_off() digital_write(LOGO_ON_PORT, LOGO_ON_PIN, LOW);
+
+#define ilum_on() digital_write(ILUM_PORT, ILUM_PIN, HIGH);
+#define ilum_off() digital_write(ILUM_PORT, ILUM_PIN, LOW);
+
 
 /*
         X Stepper
