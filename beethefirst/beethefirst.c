@@ -58,7 +58,7 @@ tLineBuffer sd_line_buf;
 void pwm_init(void){
 
   pwm_pins_init(2,2);           //Buzzer pwm
-  //pwm_pins_init(2,4);
+  pwm_pins_init(2,4);
 
   pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
   pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
@@ -228,7 +228,7 @@ int app_main (void){
   buzzer_wait();
 
   //OPEN INFI FILE
-  //print_infi();
+  print_infi();
 
   // main loop
   for (;;){
