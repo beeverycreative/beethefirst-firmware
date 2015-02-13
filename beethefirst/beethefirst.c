@@ -80,6 +80,7 @@ void adc_init(void)
 {
   PINSEL_CFG_Type PinCfg;
 
+  //EXTRUDER 0 ADC CONFIG
   PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
@@ -87,11 +88,20 @@ void adc_init(void)
   PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 
+  //HEADTED BED ADC CONFIG
   PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
   PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
   PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+  //R2C2 TEMPERATURE ADC CONFIG
+  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
+  PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 
   ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */

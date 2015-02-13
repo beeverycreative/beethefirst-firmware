@@ -31,9 +31,10 @@
 #ifndef	_TEMP_H
 #define	_TEMP_H
 
-#define NUMBER_OF_SENSORS               2
+#define NUMBER_OF_SENSORS               3
 #define EXTRUDER_0                      0
 #define HEATED_BED_0                    1
+#define R2C2_Temp                       2
 
 #include <stdint.h>
 #include <stdbool.h>

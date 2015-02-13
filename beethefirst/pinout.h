@@ -105,7 +105,6 @@
 #define EXTRUDER_0_FAN_PORT             2         /* P2.3 */
 #define EXTRUDER_0_FAN_PIN              (1<<3)
 
-
 #define HEATED_BED_0_HEATER_PORT        2        /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5) /* P2.5 */
 #define HEATED_BED_0_ADC_PORT           0        /* P0.3 */
@@ -118,6 +117,7 @@
 
 #define R2C2_TEMP_ADC_PORT              0       /* P0.25 */
 #define R2C2_TEMP_ADC_PIN               25      /* P0.25 */
+#define R2C2_TEMP_SENSOR_ADC_CHANNEL    2       /* P0.25 */
 
 #define R2C2_FAN_PORT                   1       /* P1.22 */
 #define R2C2_FAN_PIN                    (1 << 22)      /* P1.22 */
@@ -131,8 +131,9 @@
 #define BW_V1_PIN                       3       /* P2.3 */
 #define BW_PWM_CHANNEL                  4       /* PWM4 */
 
-#define SDOWN_PORT                      1       /* P1.31 */
-#define SDOWN_PIN                       (1 << 31)      /* P1.31 */
+#define SDOWN_ADC_PORT                  1       /* P1.31 */
+#define SDOWN_ADC_PIN                   (1 << 31)      /* P1.31 */
+#define SDOWN_ADC_SENSOR_ADC_CHANNEL    5        /* P0.3 */
 
 #define FAN_EXT_ON_PORT                 1       /* P1.10 */
 #define FAN_EXT_ON_PIN                  (1 << 10)      /* P1.10 */

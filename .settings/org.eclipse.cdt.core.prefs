@@ -1,5 +1,9 @@
-#Sun Sep 12 14:01:35 WEST 2010
 eclipse.preferences.version=1
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1504359387/PATH/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1504359387/PATH/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1504359387/PATH/value=/bin\:/usr/lib/lightdm/lightdm\:/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/usr/games\:/home/bitbox/bin\:/usr/local/java/jdk1.7.0_25/bin\:/home/bitbox/bin\:/usr/local/java/jre1.7.0_25/bin;/home/bitbox/CodeSourcery/Sourcery_G++_Lite/arm-none-eabi/bin
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1504359387/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1504359387/appendContributed=true
 org.eclipse.cdt.core.formatter.alignment_for_arguments_in_method_invocation=16
 org.eclipse.cdt.core.formatter.alignment_for_base_clause_in_type_declaration=80
 org.eclipse.cdt.core.formatter.alignment_for_compact_if=0
