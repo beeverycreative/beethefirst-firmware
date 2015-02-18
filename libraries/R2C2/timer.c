@@ -203,6 +203,9 @@ void SysTick_Handler(void)
   blink_time++;
   stop_fan_time ++;
 
+  /* Check shutdown ADC voltage*/
+  //sDownADC_Val = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+
   /* 100ms tick for SDCard ***********************************************/
   counter++;
   if (counter > 99)

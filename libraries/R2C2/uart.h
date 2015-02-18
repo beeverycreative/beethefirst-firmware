@@ -20,6 +20,7 @@ void uart_init(void);
 char uart_data_available(void);
 char uart_receive(void);
 void uart_send(char byte);
+void uart_sendHex(unsigned long data);
 void uart_writestr(char *data);
 
 // #define serial_writechar(x) uart_send(x)

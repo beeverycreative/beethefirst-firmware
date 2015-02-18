@@ -97,19 +97,28 @@
 #define STEPPERS_RESET_PIN      (1 << 22) /* P0.22 */
 
 #define EXTRUDER_0_HEATER_PORT          2        /* P2.4 */
-#define EXTRUDER_0_HEATER_PIN           (1 << 4) /* P2.4 */
+#define EXTRUDER_0_HEATER_PIN           (1 << 4) /* P2.4 */     //Pin Mask
+#define EXTRUDER_0_HEATER_PIN_Number    4
 #define EXTRUDER_0_SENSOR_ADC_PORT      0        /* P0.2 */
 #define EXTRUDER_0_SENSOR_ADC_PIN       2        /* P0.2 */
 #define EXTRUDER_0_SENSOR_ADC_CHANNEL   7        /* P0.2 */
+#define EXTRUDER_0_PWM_CHANNEL          5
 
 #define EXTRUDER_0_FAN_PORT             2         /* P2.3 */
 #define EXTRUDER_0_FAN_PIN              (1<<3)
 
 #define HEATED_BED_0_HEATER_PORT        2        /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5) /* P2.5 */
+#define HEATED_BED_0_HEATER_PIN_Number  5
 #define HEATED_BED_0_ADC_PORT           0        /* P0.3 */
 #define HEATED_BED_0_ADC_PIN            3        /* P0.3 */
 #define HEATED_BED_0_SENSOR_ADC_CHANNEL 6        /* P0.3 */
+#define HEATED_BED_0_PWM_CHANNEL        6
+
+#define BUZZER_PORT                     2        /* P2.2 */
+#define BUZZER_PIN                      (1 << 2) /* P2.2 */
+#define BUZZER_PIN_Number               2
+#define BUZZER_PWM_CHANNEL              3
 
 /*
         Expansion Board
@@ -132,7 +141,7 @@
 #define BW_PWM_CHANNEL                  4       /* PWM4 */
 
 #define SDOWN_ADC_PORT                  1       /* P1.31 */
-#define SDOWN_ADC_PIN                   (1 << 31)      /* P1.31 */
+#define SDOWN_ADC_PIN                   31      /* P1.31 */
 #define SDOWN_ADC_SENSOR_ADC_CHANNEL    5        /* P0.3 */
 
 #define FAN_EXT_ON_PORT                 1       /* P1.10 */

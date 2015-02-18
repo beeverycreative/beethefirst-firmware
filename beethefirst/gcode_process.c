@@ -1043,6 +1043,7 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B && !sd_printing){
               temp_print();
+              sersendf("\n Shutdown ADC: %u ", sDown_filtered);
           }/*No need for else*/
 
           if(sd_printing){
@@ -1636,6 +1637,33 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
         }
         break;
+
+        //SHUTDOWN
+      case 643:
+        {
+          if(sd_printing){
+
+              //save vars
+              config.sd_pos          = sd_pos;
+              config.estimated_time  = estimated_time;
+              config.time_elapsed    = time_elapsed;
+              config.number_of_lines = number_of_lines;
+              config.executed_lines  = executed_lines;
+              config.startpoint_x    = startpoint.x;
+              config.startpoint_y    = startpoint.y;
+              config.startpoint_z    = startpoint.z;
+              config.startpoint_e    = startpoint.e;
+
+              config.status = 9;
+              sd_printing = 0;
+          }/* No need for else */
+        }
+
+        if(config.status == 7) {        //If Print Paused
+            config.status = 9;
+        }
+        break;
+
         // unknown mcode: spit an error
       default:
         {

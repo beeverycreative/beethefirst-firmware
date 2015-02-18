@@ -50,6 +50,7 @@
 #include "pwm.h"
 
 tTimer temperatureTimer;
+tTimer shutdownTimer;
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
@@ -57,8 +58,9 @@ tLineBuffer sd_line_buf;
 /* initialize PWM */
 void pwm_init(void){
 
-  pwm_pins_init(2,2);           //Buzzer pwm
-  pwm_pins_init(2,4);
+  pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number);           //Buzzer pwm
+
+  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number);
 
   pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
   pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
@@ -67,11 +69,15 @@ void pwm_init(void){
 
   init_pwm_peripheral();
 
-  init_global_match(3);         //Buzzer
+  init_global_match(BUZZER_PWM_CHANNEL);         //Buzzer
   init_global_match(FAN_EXT_PWM_CHANNEL);
   init_global_match(LOGO_PWM_CHANNEL);
   init_global_match(BW_PWM_CHANNEL);
-  init_global_match(5);         //Heater
+  init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
+  init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Bed
+
+  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+  pwm_set_enable(LOGO_PWM_CHANNEL);
 
 }
 
@@ -97,14 +103,23 @@ void adc_init(void)
   PINSEL_ConfigPin(&PinCfg);
 
   //R2C2 TEMPERATURE ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
+  PinCfg.Funcnum = PINSEL_FUNC_1; /*ADC Function*/
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
   PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
   PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 
-  ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
+  //R2C2 TEMPERATURE ADC CONFIG
+  PinCfg.Funcnum = PINSEL_FUNC_3; /*ADC Function*/
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = SDOWN_ADC_PORT;
+  PinCfg.Pinnum = SDOWN_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+  ADC_Init(LPC_ADC, 200000); /* ADC conversion rate <= 200Khz */
+
 }
 
 void io_init(void)
@@ -158,18 +173,118 @@ void temperatureTimerCallback (tTimer *pTimer)
   temp_tick();
 }
 
+void shutdownTimerCallBack (tTimer *pTimer)
+{
+  sDownADC_raw = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  // filter the ADC values with simple IIR
+  sDown_filtered = ((sDown_filtered * 2) + sDownADC_raw) / 3;
+  if(sDown_filtered < 2200)
+    {
+      if(sd_printing){
+
+          //save vars
+          config.sd_pos          = sd_pos;
+          config.estimated_time  = estimated_time;
+          config.time_elapsed    = time_elapsed;
+          config.number_of_lines = number_of_lines;
+          config.executed_lines  = executed_lines;
+          config.startpoint_x    = startpoint.x;
+          config.startpoint_y    = startpoint.y;
+          config.startpoint_z    = startpoint.z;
+          config.startpoint_e    = startpoint.e;
+
+          config.status = 9;
+          sd_printing = 0;
+
+          write_config();
+
+          queue_flush();
+          reset_current_block();
+
+          zero_z();
+      }/* No need for else */
+    }
+}
+
+void printRegisters(void)
+{
+  LPC_SC_TypeDef scReg;
+  uart_writestr("PCONP: ");   uart_sendHex(scReg.PCONP); uart_writestr("\n");
+  uart_writestr("PCON: ");   uart_sendHex(scReg.PCON); uart_writestr("\n");
+  uart_writestr("PCLKSEL0: ");   uart_sendHex(scReg.PCLKSEL0); uart_writestr("\n");
+
+  uart_writestr("\n");
+
+  LPC_ADC_TypeDef adcReg;
+
+  uart_writestr("ADCR: ");   uart_sendHex(adcReg.ADCR); uart_writestr("\n");
+
+  uart_writestr("\n");
+
+  LPC_PINCON_TypeDef pinDefs;
+
+  uart_writestr("PINSEL0: ");   uart_sendHex(pinDefs.PINSEL0); uart_writestr("\n");
+  uart_writestr("PINSEL1: ");   uart_sendHex(pinDefs.PINSEL1); uart_writestr("\n");
+  uart_writestr("PINSEL2: ");   uart_sendHex(pinDefs.PINSEL2); uart_writestr("\n");
+  uart_writestr("PINSEL3: ");   uart_sendHex(pinDefs.PINSEL3); uart_writestr("\n");
+  uart_writestr("PINSEL4: ");   uart_sendHex(pinDefs.PINSEL4); uart_writestr("\n");
+  uart_writestr("PINSEL5: ");   uart_sendHex(pinDefs.PINSEL5); uart_writestr("\n");
+  uart_writestr("PINSEL6: ");   uart_sendHex(pinDefs.PINSEL6); uart_writestr("\n");
+  uart_writestr("PINSEL7: ");   uart_sendHex(pinDefs.PINSEL7); uart_writestr("\n");
+  uart_writestr("PINSEL8: ");   uart_sendHex(pinDefs.PINSEL8); uart_writestr("\n");
+  uart_writestr("PINSEL9: ");   uart_sendHex(pinDefs.PINSEL9); uart_writestr("\n");
+  uart_writestr("PINSEL10: ");   uart_sendHex(pinDefs.PINSEL10); uart_writestr("\n");
+
+  uart_writestr("\n");
+
+  uart_writestr("PINMODE0: ");   uart_sendHex(pinDefs.PINMODE0); uart_writestr("\n");
+  uart_writestr("PINMODE1: ");   uart_sendHex(pinDefs.PINMODE1); uart_writestr("\n");
+  uart_writestr("PINMODE2: ");   uart_sendHex(pinDefs.PINMODE2); uart_writestr("\n");
+  uart_writestr("PINMODE3: ");   uart_sendHex(pinDefs.PINMODE3); uart_writestr("\n");
+  uart_writestr("PINMODE4: ");   uart_sendHex(pinDefs.PINMODE4); uart_writestr("\n");
+  uart_writestr("PINMODE5: ");   uart_sendHex(pinDefs.PINMODE5); uart_writestr("\n");
+  uart_writestr("PINMODE6: ");   uart_sendHex(pinDefs.PINMODE6); uart_writestr("\n");
+  uart_writestr("PINMODE7: ");   uart_sendHex(pinDefs.PINMODE7); uart_writestr("\n");
+  uart_writestr("PINMODE8: ");   uart_sendHex(pinDefs.PINMODE8); uart_writestr("\n");
+  uart_writestr("PINMODE9: ");   uart_sendHex(pinDefs.PINMODE9); uart_writestr("\n");
+
+  uart_writestr("\n");
+
+  uart_writestr("PINMODE_OD0: ");   uart_sendHex(pinDefs.PINMODE_OD0); uart_writestr("\n");
+  uart_writestr("PINMODE_OD1: ");   uart_sendHex(pinDefs.PINMODE_OD1); uart_writestr("\n");
+  uart_writestr("PINMODE_OD2: ");   uart_sendHex(pinDefs.PINMODE_OD2); uart_writestr("\n");
+  uart_writestr("PINMODE_OD3: ");   uart_sendHex(pinDefs.PINMODE_OD3); uart_writestr("\n");
+  uart_writestr("PINMODE_OD4: ");   uart_sendHex(pinDefs.PINMODE_OD4); uart_writestr("\n");
+
+  uart_writestr("\n");
+
+  uart_writestr("I2CPADCFG: ");   uart_sendHex(pinDefs.I2CPADCFG); uart_writestr("\n");
+
+}
 
 void init(void)
 {
   // set up inputs and outputs
   io_init();
+
+  uart_init();
+  uart_writestr("BTF Start\n");
+
   //temperature read
   adc_init();
+
+  //printRegisters();
+
   //pwm
   pwm_init();
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
+
+  //Shutdown interruption
+  AddSlowTimer(&shutdownTimer);
+  StartSlowTimer(&shutdownTimer, 5, shutdownTimerCallBack);
+  shutdownTimer.AutoReload = 1;
 
   //temperature interruption
   AddSlowTimer (&temperatureTimer);
@@ -177,6 +292,7 @@ void init(void)
   temperatureTimer.AutoReload = 1;
 
 }
+
 
 
 void WDT_IRQHandler(void){
@@ -237,9 +353,6 @@ int app_main (void){
   buzzer_play(1000); /* low beep */
   buzzer_wait();
 
-  //OPEN INFI FILE
-  print_infi();
-
   // main loop
   for (;;){
       WDT_Feed();
@@ -259,14 +372,11 @@ int app_main (void){
       if(start_logo_blink && (blink_time > blink_interval)) {
 
           if(logo_state) {
-              ilum_off();
               pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
               logo_state = 0;
           } else {
               pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
               logo_state = 1;
-              ilum_on();
-              //buzzer_play(200);
           }
 
           pwm_set_enable(LOGO_PWM_CHANNEL);

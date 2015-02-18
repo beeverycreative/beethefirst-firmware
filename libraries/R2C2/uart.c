@@ -99,6 +99,30 @@ void uart_send(char byte)
 	UART_SendByte(DBG_UART, byte);
 }
 
+void uart_sendHex(unsigned long data)
+{
+  uart_writestr("0x");
+
+  unsigned char buff[8] = {'1','1','1','1','1','1','1','1'};
+
+  for(int i = 8;i>0;i--){
+
+      unsigned char b = data & 0x0F;
+
+      unsigned char bW = b + '0';
+      if(bW > '9'){
+          bW = b +'0' + 7;
+      }
+
+      //uart_send(bW);
+      buff[i-1] = bW;
+      data = data >> 4;
+  }
+
+  uart_writestr(buff);
+
+}
+
 void uart_writestr(char *data)
 {
 	uint8_t i = 0;

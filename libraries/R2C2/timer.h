@@ -17,6 +17,10 @@
 #define	_TIMER_H
 
 #include <stdbool.h>
+#include "pinout.h"
+
+uint32_t sDownADC_raw;
+uint32_t sDown_filtered;
 
 // time-related constants
 //#define	US	(F_CPU / 1000000)
