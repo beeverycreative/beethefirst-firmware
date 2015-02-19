@@ -304,6 +304,31 @@ int app_main (void){
               sd_line_buf.seen_lf = 1;
               executed_lines++;
           }else{
+              if(send_sd_footer)
+                {
+                  //END OF SD PRINT
+                  temp_set(0,EXTRUDER_0);
+                  zero_z();
+                  zero_x();
+
+                  tActionRequest request;
+                  request.target = startpoint;
+                  request.target.y = 65;
+                  request.target.feed_rate = 1500;
+                  request.ActionType = AT_MOVE;
+                  request.target.invert_feed_rate =  false;
+                  plan_buffer_action(&request);
+
+                  // must have no moves pending if changing position
+                  st_synchronize();
+                  tTarget newTarget;
+                  newTarget = startpoint;
+                  newTarget.e = 0;
+                  plan_set_current_position(&newTarget);
+
+                  send_sd_footer = false;
+                }
+
               sd_printing = false;
               filament_coeff = 1;
           }

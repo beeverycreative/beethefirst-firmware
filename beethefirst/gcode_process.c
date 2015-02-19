@@ -59,6 +59,10 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+//VARIABLES USED IN HEADER AND FOOTER OF SD FILE PRINTS
+double workingTemp = 220;
+bool send_sd_footer = false;
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -72,6 +76,7 @@ const double auto_prime_feed_rate = 18000;
 const double auto_reverse_feed_rate = 18000;
 double auto_prime_factor = 640;
 double auto_reverse_factor = 640;
+
 
 static void enqueue_moved (tTarget *pTarget)
 {
@@ -455,6 +460,71 @@ void reinit_system(){
   while(!(plan_queue_empty())){
       continue;
   }
+}
+
+void InitializeSDPrint(tTarget next_targetd)
+{
+  sersendf("Sending print header");
+
+  send_sd_footer = true;
+
+  //Config PID
+  //config.kp = 6;
+  //config.ki = 0.0013;
+  //config.kd = 80;
+
+  buzzer_wait ();
+  buzzer_play (1000);
+  //HEAT EXTRUDER AND WAIT
+  double t = workingTemp;
+  if(next_target.seen_T) t = next_target.T;
+
+  temp_set(t, EXTRUDER_0);
+  enqueue_wait_temp();
+
+  // must have no moves pending if changing position
+  synch_queue();
+  tTarget newTarget;
+  newTarget = startpoint;
+  newTarget.e = 0;
+  plan_set_current_position(&newTarget);
+
+  //HOME AXIS
+  newTarget.feed_rate = config.homing_feedrate_z;
+  double aux = config.acceleration;
+  config.acceleration = 1000;
+  zero_z();
+  zero_y();
+  zero_x();
+
+  //Set acceleration to 500
+  config.acceleration = 500;
+
+  filament_coeff = 1;
+
+  newTarget.x = -98;
+  newTarget.y = -20;
+  newTarget.z = 5;
+  newTarget.feed_rate = 3000;
+  enqueue_moved(&newTarget);
+
+  newTarget.y = -68;
+  newTarget.z = 0.3;
+  newTarget.feed_rate = 3000;
+  enqueue_moved(&newTarget);
+
+  newTarget.x = -98;
+  newTarget.y = -0;
+  newTarget.z = 0.3;
+  newTarget.e = 20;
+  newTarget.feed_rate = 500;
+  enqueue_moved(&newTarget);
+
+  // must have no moves pending if changing position
+  synch_queue();
+  newTarget = startpoint;
+  newTarget.e = 0;
+  plan_set_current_position(&newTarget);
 }
 
 /****************************************************************************
@@ -891,6 +961,14 @@ eParseResult process_gcode_command(){
               break;
           }/*No need for else*/
 
+          if(next_target.seen_S) {
+              if(next_target.S == 1) {
+                  //INITIALIZE SD PRINT FROM FIRMWARE
+                  //NOTE IF T VALUE IS PRESENT IT WILL USE THAT VALUE TO HEAT THE EXTRUDER
+                  InitializeSDPrint(next_targetd);
+              }
+          }
+
           config.status = 5;
           sd_printing = true;
         }
@@ -1297,6 +1375,14 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        {
+          delay_ms(1000);
+          USBHwConnect(FALSE);
+          go_to_reset(); // reinicia o sistema
+        }
+        break;
+
+      case 609:
         {
           delay_ms(1000);
           USBHwConnect(FALSE);

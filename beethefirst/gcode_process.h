@@ -51,6 +51,7 @@ void zero_z(void);
 extern void sd_close (FIL *pFile);
 extern void sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
+extern bool send_sd_footer;     //SEND FOOTER AT THE END OF SD PRINT
 
 extern bool sd_read_file (tLineBuffer *pLine);
 
