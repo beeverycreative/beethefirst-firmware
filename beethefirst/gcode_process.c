@@ -1115,7 +1115,19 @@ eParseResult process_gcode_command(){
         // M200 - set steps per mm
       case 200:
         {
-          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
+          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
+              if(next_target.seen_X) {
+                  config.steps_per_mm_x = next_targetd.x;
+              } else if(next_target.seen_Y) {
+                  config.steps_per_mm_y = next_targetd.y;
+              } else if(next_target.seen_Z) {
+                  config.steps_per_mm_z = next_targetd.z;
+              } else if(next_target.seen_E) {
+                  config.steps_per_mm_e = next_targetd.e;
+              }
+
+              write_config();
+          } else {
               if(!next_target.seen_B && !sd_printing){
                   sersendf ("X%g Y%g Z%g E%g ",
                       config.steps_per_mm_x,
@@ -1290,13 +1302,15 @@ eParseResult process_gcode_command(){
         }
         break;
 
-
+        /* RESET CONFIG*/
       case 607:
         {
           reset_config();
         }
         break;
 
+        /* M609 - RESTART IN BOOTLOADER MODE*/
+      case 609:
         {
           delay_ms(1000);
           USBHwConnect(FALSE);
