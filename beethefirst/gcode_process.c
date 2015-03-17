@@ -1376,6 +1376,7 @@ eParseResult process_gcode_command(){
         {
           uint16_t duration = 1000; // 1 second
 
+
           if (next_target.seen_P && next_target.P<11000){
               duration = next_target.P;
           }/*No need for else*/
@@ -1504,13 +1505,14 @@ eParseResult process_gcode_command(){
         }
         break;
 
-
+         //Reset Configs
       case 607:
         {
           reset_config();
         }
         break;
-
+        //Reset to Bootloader
+      case 609:
         {
           delay_ms(1000);
           USBHwConnect(FALSE);
