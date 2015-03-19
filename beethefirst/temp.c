@@ -55,13 +55,14 @@ double temptable[NUMTEMPS][3] = {
 };
 
 static double current_temp [NUMBER_OF_SENSORS] = {0};
-static double current_temp_r2c2 = {0};
 static double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
+
+static double current_temp_r2c2 = {0};
 static uint32_t adc_filtered_r2c2 = 4095;
 
-#ifndef	ABSDELTA
-#define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
+#ifndef ABSDELTA
+#define ABSDELTA(a, b)  (((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
 
 static double read_temp(uint8_t sensor_number);
@@ -98,7 +99,7 @@ double temp_get_target(uint8_t sensor_number)
   return target_temp[sensor_number];
 }
 
-uint8_t	temp_achieved(uint8_t sensor_number)
+uint8_t temp_achieved(uint8_t sensor_number)
 {
   if (current_temp[sensor_number] >= (target_temp[sensor_number] - 2))
     return 255;
@@ -117,10 +118,6 @@ uint8_t temps_achieved (void)
 void temp_print()
 {
   sersendf("T:%g B:%g R:%g\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0], current_temp_r2c2);
-  //sersendf("T_Raw. %g\n", analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL));
-  //sersendf("H_Raw. %g\n", analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL));
-  //sersendf("R_Raw. %g\n", analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL));
-  //sersendf("\n Shutdown ADC: %u ", analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL));
 }
 
 void temp_tick(void)
@@ -165,29 +162,10 @@ void temp_tick(void)
       dterm_temp = 0;
   }
 
-  pwm_set_duty_cycle(EXTRUDER_0_PWM_CHANNEL, output);
-  pwm_set_enable(EXTRUDER_0_PWM_CHANNEL);
+  pwm_set_duty_cycle(5, output);
+  pwm_set_enable(5);
 }
 
-/* Read and average the R2C2 ADC input signal */
-static double read_R2C2_temp(void)
-{
-  int32_t raw = 0; // initialize raw with value equal to lowest temperature.
-  double celsius = 0;
-  uint8_t i;
-  raw = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-
-  // filter the ADC values with simple IIR
-  adc_filtered_r2c2 = ((adc_filtered_r2c2 * 15) + raw) / 16;
-
-  raw = adc_filtered_r2c2;
-
-  double volts = (double) raw*(3.3/4096);
-
-  celsius = (volts - 0.5)*100;
-
-  return celsius;
-}
 
 /* Read and average the ADC input signal */
 static double read_temp(uint8_t sensor_number)
@@ -233,6 +211,26 @@ static double read_temp(uint8_t sensor_number)
       }
     }
   }
+
+  return celsius;
+}
+
+/* Read and average the R2C2 ADC input signal */
+static double read_R2C2_temp(void)
+{
+  int32_t raw = 0; // initialize raw with value equal to lowest temperature.
+  double celsius = 0;
+  uint8_t i;
+  raw = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+
+  // filter the ADC values with simple IIR
+  adc_filtered_r2c2 = ((adc_filtered_r2c2 * 15) + raw) / 16;
+
+  raw = adc_filtered_r2c2;
+
+  double volts = (double) raw*(3.3/4096);
+
+  celsius = (volts - 0.5)*100;
 
   return celsius;
 }
