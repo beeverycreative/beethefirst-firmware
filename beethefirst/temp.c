@@ -55,8 +55,10 @@ double temptable[NUMTEMPS][3] = {
 };
 
 static double current_temp [NUMBER_OF_SENSORS] = {0};
+static double current_temp_r2c2 = {0};
 static double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
+static uint32_t adc_filtered_r2c2 = 4095;
 
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
@@ -114,10 +116,10 @@ uint8_t temps_achieved (void)
 
 void temp_print()
 {
-  sersendf("T:%g B:%g R:%g\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0], current_temp[R2C2_Temp]);
-  sersendf("T_Raw. %g\n", analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL));
-  sersendf("H_Raw. %g\n", analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL));
-  sersendf("R_Raw. %g\n", analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL));
+  sersendf("T:%g B:%g R:%g\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0], current_temp_r2c2);
+  //sersendf("T_Raw. %g\n", analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL));
+  //sersendf("H_Raw. %g\n", analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL));
+  //sersendf("R_Raw. %g\n", analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL));
   //sersendf("\n Shutdown ADC: %u ", analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL));
 }
 
@@ -128,7 +130,7 @@ void temp_tick(void)
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
-  current_temp[R2C2_Temp] = read_R2C2_temp();
+  current_temp_r2c2 = read_R2C2_temp();
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
@@ -176,9 +178,9 @@ static double read_R2C2_temp(void)
   raw = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
 
   // filter the ADC values with simple IIR
-  adc_filtered[R2C2_Temp] = ((adc_filtered[R2C2_Temp] * 15) + raw) / 16;
+  adc_filtered_r2c2 = ((adc_filtered_r2c2 * 15) + raw) / 16;
 
-  raw = adc_filtered[R2C2_Temp];
+  raw = adc_filtered_r2c2;
 
   double volts = (double) raw*(3.3/4096);
 

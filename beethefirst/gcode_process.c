@@ -1043,7 +1043,7 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B && !sd_printing){
               temp_print();
-              sersendf("\n Shutdown ADC: %u ", sDown_filtered);
+              //sersendf("\n Shutdown ADC: %u ", sDown_filtered);
           }/*No need for else*/
 
           if(sd_printing){
