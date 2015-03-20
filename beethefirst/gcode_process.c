@@ -1533,7 +1533,12 @@ eParseResult process_gcode_command(){
                       config.status = 5;
                   }
               }/*No need for else*/
-          }/*No need for else*/
+          }
+          if(next_target.seen_S){
+              if(!sd_printing){
+                  config.status = next_target.S;
+              }
+          }
         }
         break;
 

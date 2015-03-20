@@ -175,12 +175,14 @@ void temperatureTimerCallback (tTimer *pTimer)
 
 void shutdownTimerCallBack (tTimer *pTimer)
 {
+
   sDownADC_raw = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
   // filter the ADC values with simple IIR
   sDown_filtered = ((sDown_filtered * 2) + sDownADC_raw) / 3;
   if(sDown_filtered < 2200)
     {
       if(sd_printing){
+
 
           //save vars
           config.sd_pos          = sd_pos;
@@ -202,7 +204,8 @@ void shutdownTimerCallBack (tTimer *pTimer)
           reset_current_block();
 
           zero_z();
-      }/* No need for else */
+
+      }
     }
 }
 
@@ -282,9 +285,9 @@ void init(void)
   gcode_parse_init();
 
   //Shutdown interruption
-  AddSlowTimer(&shutdownTimer);
-  StartSlowTimer(&shutdownTimer, 5, shutdownTimerCallBack);
-  shutdownTimer.AutoReload = 1;
+  //AddSlowTimer(&shutdownTimer);
+  //StartSlowTimer(&shutdownTimer, 5, shutdownTimerCallBack);
+  //shutdownTimer.AutoReload = 1;
 
   //temperature interruption
   AddSlowTimer (&temperatureTimer);
