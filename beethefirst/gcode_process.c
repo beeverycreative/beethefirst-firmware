@@ -67,6 +67,7 @@ uint32_t  blink_interval = 10000;
 bool start_r2c2_fan = false;
 bool stop_r2c2_fan = false;
 
+bool      manualBlockFanControl = false;        //manual control of fan using M132 and M133 M-Codes
 
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
@@ -506,6 +507,9 @@ void reinit_system(){
   zero_x();
   zero_y();
   zero_z();
+
+  //Turn R2C2 Fans On
+  r2c2_fan_on();
 
   while(!(plan_queue_empty())){
       continue;
@@ -1190,6 +1194,53 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M126- Control Extruder fan on
+      case 126:
+        {
+
+          if(next_target.seen_S){
+              manualBlockFanControl = true;
+              extruder_block_fan_on();
+
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          } else {
+              manualBlockFanControl = false;
+              extruder_block_fan_on();
+              //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+              //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M127- Extruder fan off
+      case M127:
+        {
+          manualBlockFanControl = true;
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+          extruder_block_fan_off();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+
         // M130 temperature PID
       case 130:
         {
@@ -1210,49 +1261,6 @@ eParseResult process_gcode_command(){
       case 131:
         {
           print_pwm();
-        }
-        break;
-
-        // M132- Control Extruder fan on
-      case 132:
-        {
-
-          if(next_target.seen_S){
-              extruder_block_fan_on();
-
-              uint16_t s_val = next_target.S;
-              uint16_t duty = 0;
-              if(s_val >= 255)
-                {
-                  duty = 100;
-                } else {
-                    duty = (uint16_t) s_val*0.4;
-                }
-
-              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
-              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          } else {
-              extruder_block_fan_on();
-              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
-              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          }
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
-
-        // M133- Extruder fan off
-      case 133:
-        {
-          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
-          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
-          extruder_block_fan_off();
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
         }
         break;
 

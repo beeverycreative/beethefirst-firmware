@@ -77,4 +77,11 @@ bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_v
 double  temp_get_table_entry (uint8_t sensor_number, double temp);
 double get_temp(uint8_t sensor_number);
 
+int blockTemperatureFanStart;
+int blockTemperatureFanMax;
+int blockFanMinSpeed;
+int blockFanMaxSpeed;
+double blockControlM;
+double blockControlB;
+
 #endif  /* _TIMER_H */

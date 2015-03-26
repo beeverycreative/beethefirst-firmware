@@ -54,6 +54,8 @@ extern uint32_t  blink_interval;
 extern bool start_r2c2_fan;
 extern bool stop_r2c2_fan;
 
+extern bool      manualBlockFanControl = false;        //manual control of fan using M132 and M133 M-Codes
+
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);

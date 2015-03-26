@@ -337,6 +337,14 @@ int app_main (void){
   // Set initial protection_temperature
   protection_temperature = 180;
 
+  //Set Block temperature setpoints
+  blockTemperatureFanStart = 30;
+  blockTemperatureFanMax = 50;
+  blockFanMinSpeed = 100;
+  blockFanMaxSpeed = 255;
+  blockControlM = (blockFanMaxSpeed - blockFanMinSpeed)/(blockTemperatureFanMax - blockTemperatureFanStart);
+  blockControlB = blockTemperatureFanStart + blockControlM*blockTemperatureFanStart;
+
   //debug bip
   bip = 2;
   bip_switch = 0;
@@ -422,20 +430,51 @@ int app_main (void){
 
           temp_set(0, EXTRUDER_0);
 
-          extruder_fan_off();
+          //Turn All Fans Off
+          //extruder_fan_off();
+          blower_off();
+          pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
+          pwm_set_disable(BW_PWM_CHANNEL);
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+          extruder_block_fan_off();
+          r2c2_fan_off();
+
+          //Turn
 
           leave_power_saving = 1;
           enter_power_saving = 0;
       }/* No need for else */
 
+      /*
+       * If not in power saving mode (leave_power_saving != 1)
+       * control the extruder block fan speed
+       */
+      if(leave_power_saving == 1 && !manualBlockFanControl) {
+          double fanSpeed = blockControlM*current_temp[HEATED_BED_0] + blockControlB;
+          if(fanSpeed < blockFanMinSpeed) {
+              fanSpeed = blockFanMinSpeed;
+          } else if(fanSpeed > blockFanMaxSpeed) {
+              fanSpeed = blockFanMaxSpeed;
+          }
+
+          extruder_block_fan_on();
+
+          uint16_t duty = (uint16_t)fanSpeed;
+
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
+          pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+      }
 
       //if not executing movements
       //nor in a error state
       //nor recovering from shutdown
+      //nor recovering from pause
       //nor printing form sd card
       //then is ready
       if((plan_queue_empty())
           && (config.status != 0)
+          && (config.status != 7)
           && (config.status != 9)
           && (!sd_printing)){
 
