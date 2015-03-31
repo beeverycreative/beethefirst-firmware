@@ -39,6 +39,8 @@
 #include <stdbool.h>
 #include "adc.h"
 
+extern double extruderBlockTemp;
+
 // set target temperature
 void temp_set(double t, uint8_t sensor_number);
 
@@ -77,11 +79,11 @@ bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_v
 double  temp_get_table_entry (uint8_t sensor_number, double temp);
 double get_temp(uint8_t sensor_number);
 
-int blockTemperatureFanStart;
-int blockTemperatureFanMax;
-int blockFanMinSpeed;
-int blockFanMaxSpeed;
-double blockControlM;
-double blockControlB;
+extern double blockTemperatureFanStart;
+extern double blockTemperatureFanMax;
+extern double blockFanMinSpeed;
+extern double blockFanMaxSpeed;
+extern double blockControlM;
+extern double blockControlB;
 
 #endif  /* _TIMER_H */

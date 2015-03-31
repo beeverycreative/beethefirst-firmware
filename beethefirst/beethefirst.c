@@ -338,12 +338,12 @@ int app_main (void){
   protection_temperature = 180;
 
   //Set Block temperature setpoints
-  blockTemperatureFanStart = 30;
-  blockTemperatureFanMax = 50;
-  blockFanMinSpeed = 100;
-  blockFanMaxSpeed = 255;
+  blockTemperatureFanStart = 10;
+  blockTemperatureFanMax = 48;
+  blockFanMinSpeed = 12;
+  blockFanMaxSpeed = 100;
   blockControlM = (blockFanMaxSpeed - blockFanMinSpeed)/(blockTemperatureFanMax - blockTemperatureFanStart);
-  blockControlB = blockTemperatureFanStart + blockControlM*blockTemperatureFanStart;
+  blockControlB = blockFanMaxSpeed - blockControlM*blockTemperatureFanMax;
 
   //debug bip
   bip = 2;
@@ -439,6 +439,7 @@ int app_main (void){
           pwm_set_disable(FAN_EXT_PWM_CHANNEL);
           extruder_block_fan_off();
           r2c2_fan_off();
+          manualBlockFanControl = true;
 
           //Turn
 
@@ -447,22 +448,20 @@ int app_main (void){
       }/* No need for else */
 
       /*
-       * If not in power saving mode (leave_power_saving != 1)
+       * If not in manual operation mode
        * control the extruder block fan speed
        */
-      if(leave_power_saving == 1 && !manualBlockFanControl) {
-          double fanSpeed = blockControlM*current_temp[HEATED_BED_0] + blockControlB;
-          if(fanSpeed < blockFanMinSpeed) {
-              fanSpeed = blockFanMinSpeed;
-          } else if(fanSpeed > blockFanMaxSpeed) {
-              fanSpeed = blockFanMaxSpeed;
+      if(!manualBlockFanControl) {
+          extruderFanSpeed = (int32_t)blockControlM*extruderBlockTemp + blockControlB;
+          if(extruderFanSpeed < 0) {
+              extruderFanSpeed = 0;
+          } else if(extruderFanSpeed > blockFanMaxSpeed) {
+              extruderFanSpeed = blockFanMaxSpeed;
           }
 
           extruder_block_fan_on();
 
-          uint16_t duty = (uint16_t)fanSpeed;
-
-          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
           pwm_set_enable(FAN_EXT_PWM_CHANNEL);
       }
 

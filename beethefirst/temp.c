@@ -58,6 +58,8 @@ static double current_temp [NUMBER_OF_SENSORS] = {0};
 static double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
+double extruderBlockTemp = 0;
+
 static double current_temp_r2c2 = {0};
 static uint32_t adc_filtered_r2c2 = 4095;
 
@@ -67,6 +69,13 @@ static uint32_t adc_filtered_r2c2 = 4095;
 
 static double read_temp(uint8_t sensor_number);
 static double read_R2C2_temp(void);
+
+double blockTemperatureFanStart = 0;
+double blockTemperatureFanMax = 45;
+double blockFanMinSpeed = 50;
+double blockFanMaxSpeed = 100;
+double blockControlM = 0;
+double blockControlB = 0;
 
 void temp_set(double t, uint8_t sensor_number)
 {
@@ -127,6 +136,8 @@ void temp_tick(void)
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
+
+  extruderBlockTemp =current_temp[HEATED_BED_0];
   current_temp_r2c2 = read_R2C2_temp();
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];

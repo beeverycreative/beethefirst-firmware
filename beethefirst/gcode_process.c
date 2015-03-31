@@ -68,6 +68,7 @@ bool start_r2c2_fan = false;
 bool stop_r2c2_fan = false;
 
 bool      manualBlockFanControl = false;        //manual control of fan using M132 and M133 M-Codes
+int32_t   extruderFanSpeed = 0;
 
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
@@ -1197,28 +1198,41 @@ eParseResult process_gcode_command(){
         // M126- Control Extruder fan on
       case 126:
         {
+          //Print extruder speed
+          if(next_target.seen_W) {
+              //sersendf(" S: %u M: %g B: %g ", extruderFanSpeed, blockControlM, blockControlB);
+              if(next_target.seen_A) {
+                  blockTemperatureFanStart = next_target.A;
+              }
+              if(next_target.seen_D) {
+                  blockTemperatureFanMax = next_target.D;
+              }
+              blockControlM = (blockFanMaxSpeed - blockFanMinSpeed)/(blockTemperatureFanMax - blockTemperatureFanStart);
+              blockControlB = blockFanMaxSpeed - blockControlM*blockTemperatureFanMax;
 
-          if(next_target.seen_S){
-              manualBlockFanControl = true;
-              extruder_block_fan_on();
+              sersendf(" S: %u M: %g B: %g state: %u ", extruderFanSpeed, blockControlM, blockControlB, manualBlockFanControl);
+          } else {//Control extruder fan
+              if(next_target.seen_S){
+                  manualBlockFanControl = true;
+                  extruder_block_fan_on();
 
-              uint16_t s_val = next_target.S;
-              uint16_t duty = 0;
-              if(s_val >= 255)
-                {
-                  duty = 100;
-                } else {
-                    duty = (uint16_t) s_val*0.4;
-                }
+                  uint16_t s_val = next_target.S;
+                  if(s_val >= 255)
+                    {
+                      extruderFanSpeed = 100;
+                    } else {
+                        extruderFanSpeed = (uint16_t) s_val*0.4;
+                    }
 
-              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,duty);
-              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          } else {
-              manualBlockFanControl = false;
-              extruder_block_fan_on();
-              //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
-              //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          }
+                  pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+                  pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+              } else {
+                  manualBlockFanControl = false;
+                  //extruder_block_fan_on();
+                  //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+                  //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+              }
+          }/*No need for else*/
 
           if(sd_printing){
               reply_sent = 1;
@@ -1227,7 +1241,7 @@ eParseResult process_gcode_command(){
         break;
 
         // M127- Extruder fan off
-      case M127:
+      case 127:
         {
           manualBlockFanControl = true;
           pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
@@ -1626,9 +1640,11 @@ eParseResult process_gcode_command(){
               }
               if (next_target.A == 0){
                   enter_power_saving = 0;
+                  manualBlockFanControl = false;
               }
           } else {
               enter_power_saving = 0;
+              manualBlockFanControl = false;
           }
 
           if(sd_printing){
