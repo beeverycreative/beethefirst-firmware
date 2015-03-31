@@ -41,10 +41,13 @@ extern FIL       file;
 extern uint32_t  filesize;
 extern uint32_t  sd_pos;
 extern bool      sd_printing;     // printing from SD file
+extern bool      sd_pause;             // printing paused
+extern bool      sd_resume;             // resume from sd pause
 extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
+void enqueue_moved (tTarget *pTarget);
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);

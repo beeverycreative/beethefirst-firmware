@@ -120,6 +120,9 @@ struct configuration
   double  startpoint_y;
   double  startpoint_z;
   double  startpoint_e;
+  double  startpoint_feed_rate;
+  double  startpoint_temperature;
+  double  startpoint_filament_coeff;
 
 };
 

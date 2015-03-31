@@ -63,6 +63,7 @@ void temp_tick(void);
 void print_pwm(void);
 
 #define NUMTEMPS 14
+extern double target_temp  [NUMBER_OF_SENSORS];
 double last_error;
 double pterm;
 double iterm;

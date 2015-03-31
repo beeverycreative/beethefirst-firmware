@@ -55,7 +55,7 @@ double temptable[NUMTEMPS][3] = {
 };
 
 static double current_temp [NUMBER_OF_SENSORS] = {0};
-static double target_temp  [NUMBER_OF_SENSORS] = {0};
+double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
 #ifndef	ABSDELTA
@@ -73,7 +73,6 @@ void temp_set(double t, uint8_t sensor_number)
   }
 
   target_temp[sensor_number] = t;
-
 }
 
 void max_set(int range){

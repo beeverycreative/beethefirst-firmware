@@ -243,17 +243,129 @@ int app_main (void){
 
 
       //if not executing movements
-      //nor in a error state
-      //nor recovering from shutdown
-      //nor printing form sd card
-      //then is ready
-      if((plan_queue_empty())
-          && (config.status != 0)
-          && (config.status != 9)
-          && (!sd_printing)){
+            //nor in a error state
+            //nor recovering from shutdown
+            //nor recovering from pause
+            //nor printing form sd card
+            //then is ready
+            if((plan_queue_empty())
+                && (config.status != 0)
+                && (config.status != 7)
+                && (config.status != 9)
+                && (!sd_printing)){
 
-          config.status = 3;
-      }/*no need for else*/
+                config.status = 3;
+            }/*no need for else*/
+
+            if ((plan_queue_empty())
+                && (sd_pause)) {
+
+                tTarget new_pos;
+                /*
+                 * Little retraction to avoid filament break
+                 */
+                st_synchronize();
+                new_pos = startpoint;
+                new_pos.e = 0;
+                plan_set_current_position (&new_pos);
+                st_synchronize();
+                new_pos.e = -2;
+                new_pos.feed_rate = 6000;
+                enqueue_moved(&new_pos);
+                st_synchronize();
+
+                zero_z();
+                zero_x();
+                zero_y();
+
+                config.status = 7;
+                sd_pause = false;
+            }/*no need for else*/
+
+            if ((plan_queue_empty())
+                && (sd_resume)) {
+
+                zero_z();
+                zero_x();
+                zero_y();
+
+                tTarget new_pos;
+                /*
+                 * Clean Nozzle
+                 */
+                st_synchronize();
+                new_pos = startpoint;
+                new_pos.e = 0;
+                plan_set_current_position (&new_pos);
+                st_synchronize();
+                new_pos.e = 20;
+                new_pos.feed_rate = 300;
+                enqueue_moved(&new_pos);
+                st_synchronize();
+                new_pos.e = 18;
+                new_pos.feed_rate = 6000;
+                enqueue_moved(&new_pos);
+                new_pos.e = 20;
+                new_pos.feed_rate = 500;
+                enqueue_moved(&new_pos);
+
+                /*
+                 * Set E POS
+                 */
+
+                 // must have no moves pending if changing position
+                st_synchronize();
+                new_pos = startpoint;
+                new_pos.e = config.startpoint_e;
+                plan_set_current_position (&new_pos);
+
+                /*
+                 * MOVE X Y To initial position
+                 */
+                st_synchronize();
+                new_pos.x = config.startpoint_x;
+                new_pos.y = config.startpoint_y;
+                new_pos.z = startpoint.z;
+                new_pos.e = startpoint.e;
+                new_pos.feed_rate = 5000;
+                enqueue_moved(&new_pos);
+
+                /*
+                 * MOVE Z To initial position
+                 */
+                st_synchronize();
+                new_pos.z = config.startpoint_z;
+                new_pos.feed_rate = 5000;
+                enqueue_moved(&new_pos);
+
+                /*
+                 * Reduce feedrate to print speed
+                 */
+                new_pos.feed_rate = config.startpoint_feed_rate;
+                enqueue_moved(&new_pos);
+
+                //Load & Seek SD File
+                sd_init();
+                sd_close(&file);
+                sd_open(&file, config.filename, FA_READ);
+
+                FRESULT res;
+                res = f_lseek(&file, config.sd_pos);
+
+                if(res != FR_OK){
+                    if(!next_target.seen_B){
+                        serial_writestr("error seeking position on file\n");
+                    }/*No need for else*/
+                    break;
+                }/*No need for else*/
+
+                filament_coeff = config.startpoint_filament_coeff;
+
+                config.status = 5;
+                sd_printing = true;
+                sd_pause = false;
+                sd_resume = false;
+            }/*no need for else*/
 
 
       if((plan_queue_empty())

@@ -71,7 +71,7 @@ tConfigItem config_lookup [] =
         { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
-        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=517.000}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
+        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
 
         /* used for G0 rapid moves and as a cap for all other feedrates */
         { "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
@@ -140,7 +140,10 @@ tConfigItem config_lookup [] =
         { "startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}}
+        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))
