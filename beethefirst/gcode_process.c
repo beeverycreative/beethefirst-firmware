@@ -67,7 +67,7 @@ uint32_t  blink_interval = 10000;
 bool start_r2c2_fan = false;
 bool stop_r2c2_fan = false;
 
-bool      manualBlockFanControl = false;        //manual control of fan using M132 and M133 M-Codes
+bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
 int32_t   extruderFanSpeed = 0;
 
 #define EXTRUDER_NUM_1  1

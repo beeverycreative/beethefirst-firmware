@@ -70,15 +70,20 @@ void pwm_init(void){
   init_pwm_peripheral();
 
   init_global_match(BUZZER_PWM_CHANNEL);         //Buzzer
-  init_global_match(FAN_EXT_PWM_CHANNEL);
-  init_global_match(LOGO_PWM_CHANNEL);
-  init_global_match(BW_PWM_CHANNEL);
+  init_global_match(FAN_EXT_PWM_CHANNEL);               //Extruder Block Fan
+  init_global_match(LOGO_PWM_CHANNEL);                  //Logo
+  init_global_match(BW_PWM_CHANNEL);                    //Blower
   init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
   init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Bed
 
+  //Turn Logo On
   pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
   pwm_set_enable(LOGO_PWM_CHANNEL);
 
+  //Turn Extruder Block Fan On at 100%
+  extruder_block_fan_on();
+  pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+  pwm_set_enable(FAN_EXT_PWM_CHANNEL);
 }
 
 /* Initialize ADC for reading sensors */
@@ -363,6 +368,7 @@ int app_main (void){
   buzzer_init();
   buzzer_play(1000); /* low beep */
   buzzer_wait();
+  buzzer_play (2000);
 
   // main loop
   for (;;){
@@ -451,7 +457,7 @@ int app_main (void){
        * If not in manual operation mode
        * control the extruder block fan speed
        */
-      if(!manualBlockFanControl) {
+      if(!manualBlockFanControl && false) {
           extruderFanSpeed = (int32_t)blockControlM*extruderBlockTemp + blockControlB;
           if(extruderFanSpeed < 0) {
               extruderFanSpeed = 0;
