@@ -140,7 +140,10 @@ tConfigItem config_lookup [] =
         { "startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}}
+        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))
