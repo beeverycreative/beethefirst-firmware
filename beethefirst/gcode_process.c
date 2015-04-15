@@ -1051,7 +1051,7 @@ eParseResult process_gcode_command(){
           {
             if(!next_target.seen_B && !sd_printing){
 
-                serial_writestr(" 5.36.0");
+                serial_writestr(" 5.37.0");
 
                 serial_writestr(" ");
             }
