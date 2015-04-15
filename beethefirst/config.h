@@ -36,6 +36,8 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
+#define CFG_UID           0x10000000
+
 struct configuration
 {
   int32_t uid;
