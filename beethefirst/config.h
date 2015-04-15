@@ -36,8 +36,12 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
+#define CFG_UID           0x00000001
+
 struct configuration
 {
+  int32_t uid;
+
   int32_t  machine_model;
   
   double steps_per_mm_x;
@@ -106,9 +110,11 @@ struct configuration
   int32_t status;
   int32_t bcode;
 
+  /*
   double kp;
   double ki;
   double kd;
+  */
 };
 
 extern struct configuration config;

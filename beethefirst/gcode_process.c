@@ -1100,6 +1100,7 @@ eParseResult process_gcode_command(){
           // M130 temperature PID
           case 130:
           {
+            /*
               if(!next_target.seen_B ){
                   if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
                       serial_writestr("kp:");
@@ -1109,8 +1110,9 @@ eParseResult process_gcode_command(){
                       serial_writestr(" kd:");
                       serwrite_double(config.kd);
                       serial_writestr(" ");
-                  }/*No need for else*/
-              }/*No need for else*/
+                  }
+              }
+              */
           }
           break;
 

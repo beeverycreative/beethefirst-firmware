@@ -64,6 +64,7 @@ typedef struct {
 /* calculate the default values appropriate for your machine */
 tConfigItem config_lookup [] = 
     {
+        { "UID", &config.uid, TYPE_INT, {.val_i=CFG_UID}},
         { "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
 
         { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
@@ -128,9 +129,11 @@ tConfigItem config_lookup [] =
         { "status", &config.status, TYPE_INT, {.val_i=1}},
         { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
 
+        /*
         { "kp", &config.kp, TYPE_DOUBLE, {.val_d=6}},
         { "ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
         { "kd", &config.kd, TYPE_DOUBLE, {.val_d=80}},
+        */
 
     };
 
@@ -320,6 +323,7 @@ void read_config (void)
         }
     }
 
+    /*
     if(config.kp < 0.0001
         && config.ki < 0.0001
         && config.kd < 0.0001){
@@ -328,7 +332,7 @@ void read_config (void)
         config.ki = config_lookup[44].val_d;
         config.kd = config_lookup[45].val_d;
 
-    }/*No need for else*/
+    }*/
 
     if(read_err){
         reset_config();

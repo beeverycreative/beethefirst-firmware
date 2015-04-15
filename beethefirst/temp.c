@@ -125,8 +125,10 @@ void temp_tick(void)
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
-  pterm = config.kp * pid_error;
-  iterm += (config.ki*pid_error);
+  //pterm = config.kp * pid_error;
+  pterm = 6.0 * pid_error;
+  //iterm += (config.ki*pid_error);
+  iterm += (0.0013*pid_error);
 
   if(iterm > PID_FUNTIONAL_RANGE){
       iterm = PID_FUNTIONAL_RANGE;
@@ -135,7 +137,8 @@ void temp_tick(void)
   }
 
   dterm_temp = pid_error - last_error;
-  dterm = config.kd * dterm_temp;
+  //dterm = config.kd * dterm_temp;
+  dterm = 80.0 * dterm_temp;
 
   output = pterm + iterm + dterm;
 
