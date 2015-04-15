@@ -192,6 +192,10 @@ int app_main (void){
   init();
   read_config();
 
+  if (config.uid != 0x12345678) {
+      reset_config();
+  }
+
   // grbl init
   plan_init();
   st_init();

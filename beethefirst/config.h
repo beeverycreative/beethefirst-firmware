@@ -38,6 +38,8 @@
 
 struct configuration
 {
+  int32_t uid;
+
   int32_t  machine_model;
   
   double steps_per_mm_x;
