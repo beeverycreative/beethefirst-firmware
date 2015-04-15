@@ -192,7 +192,7 @@ int app_main (void){
   init();
   read_config();
 
-  if (config.uid != 0x12345678) {
+  if (config.uid != CFG_UID) {
       reset_config();
   }
 
