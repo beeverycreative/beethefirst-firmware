@@ -66,10 +66,10 @@ static U8 abDescriptors[] = {
       0x00,                       // bDeviceSubClass
       0x00,                       // bDeviceProtocol
       MAX_PACKET_SIZE0,           // bMaxPacketSize
-      //LE_WORD(0x29C9),            // idVendor bootloader 4.x.x
-      //LE_WORD(0x001),               // idProduct bootloader 4.x.x
-      LE_WORD(0xffff),            // idVendor bootloader 3.x.x
-      LE_WORD(0x014e),               // idProduct bootloader 3.x.x
+      LE_WORD(0x29C9),            // idVendor   BOOTLOADER 4.X.X
+      LE_WORD(0x001),               // idProduct BOOTLOADER 4.X.X
+      //LE_WORD(0xffff),            // idVendor   BOOTLOADER 3.X.X
+      //LE_WORD(0x014e),               // idProduct BOOTLOADER 3.X.X
       LE_WORD(0x0100),            // bcdDevice
       0x01,                       // iManufacturer
       0x02,                       // iProduct
@@ -244,16 +244,19 @@ void USBSerial_Init(void)
             serialnumber_present = 1;
     }
     if(serialnumber_present == 1){
-            abDescriptors[138] = serialnumber[0];
-            abDescriptors[140] = serialnumber[1];
-            abDescriptors[142] = serialnumber[2];
-            abDescriptors[144] = serialnumber[3];
-            abDescriptors[146] = serialnumber[4];
-            abDescriptors[148] = serialnumber[5];
-            abDescriptors[150] = serialnumber[6];
-            abDescriptors[152] = serialnumber[7];
-            abDescriptors[154] = serialnumber[8];
-            abDescriptors[156] = serialnumber[9];
+        /*
+         * abDescriptors[112+i] -> 112 is the position where the Serial Number string is located in the USB Descriptor
+         */
+        abDescriptors[112] = serialnumber[0];
+        abDescriptors[114] = serialnumber[1];
+        abDescriptors[116] = serialnumber[2];
+        abDescriptors[118] = serialnumber[3];
+        abDescriptors[120] = serialnumber[4];
+        abDescriptors[122] = serialnumber[5];
+        abDescriptors[124] = serialnumber[6];
+        abDescriptors[126] = serialnumber[7];
+        abDescriptors[128] = serialnumber[8];
+        abDescriptors[130] = serialnumber[9];
     }
 
     // initialise stack
