@@ -36,7 +36,7 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
-#define CFG_UID           0x10000000
+#define CFG_UID           0x00100000
 
 struct configuration
 {
@@ -109,9 +109,9 @@ struct configuration
   int32_t bcode;
 
   // pid
-  double kp;
-  double ki;
-  double kd;
+  //double kp;
+  //double ki;
+  //double kd;
 
   // autonomous
   char filename[10];
@@ -131,6 +131,10 @@ struct configuration
 };
 
 extern struct configuration config;
+
+extern double kp;
+extern double ki;
+extern double kd;
 
 void read_config (void);
 void reset_config (void);
