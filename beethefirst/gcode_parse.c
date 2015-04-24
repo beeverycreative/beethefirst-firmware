@@ -335,7 +335,7 @@ void gcode_parse_char(uint8_t c)
 
         case 'U':
         //config.ki = (value/1000);
-          ki = value;
+          ki = (value/1000);
         break;
 
         case 'V':
