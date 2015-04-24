@@ -244,16 +244,19 @@ void USBSerial_Init(void)
             serialnumber_present = 1;
     }
     if(serialnumber_present == 1){
-            abDescriptors[138] = serialnumber[0];
-            abDescriptors[140] = serialnumber[1];
-            abDescriptors[142] = serialnumber[2];
-            abDescriptors[144] = serialnumber[3];
-            abDescriptors[146] = serialnumber[4];
-            abDescriptors[148] = serialnumber[5];
-            abDescriptors[150] = serialnumber[6];
-            abDescriptors[152] = serialnumber[7];
-            abDescriptors[154] = serialnumber[8];
-            abDescriptors[156] = serialnumber[9];
+        /*
+         * abDescriptors[112+i] -> 112 is the position where the Serial Number string is located in the USB Descriptor
+         */
+        abDescriptors[112] = serialnumber[0];
+        abDescriptors[114] = serialnumber[1];
+        abDescriptors[116] = serialnumber[2];
+        abDescriptors[118] = serialnumber[3];
+        abDescriptors[120] = serialnumber[4];
+        abDescriptors[122] = serialnumber[5];
+        abDescriptors[124] = serialnumber[6];
+        abDescriptors[126] = serialnumber[7];
+        abDescriptors[128] = serialnumber[8];
+        abDescriptors[130] = serialnumber[9];
     }
 
     // initialise stack
