@@ -29,14 +29,14 @@
 */
 
 
-#include	<string.h>
+#include        <string.h>
 #include <stdbool.h>
 
-#include	"serial.h"
-#include	"sermsg.h"
+#include        "serial.h"
+#include        "sermsg.h"
 
-#include	"gcode_parse.h"
-#include	"gcode_process.h"
+#include        "gcode_parse.h"
+#include        "gcode_process.h"
 #include        "machine.h"
 #include        "config.h"
 
@@ -44,7 +44,7 @@ GCODE_COMMAND next_target;
 
 static uint8_t last_field = 0;
 
-#define crc(a, b)		(a ^ b)
+#define crc(a, b)               (a ^ b)
 
 static struct {
   uint8_t sign; 
@@ -67,14 +67,14 @@ void gcode_parse_init(void)
 
 
 /*
-	utility functions
+        utility functions
 */
 
 #if 0
-static int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
+static int32_t  decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 {
-  int64_t	r = df->mantissa;
-  uint8_t	e = df->exponent;
+  int64_t       r = df->mantissa;
+  uint8_t       e = df->exponent;
 
   // e=1 means we've seen a decimal point but no digits after it, and e=2 means we've seen a decimal point with one digit so it's too high by one if not zero
   if (e)
@@ -143,7 +143,7 @@ double inch_to_mm (double inches)
 }
 
 /*
-	public functions
+        public functions
 */
 
 eParseResult gcode_parse_line (tLineBuffer *pLine) 
@@ -329,15 +329,18 @@ void gcode_parse_char(uint8_t c)
         break;
 
         case 'T':
-        config.kp = value;
+        //config.kp = value;
+          kp = value;
         break;
 
         case 'U':
-        config.ki = (value/1000);
+        //config.ki = (value/1000);
+          ki = (value/1000);
         break;
 
         case 'V':
-        config.kd = value;
+        //config.kd = value;
+          kd = value;
         break;
 
         case 'W':

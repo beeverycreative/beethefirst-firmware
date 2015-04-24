@@ -61,6 +61,10 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+double kp = 6.0;
+double ki = 0.0013;
+double kd = 80.0;
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -1098,12 +1102,15 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B ){
               if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
-                  serial_writestr("kp:");
-                  serwrite_double(config.kp);
+                  serial_writestr("kp: ");
+                  //serwrite_double(config.kp);
+                  serwrite_double(kp);
                   serial_writestr(" ki:");
-                  serwrite_double(config.ki);
+                  //serwrite_double(config.ki);
+                  serwrite_double(ki);
                   serial_writestr(" kd:");
-                  serwrite_double(config.kd);
+                  //serwrite_double(config.kd);
+                  serwrite_double(kd);
                   serial_writestr(" ");
               }/*No need for else*/
           }/*No need for else*/
