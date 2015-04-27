@@ -66,10 +66,10 @@ static U8 abDescriptors[] = {
       0x00,                       // bDeviceSubClass
       0x00,                       // bDeviceProtocol
       MAX_PACKET_SIZE0,           // bMaxPacketSize
-      LE_WORD(0x29C9),            // idVendor   BOOTLOADER 4.X.X
-      LE_WORD(0x001),               // idProduct BOOTLOADER 4.X.X
-      //LE_WORD(0xffff),            // idVendor   BOOTLOADER 3.X.X
-      //LE_WORD(0x014e),               // idProduct BOOTLOADER 3.X.X
+      //LE_WORD(0x29C9),            // idVendor   BOOTLOADER 4.X.X
+      //LE_WORD(0x001),               // idProduct BOOTLOADER 4.X.X
+      LE_WORD(0xffff),            // idVendor   BOOTLOADER 3.X.X
+      LE_WORD(0x014e),               // idProduct BOOTLOADER 3.X.X
       LE_WORD(0x0100),            // bcdDevice
       0x01,                       // iManufacturer
       0x02,                       // iProduct
