@@ -36,7 +36,7 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
-#define CFG_UID           0x00100000
+#define CFG_UID           0x10
 
 struct configuration
 {
