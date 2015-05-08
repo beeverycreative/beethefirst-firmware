@@ -329,15 +329,18 @@ void gcode_parse_char(uint8_t c)
         break;
 
         case 'T':
-        config.kp = value;
+        //config.kp = value;
+          kp = value;
         break;
 
         case 'U':
-        config.ki = (value/1000);
+        //config.ki = (value/1000);
+          ki = (value/1000);
         break;
 
         case 'V':
-        config.kd = value;
+        //config.kd = value;
+          kd = value;
         break;
 
         case 'W':

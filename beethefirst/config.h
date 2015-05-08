@@ -36,8 +36,12 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
+#define CFG_UID           0x10
+
 struct configuration
 {
+  int32_t uid;
+
   int32_t  machine_model;
   
   double steps_per_mm_x;
@@ -105,9 +109,9 @@ struct configuration
   int32_t bcode;
 
   // pid
-  double kp;
-  double ki;
-  double kd;
+  //double kp;
+  //double ki;
+  //double kd;
 
   // autonomous
   char filename[10];
@@ -120,10 +124,17 @@ struct configuration
   double  startpoint_y;
   double  startpoint_z;
   double  startpoint_e;
+  double  startpoint_feed_rate;
+  double  startpoint_temperature;
+  double  startpoint_filament_coeff;
 
 };
 
 extern struct configuration config;
+
+extern double kp;
+extern double ki;
+extern double kd;
 
 void read_config (void);
 void reset_config (void);

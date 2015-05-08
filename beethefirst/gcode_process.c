@@ -54,10 +54,16 @@ uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 
 bool      sd_printing = false;      // printing from SD file
+bool      sd_pause = false;             // printing paused
+bool      sd_resume = false;             // resume from sd pause
 bool      enter_power_saving = false;      // printing from SD file
 bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
+
+double kp = 6.0;
+double ki = 0.0013;
+double kd = 80.0;
 
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
@@ -73,7 +79,7 @@ const double auto_reverse_feed_rate = 18000;
 double auto_prime_factor = 640;
 double auto_reverse_factor = 640;
 
-static void enqueue_moved (tTarget *pTarget)
+void enqueue_moved (tTarget *pTarget)
 {
   // grbl
   tActionRequest request;
@@ -893,6 +899,8 @@ eParseResult process_gcode_command(){
 
           config.status = 5;
           sd_printing = true;
+          sd_pause = false;
+          sd_resume = false;
         }
         break;
 
@@ -1020,9 +1028,9 @@ eParseResult process_gcode_command(){
           queue_flush();
           reset_current_block();
 
-          if(sd_printing){
-              sd_printing = false;
-          }/*No need for else*/
+          sd_printing = false;
+          sd_pause = false;
+          sd_resume = false;
         }
         break;
 
@@ -1031,7 +1039,7 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B && !sd_printing){
 
-              serial_writestr(" 7.0.2");
+              serial_writestr(" 9.1.1");
               serial_writestr(" ");
           }
         }
@@ -1094,12 +1102,15 @@ eParseResult process_gcode_command(){
         {
           if(!next_target.seen_B ){
               if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
-                  serial_writestr("kp:");
-                  serwrite_double(config.kp);
+                  serial_writestr("kp: ");
+                  //serwrite_double(config.kp);
+                  serwrite_double(kp);
                   serial_writestr(" ki:");
-                  serwrite_double(config.ki);
+                  //serwrite_double(config.ki);
+                  serwrite_double(ki);
                   serial_writestr(" kd:");
-                  serwrite_double(config.kd);
+                  //serwrite_double(config.kd);
+                  serwrite_double(kd);
                   serial_writestr(" ");
               }/*No need for else*/
           }/*No need for else*/
@@ -1394,9 +1405,16 @@ eParseResult process_gcode_command(){
               config.startpoint_y    = startpoint.y;
               config.startpoint_z    = startpoint.z;
               config.startpoint_e    = startpoint.e;
+              config.startpoint_feed_rate = startpoint.feed_rate;
+              config.startpoint_temperature = target_temp[EXTRUDER_0];
+              config.startpoint_filament_coeff = filament_coeff;
 
-              config.status = 7;
-              sd_printing = 0;
+              write_config();
+
+              //config.status = 7;
+              sd_printing = false;
+              sd_pause = true;
+              sd_resume = false;
           }/* No need for else */
         }
         break;
@@ -1432,6 +1450,25 @@ eParseResult process_gcode_command(){
               serial_writestr(" ");
 
           }
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+        //Resume SD Print from pause
+      case 643:
+        {
+          if(next_target.seen_W) {
+              filament_coeff = next_target.W;
+          }
+          if(next_target.seen_S) {
+              temp_set(next_target.S, EXTRUDER_0);
+          } else {
+              temp_set(config.startpoint_temperature, EXTRUDER_0);
+          }
+          enqueue_wait_temp();
+
+          sd_resume = true;
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/

@@ -55,7 +55,7 @@ double temptable[NUMTEMPS][3] = {
 };
 
 static double current_temp [NUMBER_OF_SENSORS] = {0};
-static double target_temp  [NUMBER_OF_SENSORS] = {0};
+double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
 #ifndef	ABSDELTA
@@ -73,7 +73,6 @@ void temp_set(double t, uint8_t sensor_number)
   }
 
   target_temp[sensor_number] = t;
-
 }
 
 void max_set(int range){
@@ -125,8 +124,10 @@ void temp_tick(void)
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
-  pterm = config.kp * pid_error;
-  iterm += (config.ki*pid_error);
+  //pterm = config.kp * pid_error;
+  //iterm += (config.ki*pid_error);
+  pterm = kp * pid_error;
+  iterm += (ki*pid_error);
 
   if(iterm > PID_FUNTIONAL_RANGE){
       iterm = PID_FUNTIONAL_RANGE;
@@ -135,7 +136,8 @@ void temp_tick(void)
   }
 
   dterm_temp = pid_error - last_error;
-  dterm = config.kd * dterm_temp;
+  //dterm = config.kd * dterm_temp;
+  dterm = kd * dterm_temp;
 
   output = pterm + iterm + dterm;
 

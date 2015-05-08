@@ -66,12 +66,13 @@ typedef struct {
 /* calculate the default values appropriate for your machine */
 tConfigItem config_lookup [] = 
     {
+        { "UID", &config.uid, TYPE_INT, {.val_i=CFG_UID}},
         { "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
 
         { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
-        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=517.000}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
+        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
 
         /* used for G0 rapid moves and as a cap for all other feedrates */
         { "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
@@ -127,9 +128,9 @@ tConfigItem config_lookup [] =
         { "status", &config.status, TYPE_INT, {.val_i=1}},
         { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
 
-        { "kp", &config.kp, TYPE_DOUBLE, {.val_d=6}},
-        { "ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
-        { "kd", &config.kd, TYPE_DOUBLE, {.val_d=80}},
+        //{ "kp", &config.kp, TYPE_DOUBLE, {.val_d=6}},
+        //{ "ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
+        //{ "kd", &config.kd, TYPE_DOUBLE, {.val_d=80}},
 
         {"filename",config.filename , TYPE_STRING, {.val_s=0}},
         {"sd_pos",&config.sd_pos , TYPE_INT, {.val_i=0}},
@@ -140,7 +141,10 @@ tConfigItem config_lookup [] =
         { "startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}}
+        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
+        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))
@@ -346,6 +350,7 @@ void read_config (void)
         }
     }
 
+    /*
     if(config.kp < 0.0001
         && config.ki < 0.0001
         && config.kd < 0.0001){
@@ -354,7 +359,7 @@ void read_config (void)
         config.ki = config_lookup[44].val_d;
         config.kd = config_lookup[45].val_d;
 
-    }/*No need for else*/
+    }*//*No need for else*/
 
     if(read_err){
         reset_config();
