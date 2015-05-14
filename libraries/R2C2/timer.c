@@ -200,6 +200,9 @@ void SysTick_Handler(void)
   time_elapsed++;
   millis_ticks++;
   rest_time++;
+#ifdef EXP_Board
+  blink_time++;
+#endif
 
   /* 100ms tick for SDCard ***********************************************/
   counter++;

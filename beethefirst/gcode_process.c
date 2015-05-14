@@ -49,6 +49,10 @@
 #include "system_LPC17xx.h"
 #include "lpc17xx_wdt.h"
 
+#ifndef FW_V
+  #define FW_V "0.0.0"
+#endif
+
 FIL       file;
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
@@ -60,6 +64,16 @@ bool      enter_power_saving = false;      // printing from SD file
 bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
+
+#ifdef EXP_Board
+  bool      start_logo_blink = false;      // start logo blink
+  bool      stop_logo_blink = true;      // stop logo blink
+  bool      logo_state = false;           // logo state
+  uint32_t  blink_interval = 10000;
+
+  bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
+  int32_t   extruderFanSpeed = 0;
+#endif
 
 double kp = 6.0;
 double ki = 0.0013;
@@ -682,7 +696,20 @@ eParseResult process_gcode_command(){
 
       switch (next_target.M)
       {
-
+#ifdef EXP_Board
+      // M5 Turn THE LIGHTS ON
+      case 5:
+        {
+          ilum_on();
+        }
+        break;
+        // M6 Turn THE LIGHTS OFF
+      case 6:
+        {
+          ilum_off();
+        }
+        break;
+#endif
       // SD File functions
       case 20: // M20 - list SD Card files
         {
@@ -975,6 +1002,7 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
 
           if(sd_printing){
+              temp_print();
               reply_sent = 1;
           }/*No need for else*/
         }
@@ -983,8 +1011,29 @@ eParseResult process_gcode_command(){
         // M106- fan on
       case 106:
         {
+#ifndef EXP_Board
           extruder_fan_on();
+#else
+          if(next_target.seen_S){
+              blower_on();
 
+              uint16_t s_val = next_target.S;
+              uint16_t duty = 0;
+              if(s_val >= 255)
+                {
+                  duty = 100;
+                } else {
+                    duty = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
+              pwm_set_enable(BW_PWM_CHANNEL);
+          } else {
+              blower_on();
+              pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
+              pwm_set_enable(BW_PWM_CHANNEL);
+          }
+#endif
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -994,8 +1043,13 @@ eParseResult process_gcode_command(){
         // M107- fan off
       case 107:
         {
+#ifndef EXP_Board
           extruder_fan_off();
-
+#else
+          blower_off();
+          pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
+          pwm_set_disable(BW_PWM_CHANNEL);
+#endif
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -1038,8 +1092,8 @@ eParseResult process_gcode_command(){
       case 115:
         {
           if(!next_target.seen_B && !sd_printing){
-
-              serial_writestr(" 9.1.1");
+              //serial_writestr(" 0.0.0");
+              serial_writestr(FW_V);
               serial_writestr(" ");
           }
         }
@@ -1097,6 +1151,81 @@ eParseResult process_gcode_command(){
         }
         break;
 
+#ifdef EXP_Board
+        // M126- Control Extruder fan on
+      case 126:
+        {
+          //Control extruder fan
+          if(next_target.seen_S){
+              manualBlockFanControl = true;
+              extruder_block_fan_on();
+
+              uint16_t s_val = next_target.S;
+              if(s_val >= 255)
+                {
+                  extruderFanSpeed = 100;
+                } else {
+                    extruderFanSpeed = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          } else {
+              manualBlockFanControl = false;
+              extruder_block_fan_on();
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          }/*No need for else*/
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M127- Extruder block fan off
+      case 127:
+        {
+          manualBlockFanControl = true;
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+          extruder_block_fan_off();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+       //M128 - Excruder block regression adjust
+      case 128:
+        {
+
+          if(next_target.seen_A) {
+              config.blockTemperatureFanStart = next_target.A;
+          }
+          if(next_target.seen_D) {
+              config.blockTemperatureFanMax = next_target.D;
+          }
+          if(next_target.seen_L) {
+              config.blockFanMinSpeed = next_target.L;
+          }
+          if(next_target.seen_P) {
+              config.blockFanMaxSpeed = next_target.P;
+          }
+
+          if(next_target.seen_A || next_target.seen_D || next_target.seen_L || next_target.seen_P)
+            {
+              //Extruder block fan regression
+              config.blockControlM = (config.blockFanMaxSpeed - config.blockFanMinSpeed)/(config.blockTemperatureFanMax - config.blockTemperatureFanStart);
+              config.blockControlB = config.blockFanMaxSpeed - config.blockControlM*config.blockTemperatureFanMax;
+            }
+
+          sersendf(" S: %u M: %g B: %g state: %u ", extruderFanSpeed, config.blockControlM, config.blockControlB, manualBlockFanControl);
+        }
+        break;
+
+#endif
         // M130 temperature PID
       case 130:
         {
@@ -1122,6 +1251,67 @@ eParseResult process_gcode_command(){
           print_pwm();
         }
         break;
+
+#ifdef EXP_Board
+        // M134 Turn R2C2 fAN ON
+      case 134:
+        {
+          r2c2_fan_on();
+        }
+        break;
+        // M135 Turn R2C2 fAN ON
+      case 135:
+        {
+          r2c2_fan_off();
+        }
+        break;
+        // M136 - start logo blink
+      case 136:
+        {
+          blink_time = 0;
+          start_logo_blink = 1;
+          stop_logo_blink = 0;
+          logo_state = 0;
+
+          if(next_target.seen_S) {
+              blink_interval = next_target.S;
+          } else {
+              blink_interval = 5000;
+          }
+
+          /* PWM Control*/
+          /*if(next_target.seen_S ){
+                              //logo_on();
+                              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
+                              pwm_set_enable(LOGO_PWM_CHANNEL);
+                          } else {
+                              //logo_on();
+                              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+                              pwm_set_enable(LOGO_PWM_CHANNEL);
+                          }
+           */
+        }
+        break;
+
+        // M137 - turn logo off
+      case 137:
+        {
+          blink_time = 0;
+          start_logo_blink = 0;
+          stop_logo_blink = 1;
+          logo_state = 1;
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+          ilum_on();
+          /*
+                          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+                          pwm_set_enable(LOGO_PWM_CHANNEL);
+                          //pwm_set_disable(LOGO_PWM_CHANNEL);
+           */
+
+        }
+        break;
+#endif
 
         // M200 - set steps per mm
       case 200:
@@ -1221,6 +1411,26 @@ eParseResult process_gcode_command(){
           }
         }
         break;
+
+#ifdef EXP_Board
+        //M504 - Report Power input voltage
+      case 504:
+        {
+          double voltsInput;
+
+          voltsInput = (double) sDown_filtered/112.5;
+
+          sersendf("Raw input: %u Volts: %g\n", sDown_filtered,voltsInput);
+        }
+        break;
+
+        //M505 - Clear Shutdown flag
+      case 505:
+        {
+          config.status = 3;
+          write_config();
+        }
+#endif
 
         // M600 print the values read from the config file
       case 600:

@@ -35,9 +35,16 @@
 #define EXTRUDER_0                      0
 #define HEATED_BED_0                    1
 
+#ifdef EXP_Board
+  extern double extruderBlockTemp;
+
+  extern int32_t sDown_filtered;
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "adc.h"
+#include "gcode_parse.h"
 
 // set target temperature
 void temp_set(double t, uint8_t sensor_number);

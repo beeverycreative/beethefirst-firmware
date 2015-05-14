@@ -50,6 +50,14 @@
 #include "pwm.h"
 
 tTimer temperatureTimer;
+#ifdef EXP_Board
+  int32_t i_sDownADC_raw;
+  int32_t sDownADC_raw[8];
+  tTimer sDownTimer;
+  int32_t sDown_filtered = 4095;
+
+  tTimer blockFanTimer;
+#endif
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
@@ -57,13 +65,33 @@ tLineBuffer sd_line_buf;
 /* initialize PWM */
 void pwm_init(void){
 
-  pwm_pins_init(2,2);
-  pwm_pins_init(2,4);
+  pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number);           //Buzzer pwm
+  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number);
+#ifdef EXP_Board
+  pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
+  pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
+  pwm_pins_init(LOGO_ON_PORT,LOGO_ON_PIN);
+#endif
 
   init_pwm_peripheral();
 
-  init_global_match(3);
-  init_global_match(5);
+  init_global_match(BUZZER_PWM_CHANNEL);         //Buzzer
+  init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
+#ifdef EXP_Board
+  init_global_match(FAN_EXT_PWM_CHANNEL);               //Extruder Block Fan
+  init_global_match(LOGO_PWM_CHANNEL);                  //Logo
+  init_global_match(BW_PWM_CHANNEL);                    //Blower
+  init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Bed
+
+  //Turn Logo On
+  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+  pwm_set_enable(LOGO_PWM_CHANNEL);
+
+  //Turn Extruder Block Fan On at 100%
+  extruder_block_fan_on();
+  //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+  //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+#endif
 
 }
 
@@ -72,6 +100,7 @@ void adc_init(void)
 {
   PINSEL_CFG_Type PinCfg;
 
+  //Extruder 0 ADC Config
   PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
@@ -79,12 +108,32 @@ void adc_init(void)
   PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 
+#ifdef EXP_Board
+  //Extruder Block Temperature ADC Config
   PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
   PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
   PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
+
+  //R2C2 TEMPERATURE ADC CONFIG
+  PinCfg.Funcnum = PINSEL_FUNC_1; /*ADC Function*/
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
+  PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+  //Shutdown ADC CONFIG
+  PinCfg.Funcnum = PINSEL_FUNC_3; /*ADC Function*/
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = SDOWN_ADC_PORT;
+  PinCfg.Pinnum = SDOWN_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+#endif
 
   ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
 }
@@ -118,8 +167,24 @@ void io_init(void)
   pin_mode(E_ENABLE_PORT, E_ENABLE_PIN, OUTPUT);
   e_enable();
 
+#ifndef EXP_Board
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
+#endif
+
+#ifdef EXP_Board
+  pin_mode(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, OUTPUT);
+  extruder_block_fan_on();
+
+  pin_mode(ILUM_PORT,ILUM_PIN, OUTPUT);
+  ilum_on();
+
+  pin_mode(BW_ON_PORT,BW_ON_PIN, OUTPUT);
+  blower_off();
+
+  pin_mode(R2C2_FAN_PORT,R2C2_FAN_PIN, OUTPUT);
+  r2c2_fan_on();
+#endif
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -128,6 +193,115 @@ void temperatureTimerCallback (tTimer *pTimer)
   temp_tick();
 }
 
+#ifdef EXP_Board
+  void shutdownTimerCallBack (tTimer *pTimer)
+  {
+    int i, j;
+    int32_t a;
+
+    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+    i_sDownADC_raw ++;
+    if(i_sDownADC_raw >= 5)
+      {
+        i_sDownADC_raw = 0;
+      }
+
+    //Sort the array
+    int32_t sortedArray[5];
+
+    for(i = 0; i < 5; i++)
+      {
+        sortedArray[i] = sDownADC_raw[i];
+      }
+
+    bubble_sort(sortedArray, 5);
+
+    sDown_filtered = sortedArray[2];
+    // filter the ADC values with simple IIR
+    //sDown_filtered = ((sDown_filtered * 2) + sDownADC_raw) / 3;
+
+    if(sDown_filtered < 1200)   //2700 -> 24V Shutdown threshold at ~10V
+      {
+        if(sd_printing){
+
+
+            //save vars
+            config.sd_pos          = sd_pos;
+            config.estimated_time  = estimated_time;
+            config.time_elapsed    = time_elapsed;
+            config.number_of_lines = number_of_lines;
+            config.executed_lines  = executed_lines;
+            config.startpoint_x    = startpoint.x;
+            config.startpoint_y    = startpoint.y;
+            config.startpoint_z    = startpoint.z;
+            config.startpoint_e    = startpoint.e;
+            config.startpoint_feed_rate = startpoint.feed_rate;
+            config.startpoint_temperature = target_temp[EXTRUDER_0];
+            config.startpoint_filament_coeff = filament_coeff;
+
+            config.status = 9;
+            sd_printing = 0;
+
+            write_config();
+
+            config.adc1 = sortedArray[0];
+            config.adc2 = sortedArray[1];
+            config.adc3 = sortedArray[2];
+            config.adc4 = sortedArray[3];
+            config.adc5 = sortedArray[4];
+
+            write_config();
+
+            queue_flush();
+            reset_current_block();
+
+            zero_z();
+
+        }
+      }
+
+  }
+
+  void bubble_sort(int list[], int n)
+  {
+    int c, d, t;
+
+    for (c = 0 ; c < ( n - 1 ); c++)
+    {
+      for (d = 0 ; d < n - c - 1; d++)
+      {
+        if (list[d] > list[d+1])
+        {
+          /* Swapping */
+
+          t         = list[d];
+          list[d]   = list[d+1];
+          list[d+1] = t;
+        }
+      }
+    }
+  }
+
+  void blockFanTimerCallBack(tTimer *pTimer) {
+
+    if (manualBlockFanControl == false)
+      {
+        extruderFanSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
+
+        if(extruderFanSpeed > 100) {
+            extruderFanSpeed = 100;
+        }
+        if(extruderFanSpeed < 0) {
+            extruderFanSpeed = 0;
+        }
+
+        extruder_block_fan_on();
+        pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+        pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+      }
+
+  }
+#endif
 
 void init(void)
 {
@@ -146,6 +320,25 @@ void init(void)
   StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
 
+#ifdef EXP_Board
+  //shutdown interruption
+  sDownADC_raw[0] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  sDownADC_raw[1] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  sDownADC_raw[2] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  sDownADC_raw[3] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  sDownADC_raw[4] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  i_sDownADC_raw = 0;
+
+  AddSlowTimer(&sDownTimer);
+  StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
+  sDownTimer.AutoReload = 1;
+
+  //extruder block fan timer
+  AddSlowTimer(&blockFanTimer);
+  StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
+  blockFanTimer.AutoReload = 1;
+
+#endif
 }
 
 
@@ -222,6 +415,25 @@ int app_main (void){
 
       bip++;
 
+#ifdef EXP_Board
+      //Logo Blink
+      if(start_logo_blink && (blink_time > blink_interval)) {
+
+          if(logo_state) {
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+              logo_state = 0;
+          } else {
+              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+              logo_state = 1;
+          }
+
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+
+          blink_time = 0;
+
+      }
+#endif
+
       //Power saving check
       if(enter_power_saving && (rest_time > 30000) && !sd_printing){
 
@@ -239,7 +451,7 @@ int app_main (void){
 
           temp_set(0, EXTRUDER_0);
 
-          extruder_fan_off();
+          //extruder_fan_off();
 
           leave_power_saving = 1;
           enter_power_saving = 0;

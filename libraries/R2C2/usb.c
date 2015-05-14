@@ -37,6 +37,25 @@
 #include "serial_fifo.h"
 #include "sbl_config.h"
 
+#ifdef BTF
+      #define SERIAL_ADD 112
+#endif
+#ifdef BTF_PLUS
+      #define SERIAL_ADD 106
+#endif
+#ifdef BTF_ME
+      #define SERIAL_ADD 102
+#endif
+#ifdef BTF_SCHOOL
+      #define SERIAL_ADD 110
+#endif
+#ifdef BTF_OLD
+      #define SERIAL_ADD 138
+#endif
+#ifndef SERIAL_ADD
+  #define SERIAL_ADD 112
+#endif
+
 #define BULK_OUT_EP     0x05
 #define BULK_IN_EP      0x82
 
@@ -66,10 +85,26 @@ static U8 abDescriptors[] = {
       0x00,                       // bDeviceSubClass
       0x00,                       // bDeviceProtocol
       MAX_PACKET_SIZE0,           // bMaxPacketSize
-      LE_WORD(0x29C9),            // idVendor bootloader 4.x.x
-      LE_WORD(0x001),               // idProduct bootloader 4.x.x
-      //LE_WORD(0xffff),            // idVendor bootloader 3.x.x
-      //LE_WORD(0x014e),               // idProduct bootloader 3.x.x
+#ifdef BTF_OLD
+      LE_WORD(0xffff),            // idVendor
+#else
+      LE_WORD(0x29C9),            // idVendor
+#endif
+#ifdef BTF
+      LE_WORD(0x0001),               // idProduct
+#endif
+#ifdef BTF_PLUS
+      LE_WORD(0x0002),               // idProduct
+#endif
+#ifdef BTF_ME
+      LE_WORD(0x0003),               // idProduct
+#endif
+#ifdef BTF_SCHOOL
+      LE_WORD(0x0004),               // idProduct
+#endif
+#ifdef BTF_OLD
+      LE_WORD(0x014e),            // idProduct
+#endif
       LE_WORD(0x0100),            // bcdDevice
       0x01,                       // iManufacturer
       0x02,                       // iProduct
@@ -119,14 +154,34 @@ static U8 abDescriptors[] = {
       32,
       DESC_STRING,
       'B', 0, 'E', 0, 'E', 0, 'V', 0, 'E', 0, 'R', 0, 'Y', 0, 'C', 0, 'R', 0, 'E', 0, 'A', 0, 'T', 0, 'I', 0, 'V', 0, 'E', 0,
-
+#ifdef BTF_OLD
+      50,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, '-', 0, ' ', 0, 'b', 0, 'o', 0, 'o', 0, 't', 0, 'l', 0, 'o', 0, 'a', 0, 'd', 0, 'e', 0, 'r', 0,
+#endif
+#ifdef BTF
       24,
       DESC_STRING,
       'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0,
-
+#endif
+#ifdef BTF_PLUS
+      18,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'P', 0, 'L', 0, 'U', 0, 'S', 0,
+#endif
+#ifdef BTF_ME
+      14,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'M', 0, 'E', 0,
+#endif
+#ifdef BTF_SCHOOL
+      22,
+      DESC_STRING,
+      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'S', 0, 'c', 0,'h', 0,'o', 0,'o', 0,'l', 0,
+#endif
       24,
       DESC_STRING,
-      '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,/* bootloader version 3.x.x */
+      '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0, '0', 0,
 
     // terminating zero
       0
@@ -247,16 +302,16 @@ void USBSerial_Init(void)
         /*
          * abDescriptors[112+i] -> 112 is the position where the Serial Number string is located in the USB Descriptor
          */
-        abDescriptors[112] = serialnumber[0];
-        abDescriptors[114] = serialnumber[1];
-        abDescriptors[116] = serialnumber[2];
-        abDescriptors[118] = serialnumber[3];
-        abDescriptors[120] = serialnumber[4];
-        abDescriptors[122] = serialnumber[5];
-        abDescriptors[124] = serialnumber[6];
-        abDescriptors[126] = serialnumber[7];
-        abDescriptors[128] = serialnumber[8];
-        abDescriptors[130] = serialnumber[9];
+        abDescriptors[SERIAL_ADD] = serialnumber[0];
+        abDescriptors[SERIAL_ADD+2] = serialnumber[1];
+        abDescriptors[SERIAL_ADD+4] = serialnumber[2];
+        abDescriptors[SERIAL_ADD+6] = serialnumber[3];
+        abDescriptors[SERIAL_ADD+8] = serialnumber[4];
+        abDescriptors[SERIAL_ADD+10] = serialnumber[5];
+        abDescriptors[SERIAL_ADD+12] = serialnumber[6];
+        abDescriptors[SERIAL_ADD+14] = serialnumber[7];
+        abDescriptors[SERIAL_ADD+16] = serialnumber[8];
+        abDescriptors[SERIAL_ADD+18] = serialnumber[9];
     }
 
     // initialise stack

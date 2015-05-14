@@ -84,6 +84,11 @@
 # - 13. Jun. 2010  - Trigger build when non-source files have changed 
 #                    (see BUILDONCHANGE). (mth)
 
+#Define Firmware Version
+FW_VERSION = 10.0.0
+
+#Define Config UID
+CFG_UID = 8
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -127,6 +132,7 @@ VECTOR_TABLE_LOCATION=VECT_TAB_FLASH
 
 # Directory for output files (lst, obj, dep, elf, sym, map, hex, bin etc.)
 OUTDIR = $(RUN_MODE)
+BINDIR = releases
 
 # Target file name (without extension).
 TARGET = project
@@ -511,7 +517,39 @@ LSTFILES   = $(addprefix $(OUTDIR)/, $(addsuffix .lst, $(ALLSRCBASE)))
 DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
 
 # Default target.
-all: begin createdirs gccversion build sizeafter end
+#all: begin createdirs gccversion build sizeafter end
+all: btf msftbtf btfold btfplus btfme btfschool
+
+# BTF
+btf: CFLAGS += -DBTF
+btf: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btf: begin createdirs gccversion build sizeafter copyBinBTF end
+
+# BTF
+msftbtf: CFLAGS += -DBTF
+msftbtf: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtf: begin createdirs gccversion build sizeafter copyBinBTF_MSFT end
+
+# BTF_OLD
+btfold: CFLAGS += -DBTF_OLD
+btfold: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfold: begin createdirs gccversion build sizeafter copyBinBTF_OLD end
+
+# BTF_PLUS
+btfplus: CFLAGS += -DBTF_PLUS
+btfplus: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS end
+
+# BTF_ME
+btfme: CFLAGS += -DBTF_ME
+btfme: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfme: begin createdirs gccversion build sizeafter copyBinBTF_ME end
+
+# BTF_IS
+btfschool: CFLAGS += -DBTF_SCHOOL
+btfschool: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
+#
 
 # Target for the build-sequence.
 build: elf lss sym hex bin
@@ -527,10 +565,34 @@ ifdef SHELL_IS_WIN32
 createdirs:
 	-@md $(OUTDIR) >NUL 2>&1 || echo "" >NUL
 	-@md $(OUTDIR)\dep >NUL 2>&1 || echo "" >NUL
+	-@md $(BINDIR) >NUL 2>&1 || echo "" >NUL
 else
 createdirs:
 	-@mkdir $(OUTDIR) 2>/dev/null || echo "" >/dev/null
 	-@mkdir $(OUTDIR)/dep 2>/dev/null || echo "" >/dev/null
+	-@mkdir $(BINDIR) 2>/dev/null || echo "" >/dev/null
+
+#Copy bin files to bin directory
+copyBinBTF_OLD:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEETHEFIRST_OLD-Firmware-$(FW_VERSION).BIN
+	
+copyBinBTF:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
+	
+copyBinBTF_MSFT:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
+	
+copyBinBTF_PLUS:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEE_PLUS-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEE_PLUS-Firmware-$(FW_VERSION).BIN
+	
+copyBinBTF_ME:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEE_ME-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEE_ME-Firmware-$(FW_VERSION).BIN
+
+copyBinBTF_SCHOOL:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEE_SCHOOL-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEE_SCHOOL-Firmware-$(FW_VERSION).BIN
 endif
 
 # Eye candy.
@@ -539,6 +601,7 @@ begin:
 
 end:
 	@echo $(MSG_END)
+
 
 # Display sizes of sections.
 ELFSIZE = $(SIZE) -A $(OUTDIR)/$(TARGET).elf | egrep '^(section|Total|\.(text|data|bss|stack|heap))'
@@ -689,6 +752,7 @@ clean_list :
 	@$(REMOVE) $(SRCARM:.c=.s)
 	@$(REMOVE) $(CPPSRC:.cpp=.s)
 	@$(REMOVE) $(CPPSRCARM:.cpp=.s)
+	#@$(REMOVE) $(BINDIR)/*
 
 # Include the dependency files.
 -include $(wildcard $(OUTDIR)/dep/*)

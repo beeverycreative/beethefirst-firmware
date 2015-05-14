@@ -46,6 +46,16 @@ char position_ok;
 // wether to insist on a checksum
 //#define	REQUIRE_CHECKSUM
 
+#ifdef BTF_PLUS
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+#ifdef BTF_ME
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+#ifdef BTF_SCHOOL
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+
 #ifndef ABS
 #define ABS(v)          (((v) >= 0)?(v):(-(v)))
 #endif
@@ -156,6 +166,11 @@ uint32_t number_of_lines;
 uint32_t executed_lines;
 double last_target_e;
 double filament_coeff;
+
+#ifdef EXP_Board
+  uint32_t blink_time;
+#endif
+
 // utility functions
 //int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);
 

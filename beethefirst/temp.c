@@ -54,6 +54,14 @@ double temptable[NUMTEMPS][3] = {
   {4080, 4085, 0}
 };
 
+#ifdef EXP_Board
+  double extruderBlockTemp = 0;
+  static double current_temp_r2c2 = {0};
+  static uint32_t adc_filtered_r2c2 = 4095;
+
+  static double read_R2C2_temp(void);
+#endif
+
 static double current_temp [NUMBER_OF_SENSORS] = {0};
 double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
@@ -112,7 +120,11 @@ uint8_t temps_achieved (void)
 
 void temp_print()
 {
+#ifdef EXP_Board
+  sersendf("T:%g B:%g R:%g\n", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0], current_temp_r2c2);
+#else
   sersendf("T:%g B:%g ", current_temp[EXTRUDER_0], current_temp[HEATED_BED_0]);
+#endif
 }
 
 void temp_tick(void)
@@ -121,6 +133,12 @@ void temp_tick(void)
 
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
+#ifdef EXP_Board
+  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
+
+  extruderBlockTemp = current_temp[HEATED_BED_0];
+  current_temp_r2c2 = read_R2C2_temp();
+#endif
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
@@ -211,6 +229,27 @@ static double read_temp(uint8_t sensor_number)
   return celsius;
 }
 
+#ifdef EXP_Board
+  /* Read and average the R2C2 ADC input signal */
+  static double read_R2C2_temp(void)
+  {
+    int32_t raw = 0; // initialize raw with value equal to lowest temperature.
+    double celsius = 0;
+    uint8_t i;
+    raw = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+
+    // filter the ADC values with simple IIR
+    adc_filtered_r2c2 = ((adc_filtered_r2c2 * 15) + raw) / 16;
+
+    raw = adc_filtered_r2c2;
+
+    double volts = (double) raw*(3.3/4096);
+
+    celsius = (volts - 0.5)*100;
+
+    return celsius;
+  }
+#endif
 bool temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val)
 {
   if (sensor_number < NUMBER_OF_SENSORS)

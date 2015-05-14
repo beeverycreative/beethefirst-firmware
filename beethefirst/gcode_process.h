@@ -32,7 +32,7 @@
 #define	_GCODE_PROCESS_H
 
 #include <stdbool.h>
-#include	"gcode_parse.h"
+#include "gcode_parse.h"
 #include "ff.h"
 
 
@@ -47,6 +47,18 @@ extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
+
+#ifdef EXP_Board
+  extern bool      start_logo_blink;      // start logo blink
+  extern bool      stop_logo_blink;      // stop logo blink
+  extern bool      logo_state;           // logo state
+  extern uint32_t  blink_interval;
+
+  extern bool      manualBlockFanControl;        //manual control of fan using M132 and M133 M-Codes
+  extern int32_t   extruderFanSpeed;
+
+#endif
+
 void enqueue_moved (tTarget *pTarget);
 void zero_x(void);
 void zero_y(void);

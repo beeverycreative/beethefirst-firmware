@@ -144,7 +144,22 @@ tConfigItem config_lookup [] =
         { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
         { "startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}}
+        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}},
+
+        //Block Fan Control
+        { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=2}},
+        { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=10}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=18}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=28}},
+        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=50}},
+        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
+
+        //ShutDown
+        {"SDown1",&config.adc1 , TYPE_INT, {.val_i=0}},
+        {"SDown2",&config.adc2 , TYPE_INT, {.val_i=0}},
+        {"SDown3",&config.adc3 , TYPE_INT, {.val_i=0}},
+        {"SDown4",&config.adc4 , TYPE_INT, {.val_i=0}},
+        {"SDown5",&config.adc5 , TYPE_INT, {.val_i=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))

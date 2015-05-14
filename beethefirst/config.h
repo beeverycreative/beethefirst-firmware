@@ -36,7 +36,7 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
-#define CFG_UID           0x10
+//#define CFG_UID           0x20
 
 struct configuration
 {
@@ -127,6 +127,21 @@ struct configuration
   double  startpoint_feed_rate;
   double  startpoint_temperature;
   double  startpoint_filament_coeff;
+
+  //Block Fan Control
+  double blockControlM;
+  double blockControlB;
+  double blockTemperatureFanStart;
+  double blockTemperatureFanMax;
+  double blockFanMinSpeed;
+  double blockFanMaxSpeed;
+
+  //ShutDown
+  int32_t adc1;
+  int32_t adc2;
+  int32_t adc3;
+  int32_t adc4;
+  int32_t adc5;
 
 };
 
