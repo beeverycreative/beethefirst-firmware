@@ -520,6 +520,10 @@ DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
 #all: begin createdirs gccversion build sizeafter end
 all: btf msftbtf btfold btfplus btfme btfschool
 
+#Debug UART BTF+
+debugPlus: CFLAGS += -DDEBUG_UART
+debugPlus: btfplus
+
 # BTF
 btf: CFLAGS += -DBTF
 btf: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)

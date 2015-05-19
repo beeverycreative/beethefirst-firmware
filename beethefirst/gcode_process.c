@@ -727,6 +727,9 @@ eParseResult process_gcode_command(){
         {
           sd_printing = false;
           sd_init();
+
+          read_config();
+
         }
         break;
 
@@ -982,8 +985,14 @@ eParseResult process_gcode_command(){
         // M104- set temperature
       case 104:
         {
+#ifdef EXP_Board
+          if(next_target.S > 300){
+              temp_set(300, EXTRUDER_0);
+#else
           if(next_target.S > 250){
               temp_set(250, EXTRUDER_0);
+          }
+#endif
           }else{
               temp_set(next_target.S, EXTRUDER_0);
           }
@@ -1430,7 +1439,14 @@ eParseResult process_gcode_command(){
           config.status = 3;
           write_config();
         }
+        break;
 #endif
+        //M506 - Load config
+      case 506:
+        {
+          read_config();
+        }
+        break;
 
         // M600 print the values read from the config file
       case 600:

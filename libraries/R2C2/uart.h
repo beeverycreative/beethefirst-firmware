@@ -16,11 +16,15 @@
 #ifndef	_UART_H
 #define	_UART_H
 
+#include <stdint.h>
+
 void uart_init(void);
 char uart_data_available(void);
 char uart_receive(void);
 void uart_send(char byte);
 void uart_writestr(char *data);
+void uart_write_uint32(uint32_t v);
+void uart_writedouble(double v);
 
 // #define serial_writechar(x) uart_send(x)
 

@@ -312,6 +312,10 @@ void init(void)
   //pwm
   pwm_init();
 
+#ifdef DEBUG_UART
+  uart_init();
+#endif
+
   /* Initialize Gcode parse variables */
   gcode_parse_init();
 
@@ -337,7 +341,10 @@ void init(void)
   AddSlowTimer(&blockFanTimer);
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
+#endif
 
+#ifdef DEBUG_UART
+  uart_writestr("R2C2 Firmware initiated\n");
 #endif
 }
 

@@ -59,7 +59,8 @@ void uart_init(void)
 		* None parity
 		*/
 	UART_ConfigStructInit(&UARTConfigStruct);
-	UARTConfigStruct.Baud_rate = 57600;
+	//UARTConfigStruct.Baud_rate = 57600;
+	UARTConfigStruct.Baud_rate = 115200;
 
 	// Initialize UART peripheral with given to corresponding parameter
 	UART_Init(DBG_UART, &UARTConfigStruct);
@@ -106,4 +107,101 @@ void uart_writestr(char *data)
 
  	while ((r = data[i++]))
 		uart_send(r);
+}
+
+void uart_write_uint32(uint32_t v) {
+        uint8_t t = 0;
+        if (v >= 1000000000) {
+                for (t = 0; v >= 1000000000; v -= 1000000000, t++);
+                uart_send(t + '0');
+        }
+
+        if (v >= 100000000) {
+                for (t = 0; v >= 100000000; v -= 100000000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 10000000) {
+                for (t = 0; v >= 10000000; v -= 10000000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 1000000) {
+                for (t = 0; v >= 1000000; v -= 1000000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 100000) {
+                for (t = 0; v >= 100000; v -= 100000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 10000) {
+                for (t = 0; v >= 10000; v -= 10000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 1000) {
+                for (t = 0; v >= 1000; v -= 1000, t++);
+                uart_send(t + '0');
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 100) {
+                t = v / 100;
+                uart_send(t + '0');
+                v -= (t * 100);
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        if (v >= 10) {
+                /* 99 > v > 10 */
+                t = v / 10;
+                uart_send(t + '0');
+                v -= (t * 10);
+        }
+        else if (t != 0)
+                uart_send('0');
+
+        uart_send(v + '0');
+}
+
+void uart_writedouble(double v)
+{
+  if (v < 0)
+  {
+      uart_send ('-');
+    v = -v;
+  }
+
+  /* print first part before '.' */
+  uart_write_uint32((uint32_t) v);
+
+  /* print the '.' */
+  uart_send('.');
+
+  /* print last part after '.' */
+  v = v - (int32_t)v;
+
+  v = v * 10000.0;
+  if (v < 1000.0)
+         uart_send('0');
+  if (v < 100.0)
+        uart_send('0');
+  if (v < 10.0)
+        uart_send('0');
+  uart_write_uint32((uint32_t) v);
+
 }

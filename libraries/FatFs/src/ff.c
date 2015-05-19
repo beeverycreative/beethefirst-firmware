@@ -2252,7 +2252,6 @@ FRESULT f_mount (
   FRESULT res;
   const TCHAR *rp = path;
 
-
   vol = get_ldnumber(&rp);
   if (vol < 0) return FR_INVALID_DRIVE;
   cfs = FatFs[vol];					/* Pointer to fs object */
