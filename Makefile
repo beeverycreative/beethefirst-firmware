@@ -526,33 +526,53 @@ debugPlus: btfplus
 
 # BTF
 btf: CFLAGS += -DBTF
-btf: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btf: CFLAGS += -DFW_V='"BEEVC-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btf: begin createdirs gccversion build sizeafter copyBinBTF end
 
-# BTF
+# MSFT_BTF
 msftbtf: CFLAGS += -DBTF
 msftbtf: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 msftbtf: begin createdirs gccversion build sizeafter copyBinBTF_MSFT end
 
 # BTF_OLD
 btfold: CFLAGS += -DBTF_OLD
-btfold: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfold: CFLAGS += -DFW_V='"BEEVC-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfold: begin createdirs gccversion build sizeafter copyBinBTF_OLD end
+
+# MSFT_BTF_OLD
+msftbtfold: CFLAGS += -DBTF_OLD
+msftbtfold: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfold: begin createdirs gccversion build sizeafter copyBinBTF_OLD_MSFT end
 
 # BTF_PLUS
 btfplus: CFLAGS += -DBTF_PLUS
-btfplus: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfplus: CFLAGS += -DFW_V='"BEEVC-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS end
+
+# MSFT_BTF_PLUS
+msftbtfplus: CFLAGS += -DBTF_PLUS
+msftbtfplus: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_MSFT end
 
 # BTF_ME
 btfme: CFLAGS += -DBTF_ME
-btfme: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfme: CFLAGS += -DFW_V='"BEEVC-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfme: begin createdirs gccversion build sizeafter copyBinBTF_ME end
+
+# MSFT_BTF_ME
+msftbtfme: CFLAGS += -DBTF_ME
+msftbtfme: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfme: begin createdirs gccversion build sizeafter copyBinBTF_ME_MSFT end
 
 # BTF_IS
 btfschool: CFLAGS += -DBTF_SCHOOL
-btfschool: CFLAGS += -DFW_V='"$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfschool: CFLAGS += -DFW_V='"BEEVC-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
+
+# MSFT_BTF_IS
+msftbtfschool: CFLAGS += -DBTF_SCHOOL
+msftbtfschool: CFLAGS += -DFW_V='"MSFT-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_MSFT end
 #
 
 # Target for the build-sequence.
@@ -579,7 +599,10 @@ createdirs:
 #Copy bin files to bin directory
 copyBinBTF_OLD:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEETHEFIRST_OLD-Firmware-$(FW_VERSION).BIN
-	
+
+copyBinBTF_OLD_MSFT:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST_OLD-Firmware-$(FW_VERSION).BIN
+		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
 	
@@ -588,14 +611,20 @@ copyBinBTF_MSFT:
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEETHEFIRST_PLUS-Firmware-$(FW_VERSION).BIN
+
+copyBinBTF_PLUS_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST_PLUS-Firmware-$(FW_VERSION).BIN
 	
 copyBinBTF_ME:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEE_ME-Firmware-$(FW_VERSION).BIN
+
+copyBinBTF_ME_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEE_ME-Firmware-$(FW_VERSION).BIN
 
 copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BVC-BEE_IN_SCHOOL-Firmware-$(FW_VERSION).BIN
+
+copyBinBTF_SCHOOL_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEE_IN_SCHOOL-Firmware-$(FW_VERSION).BIN
 endif
 
