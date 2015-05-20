@@ -43,6 +43,7 @@ extern uint32_t  sd_pos;
 extern bool      sd_printing;     // printing from SD file
 extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
+extern bool      in_power_saving;      //
 extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active

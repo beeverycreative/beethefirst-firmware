@@ -300,6 +300,13 @@ void temperatureTimerCallback (tTimer *pTimer)
         pwm_set_enable(FAN_EXT_PWM_CHANNEL);
       }
 
+    if(current_temp_r2c2 < 40 && in_power_saving)
+      {
+        r2c2_fan_off();
+      } else {
+          r2c2_fan_on();
+      }
+
   }
 #endif
 
@@ -458,10 +465,25 @@ int app_main (void){
 
           temp_set(0, EXTRUDER_0);
 
-          //extruder_fan_off();
+#ifdef EXP_Board
+          blink_time = 0;
+          start_logo_blink = 1;
+          stop_logo_blink = 0;
+          logo_state = 0;
+          blink_interval = 5000;
+
+          ilum_off();
+
+          extruder_block_fan_on();
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          manualBlockFanControl = true;
+
+#endif
 
           leave_power_saving = 1;
           enter_power_saving = 0;
+          in_power_saving = TRUE;
       }/* No need for else */
 
 

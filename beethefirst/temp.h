@@ -37,7 +37,7 @@
 
 #ifdef EXP_Board
   extern double extruderBlockTemp;
-
+  extern double current_temp_r2c2;
   extern int32_t sDown_filtered;
 #endif
 

@@ -56,7 +56,7 @@ double temptable[NUMTEMPS][3] = {
 
 #ifdef EXP_Board
   double extruderBlockTemp = 0;
-  static double current_temp_r2c2 = {0};
+  double current_temp_r2c2 = {0};
   static uint32_t adc_filtered_r2c2 = 4095;
 
   static double read_R2C2_temp(void);

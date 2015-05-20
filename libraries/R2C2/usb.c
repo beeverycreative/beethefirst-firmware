@@ -41,13 +41,13 @@
       #define SERIAL_ADD 112
 #endif
 #ifdef BTF_PLUS
-      #define SERIAL_ADD 106
+      #define SERIAL_ADD 122
 #endif
 #ifdef BTF_ME
       #define SERIAL_ADD 102
 #endif
 #ifdef BTF_SCHOOL
-      #define SERIAL_ADD 110
+      #define SERIAL_ADD 116
 #endif
 #ifdef BTF_OLD
       #define SERIAL_ADD 138
@@ -165,9 +165,9 @@ static U8 abDescriptors[] = {
       'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0,
 #endif
 #ifdef BTF_PLUS
-      18,
+      34,
       DESC_STRING,
-      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'P', 0, 'L', 0, 'U', 0, 'S', 0,
+      'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, 'P', 0, 'L', 0, 'U', 0, 'S', 0,
 #endif
 #ifdef BTF_ME
       14,
@@ -175,9 +175,9 @@ static U8 abDescriptors[] = {
       'B', 0, 'E', 0, 'E', 0, ' ', 0, 'M', 0, 'E', 0,
 #endif
 #ifdef BTF_SCHOOL
-      22,
+      28,
       DESC_STRING,
-      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'S', 0, 'c', 0,'h', 0,'o', 0,'o', 0,'l', 0,
+      'B', 0, 'E', 0, 'E', 0, ' ', 0, 'I', 0, 'N', 0, ' ', 0, 'S', 0, 'C', 0, 'H', 0, 'O', 0, 'O', 0, 'L', 0,
 #endif
       24,
       DESC_STRING,

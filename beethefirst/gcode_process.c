@@ -60,6 +60,7 @@ uint32_t  sd_pos = 0;
 bool      sd_printing = false;      // printing from SD file
 bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
+bool      in_power_saving = false;      //
 bool      enter_power_saving = false;      // printing from SD file
 bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
@@ -462,6 +463,23 @@ void sd_init(){
 
 void reinit_system(){
   leave_power_saving = 0;
+  in_power_saving = FALSE;
+
+#ifdef EXP_Board
+  r2c2_fan_on();
+
+  extruder_fan_on();
+  manualBlockFanControl = false;
+
+  blink_time = 0;
+  start_logo_blink = 0;
+  stop_logo_blink = 1;
+  logo_state = 1;
+  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+  pwm_set_enable(LOGO_PWM_CHANNEL);
+  ilum_on();
+
+#endif
 
   x_enable();
   y_enable();
@@ -728,6 +746,7 @@ eParseResult process_gcode_command(){
           sd_printing = false;
           sd_init();
 
+          //TODO - Config is corrupted after initiating the SD Card File System, read_config to reload.
           read_config();
 
         }
@@ -985,14 +1004,12 @@ eParseResult process_gcode_command(){
         // M104- set temperature
       case 104:
         {
+          double maxTemp = 250;
 #ifdef EXP_Board
-          if(next_target.S > 300){
-              temp_set(300, EXTRUDER_0);
-#else
-          if(next_target.S > 250){
-              temp_set(250, EXTRUDER_0);
-          }
+          maxTemp = 300;
 #endif
+          if(next_target.S > maxTemp){
+              temp_set(maxTemp, EXTRUDER_0);
           }else{
               temp_set(next_target.S, EXTRUDER_0);
           }
@@ -1022,7 +1039,8 @@ eParseResult process_gcode_command(){
         {
 #ifndef EXP_Board
           extruder_fan_on();
-#else
+#endif
+#ifdef EXP_Board
           if(next_target.seen_S){
               blower_on();
 
@@ -1054,7 +1072,8 @@ eParseResult process_gcode_command(){
         {
 #ifndef EXP_Board
           extruder_fan_off();
-#else
+#endif
+#ifdef EXP_Board
           blower_off();
           pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
           pwm_set_disable(BW_PWM_CHANNEL);
