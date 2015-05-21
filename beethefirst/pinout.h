@@ -107,6 +107,9 @@
 #define EXTRUDER_0_FAN_PORT             2         /* P2.3 */
 #define EXTRUDER_0_FAN_PIN              (1<<3)
 
+/*
+        Heated Bed
+*/
 #define HEATED_BED_0_HEATER_PORT        2        /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5) /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN_Number  5
@@ -114,6 +117,9 @@
 #define HEATED_BED_0_ADC_PIN            3        /* P0.3 */
 #define HEATED_BED_0_SENSOR_ADC_CHANNEL 6        /* P0.3 */
 #define HEATED_BED_0_PWM_CHANNEL        6
+
+#define heated_bed_on() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, HIGH);
+#define heated_bed_off() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, LOW);
 
 #define BUZZER_PORT                     2        /* P2.2 */
 #define BUZZER_PIN                      (1 << 2) /* P2.2 */

@@ -167,6 +167,10 @@ void io_init(void)
   pin_mode(E_ENABLE_PORT, E_ENABLE_PIN, OUTPUT);
   e_enable();
 
+  /* Heated Bed 0 Heater pin */
+  pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
+  heated_bed_off();
+
 #ifndef EXP_Board
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
