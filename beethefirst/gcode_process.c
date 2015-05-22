@@ -728,23 +728,6 @@ eParseResult process_gcode_command(){
         }
         break;
 #endif
-        //MCODE FOR Controlling the Heated Bed Power output
-      case 7:
-        {
-          if(next_target.seen_S) {
-              int output = 0;
-              if (next_target.S > 0)
-                {
-                  heated_bed_on();
-                } else {
-                    heated_bed_off();
-                }
-          }
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
       // SD File functions
       case 20: // M20 - list SD Card files
         {
@@ -1137,8 +1120,8 @@ eParseResult process_gcode_command(){
       case 115:
         {
           if(!next_target.seen_B && !sd_printing){
-              serial_writestr(" 0.0.0");
-              //serial_writestr(FW_V);
+              //serial_writestr(" 0.0.0");
+              serial_writestr(FW_V);
               serial_writestr(" ");
           }
         }
