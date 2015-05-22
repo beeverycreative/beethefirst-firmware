@@ -68,6 +68,8 @@ extern void sd_close (FIL *pFile);
 extern void sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
 
+extern void print_infi(void);
+
 extern bool sd_read_file (tLineBuffer *pLine);
 
 // when we have a whole line, feed it to this

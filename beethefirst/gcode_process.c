@@ -461,6 +461,52 @@ void sd_init(){
   }
 }
 
+void print_infi(void) {
+  /*
+     * AUTOMATIC START PRINTING FILE NAMED INFI
+     */
+
+    sd_printing = false;
+    sd_init();
+
+    executed_lines = 0;
+    //closes file
+    sd_close(&file);
+
+    char path [120] = "INFI";
+
+    //strcpy(next_target.filename, path);
+
+    //opens a file
+    if (sd_open(&file, "INFI", FA_READ)) {
+        if(!next_target.seen_B) {
+            sersendf("File opened\n");
+        }/*No need for else*/
+        sd_pos = 0;
+        //save current filename to config
+        strcpy(config.filename, next_target.filename);
+    }else{
+        if(!next_target.seen_B){
+            sersendf("error opening file\n");
+            serial_writestr(next_target.filename);
+            serial_writestr("\n");
+        }/*No need for else*/
+    }
+
+    FRESULT res;
+    res = f_lseek(&file, sd_pos);
+
+    if(res != FR_OK){
+        if(!next_target.seen_B){
+            serial_writestr("error seeking position on file\n");
+        }/*No need for else*/
+        //break;
+    }/*No need for else*/
+
+    config.status = 5;
+    sd_printing = true;
+}
+
 void reinit_system(){
   leave_power_saving = 0;
   in_power_saving = FALSE;

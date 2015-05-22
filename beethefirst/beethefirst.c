@@ -418,6 +418,8 @@ int app_main (void){
   buzzer_play(1000); /* low beep */
   buzzer_wait();
 
+  print_infi();
+
   // main loop
   for (;;){
       WDT_Feed();
