@@ -556,22 +556,22 @@ msftbtfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_MSFT en
 
 # BTF_ME
 btfme: CFLAGS += -DBTF_ME
-btfme: CFLAGS += -DFW_V='"BEEVC-BTFME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfme: CFLAGS += -DFW_V='"BEEVC-BEEME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfme: begin createdirs gccversion build sizeafter copyBinBTF_ME end
 
 # MSFT_BTF_ME
 msftbtfme: CFLAGS += -DBTF_ME
-msftbtfme: CFLAGS += -DFW_V='"MSFT-BTFME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfme: CFLAGS += -DFW_V='"MSFT-BEEME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 msftbtfme: begin createdirs gccversion build sizeafter copyBinBTF_ME_MSFT end
 
 # BTF_IS
 btfschool: CFLAGS += -DBTF_SCHOOL
-btfschool: CFLAGS += -DFW_V='"BEEVC-BTFSCH-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfschool: CFLAGS += -DFW_V='"BEEVC-BEESCH-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
 # MSFT_BTF_IS
 msftbtfschool: CFLAGS += -DBTF_SCHOOL
-msftbtfschool: CFLAGS += -DFW_V='"MSFT-BTFSCH-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+msftbtfschool: CFLAGS += -DFW_V='"MSFT-BEESCH-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 msftbtfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_MSFT end
 #
 
