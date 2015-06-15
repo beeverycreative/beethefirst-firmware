@@ -67,23 +67,24 @@ typedef struct {
 tConfigItem config_lookup [] = 
     {
         { "UID", &config.uid, TYPE_INT, {.val_i=CFG_UID}},
-        { "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
-
+        //{ "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
+/*
         { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
-        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},    /* Wades extruder, NEMA 17 geared extruder (1/39 * 6.5mm) */
-
+        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},
+*/
         /* used for G0 rapid moves and as a cap for all other feedrates */
-        { "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
-        { "maximum_feedrate_y", &config.maximum_feedrate_y, TYPE_INT, {.val_i=60000}},
-        { "maximum_feedrate_z", &config.maximum_feedrate_z, TYPE_INT, {.val_i=60000}},   /* 1mm / second */
-        { "maximum_feedrate_e", &config.maximum_feedrate_e, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
+        //{ "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
+        //{ "maximum_feedrate_y", &config.maximum_feedrate_y, TYPE_INT, {.val_i=60000}},
+        //{ "maximum_feedrate_z", &config.maximum_feedrate_z, TYPE_INT, {.val_i=60000}},   /* 1mm / second */
+        //{ "maximum_feedrate_e", &config.maximum_feedrate_e, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
 
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
         /* used when searching endstops and similar */
+        /*
         { "search_feedrate_x", &config.search_feedrate_x, TYPE_INT, {.val_i=1000}},
         { "search_feedrate_y", &config.search_feedrate_y, TYPE_INT, {.val_i=1000}},
         { "search_feedrate_z", &config.search_feedrate_z, TYPE_INT, {.val_i=1000}},
@@ -97,15 +98,15 @@ tConfigItem config_lookup [] =
         { "home_direction_x", &config.home_direction_x, TYPE_INT, {.val_i=-1}},
         { "home_direction_y", &config.home_direction_y, TYPE_INT, {.val_i=-1}},
         { "home_direction_z", &config.home_direction_z, TYPE_INT, {.val_i=1}},
-
-        { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=-90.0}},
-        { "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=-65.0}},
+*/
+        //{ "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=-90.0}},
+        //{ "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=-65.0}},
         { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=123.495}},
-
+/*
         { "printing_vol_x", &config.printing_vol_x , TYPE_INT, {.val_i=120}},
         { "printing_vol_y", &config.printing_vol_y , TYPE_INT, {.val_i=80}},
         { "printing_vol_z", &config.printing_vol_z , TYPE_INT, {.val_i=85}},
-
+*/
         // dump pos
         //{ "have_dump_pos", &config.have_dump_pos , TYPE_INT, {.val_i=0}},
         //{ "dump_pos_x", &config.dump_pos_x , TYPE_INT, {.val_i=120}},
@@ -123,7 +124,7 @@ tConfigItem config_lookup [] =
         //{ "wipe_exit_pos_x", &config.wipe_exit_pos_x , TYPE_INT, {.val_i=0}},
         //{ "wipe_exit_pos_y", &config.wipe_exit_pos_y , TYPE_INT, {.val_i=0}},
 
-        { "steps_per_revolution_e", &config.steps_per_revolution_e, TYPE_INT, {.val_i=3200}},  // 200 * 16
+        //{ "steps_per_revolution_e", &config.steps_per_revolution_e, TYPE_INT, {.val_i=3200}},  // 200 * 16
 
         { "status", &config.status, TYPE_INT, {.val_i=1}},
         { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
@@ -154,12 +155,6 @@ tConfigItem config_lookup [] =
         { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=50}},
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
 
-        //ShutDown
-        {"SDown1",&config.adc1 , TYPE_INT, {.val_i=0}},
-        {"SDown2",&config.adc2 , TYPE_INT, {.val_i=0}},
-        {"SDown3",&config.adc3 , TYPE_INT, {.val_i=0}},
-        {"SDown4",&config.adc4 , TYPE_INT, {.val_i=0}},
-        {"SDown5",&config.adc5 , TYPE_INT, {.val_i=0}}
     };
 
 #define NUM_TOKENS (sizeof(config_lookup)/sizeof(tConfigItem))

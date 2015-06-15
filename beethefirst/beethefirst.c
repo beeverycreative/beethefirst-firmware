@@ -248,14 +248,6 @@ void temperatureTimerCallback (tTimer *pTimer)
 
             write_config();
 
-            config.adc1 = sortedArray[0];
-            config.adc2 = sortedArray[1];
-            config.adc3 = sortedArray[2];
-            config.adc4 = sortedArray[3];
-            config.adc5 = sortedArray[4];
-
-            write_config();
-
             queue_flush();
             reset_current_block();
 

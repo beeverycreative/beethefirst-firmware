@@ -1,205 +1,117 @@
-/* Copyright (c) 2007, 2010, ChaN, Martin Thomas, Mike Anton */
-/* Copyright (c) 2011-2013 BEEVC - Electronic Systems   */
-/* All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
-
-   * Redistributions of source code must retain the above copyright
-     notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in
-     the documentation and/or other materials provided with the
-     distribution.
-   * Neither the name of the copyright holders nor the names of
-     contributors may be used to endorse or promote products derived
-     from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.
-*/
-
-#include "lpc_types.h"
-#include "lpc17xx_pinsel.h"
-#include "lpc17xx_gpio.h"
-#include "lpc17xx_clkpwr.h"
-#include "lpc17xx_ssp.h"
 #include "spi.h"
 
-/*-----------------------------------------------------------------------*/
-/* SPI low-level functions                                               */
-/*-----------------------------------------------------------------------*/
-
-void spi_init(void)
+/********************************************************************//**
+ * @brief		Initializes the SPIx peripheral according to the specified
+*               parameters in the UART_ConfigStruct.
+ * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ * @param[in]	SPI_ConfigStruct Pointer to a SPI_CFG_Type structure
+*                    that contains the configuration information for the
+*                    specified SPI peripheral.
+ * @return 		None
+ *********************************************************************/
+void spi_init (void)
 {
-  PINSEL_CFG_Type PinCfg;
-  SSP_CFG_Type SSP_ConfigStruct;
+    /* Enable SSPI0 block */
+    LPC_SC->PCONP |= (1 << 21);
 
-  /*
-   * Initialize SPI pin connect
-   * P0.16 - SSEL0 - used as GPIO
-   * P0.15 - SCK0
-   * P0.17 - MISO0
-   * P0.18 - MOSI0
-   */
+    /* Set SSEL0 as GPIO, output high */
+    LPC_PINCON->PINSEL1 &= ~(3 << 0);          /* Configure P0.16(SSEL) as GPIO */
+    LPC_GPIO0->FIODIR |= (1 << 16);            /* set P0.16 as output */
 
-  /* SSEL0 P0.16 as GPIO, pull-up mounted */
-  PinCfg.Funcnum   = PINSEL_FUNC_0;
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
-  PinCfg.Pinnum    = 16;
-  PinCfg.Portnum   = 0;
-  GPIO_SetDir(0, (1 << 16), 1);
-  PINSEL_ConfigPin(&PinCfg);
-  /* SCK0 P0.15 alternate function 0b10 */
-  PinCfg.Funcnum   = PINSEL_FUNC_2;
-  PinCfg.Pinmode   = PINSEL_PINMODE_PULLDOWN;
-  PinCfg.Pinnum    = 15;
-  PINSEL_ConfigPin(&PinCfg);
-  /* MISO0 P0.17 */
-  PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
-  PinCfg.Pinnum    = 17;
-  PINSEL_ConfigPin(&PinCfg);
-  /* MOSI0 P0.18 */
-  PinCfg.Pinnum    = 18;
-  PINSEL_ConfigPin(&PinCfg);
+    /* Configure other SSP pins: SCK, MISO, MOSI */
+    LPC_PINCON->PINSEL0 &= ~(3UL << 30);
+    LPC_PINCON->PINSEL0 |=  (2UL << 30);          /* P0.15: SCK0 */
+    LPC_PINCON->PINSEL1 &= ~((3<<2) | (3<<4));
+    LPC_PINCON->PINSEL1 |=  ((2<<2) | (2<<4));  /* P0.17: MISO0, P0.18: MOSI0 */
 
-  /* initialize SSP configuration structure */
-  SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
-  SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
-  SSP_ConfigStruct.ClockRate = 200000; /* 200KHz */
-  SSP_ConfigStruct.Databit = SSP_DATABIT_8;
-  SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
-  SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
-  SSP_Init(LPC_SSP0, &SSP_ConfigStruct);
+    /* Configure SSP0_PCLK to CCLK(100MHz), default value is CCLK/4 */
+    LPC_SC->PCLKSEL1 &= ~(3 << 10);
+    LPC_SC->PCLKSEL1 |=  (1 << 10);  /* SSP0_PCLK=CCLK */
 
-  /* Enable SSP peripheral */
-  SSP_Cmd(LPC_SSP0, ENABLE);
+    /* 8bit, SPI frame format, CPOL=0, CPHA=0, SCR=0 */
+    LPC_SSP0->CR0 = (0x07 << 0) |     /* data width: 8bit*/
+                    (0x00 << 4) |     /* frame format: SPI */
+                    (0x00 << 6) |     /* CPOL: low level */
+                    (0x00 << 7) |     /* CPHA: first edge */
+                    (0x00 << 8);      /* SCR = 0 */
+
+    /* Enable SSP0 as a master */
+    LPC_SSP0->CR1 = (0x00 << 0) |   /* Normal mode */
+                    (0x01 << 1) |   /* Enable SSP0 */
+                    (0x00 << 2) |   /* Master */
+                    (0x00 << 3);    /* slave output disabled */
+
+    /* Configure SSP0 clock rate to 400kHz (100MHz/250) */
+    SPI_ConfigClockRate (SPI_CLOCKRATE_LOW);
+
+    /* Set SSEL to high */
+    SPI_CS_High ();
+}
+/**
+  * @brief  Configure SSP0 clock rate.
+  *
+  * @param  SPI_CLOCKRATE: Specifies the SPI clock rate.
+  *         The value should be SPI_CLOCKRATE_LOW or SPI_CLOCKRATE_HIGH.
+  * @retval None
+  *
+  * SSP0_CLK = CCLK / SPI_CLOCKRATE
+  */
+void SPI_ConfigClockRate (uint32_t SPI_CLOCKRATE)
+{
+    /* CPSR must be an even value between 2 and 254 */
+    LPC_SSP0->CPSR = (SPI_CLOCKRATE & 0xFE);
 }
 
-void spi_set_speed( enum speed_setting speed )
+/**
+  * @brief  Set SSEL to low: select spi slave.
+  *
+  * @param  None.
+  * @retval None
+  */
+void SPI_CS_Low (void)
 {
-  if ( speed == INTERFACE_SLOW )
-  {
-    setSSPclock(LPC_SSP0, 400000);
-  }
-  else
-  {
-    setSSPclock(LPC_SSP0, 25000000);
-  }
+    /* SSEL is GPIO, set to high.  */
+    LPC_GPIO0->FIOPIN &= ~(1 << 16);
 }
 
-void spi_close(void)
+/**
+  * @brief  Set SSEL to high: de-select spi slave.
+  *
+  * @param  None.
+  * @retval None
+  */
+void SPI_CS_High (void)
 {
-  PINSEL_CFG_Type PinCfg;
-
-  SSP_Cmd(LPC_SSP0, DISABLE);
-  SSP_DeInit(LPC_SSP0);
-
-  PinCfg.Funcnum   = PINSEL_FUNC_0;
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode   = PINSEL_PINMODE_PULLDOWN;
-  PinCfg.Pinnum    = 16;
-  PinCfg.Portnum   = 0;
-  PINSEL_ConfigPin(&PinCfg);
-  PinCfg.Pinnum    = 15;
-  PINSEL_ConfigPin(&PinCfg);
-  PinCfg.Pinnum    = 17;
-  PINSEL_ConfigPin(&PinCfg);
-  PinCfg.Pinnum    = 18;
-  PINSEL_ConfigPin(&PinCfg);
+    /* SSEL is GPIO, set to high.  */
+    LPC_GPIO0->FIOPIN |= (1 << 16);
 }
 
-uint8_t spi_rw( uint8_t out )
+/**
+  * @brief  Send one byte via MOSI and simutaniously receive one byte via MISO.
+  *
+  * @param  data: Specifies the byte to be sent out.
+  * @retval Returned byte.
+  *
+  * Note: Each time send out one byte at MOSI, Rx FIFO will receive one byte.
+  */
+uint8_t SPI_SendByte (uint8_t data)
 {
-  uint8_t in;
-
-  LPC_SSP0->DR = out;
-  while (LPC_SSP0->SR & SSP_SR_BSY ) { ; }
-  in = LPC_SSP0->DR;
-
-  return in;
+    /* Put the data on the FIFO */
+    LPC_SSP0->DR = data;
+    /* Wait for sending to complete */
+    while (LPC_SSP0->SR & SSP_SR_BSY);
+    /* Return the received value */
+    return (LPC_SSP0->DR);
 }
 
-uint8_t rcvr_spi(void)
+/**
+  * @brief  Receive one byte via MISO.
+  *
+  * @param  None.
+  * @retval Returned received byte.
+  */
+uint8_t SPI_RecvByte (void)
 {
-  return spi_rw(0xff);
-}
-
-/* Alternative macro to receive data fast */
-#define rcvr_spi_m(dst)  *(dst)=spi_rw(0xff)
-
-#define FIFO_ELEM 8 /* "8 frame FIFOs for both transmit and receive.*/
-
-void spi_rcvr_block (
-        uint8_t *buff,         /* Data buffer to store received data */
-        uint16_t btr            /* Byte count (must be multiple of 4) */
-)
-{
-        uint16_t hwtr, startcnt, i, rec;
-
-        hwtr = btr/2;
-        if ( btr < FIFO_ELEM ) {
-                startcnt = hwtr;
-        } else {
-                startcnt = FIFO_ELEM;
-        }
-
-        LPC_SSP0->CR0 |= SSP_CR0_DSS(16); // DSS to 16 bit
-
-        for ( i = startcnt; i; i-- ) {
-                LPC_SSP0->DR = 0xffff;  // fill TX FIFO
-        }
-
-        do {
-                while ( !(LPC_SSP0->SR & SSP_SR_RNE ) ) {
-                        // wait for data in RX FIFO (RNE set)
-                }
-                rec = LPC_SSP0->DR;
-                if ( i < ( hwtr - startcnt ) ) {
-                        LPC_SSP0->DR = 0xffff;
-                }
-                *buff++ = (uint8_t)(rec >> 8);
-                *buff++ = (uint8_t)(rec);
-                i++;
-        } while ( i < hwtr );
-
-        LPC_SSP0->CR0 = ( LPC_SSP0->CR0 & ~SSP_CR0_DSS(16) ) | SSP_CR0_DSS(8); // DSS to 8 bit
-}
-
-void spi_xmit_block (
-        const uint8_t *buff    /* 512 byte data block to be transmitted */
-)
-{
-        uint16_t cnt;
-        int16_t data;
-
-        LPC_SSP0->CR0 |= SSP_CR0_DSS(16); // DSS to 16 bit
-
-        for ( cnt = 0; cnt < ( 512 / 2 ); cnt++ ) {
-                while ( !( LPC_SSP0->SR & SSP_SR_TNF ) ) {
-                        ; // wait for TX FIFO not full (TNF)
-                }
-                data  = (*buff++) << 8;
-                data |= *buff++;
-                LPC_SSP0->DR = data;
-        }
-
-        while ( LPC_SSP0->SR & SSP_SR_BSY ) {
-                // wait for BSY gone
-        }
-        while ( LPC_SSP0->SR & SSP_SR_RNE ) {
-                data = LPC_SSP0->DR; // drain receive FIFO
-        }
-
-        LPC_SSP0->CR0 = ( LPC_SSP0->CR0 & ~SSP_CR0_DSS(16) ) | SSP_CR0_DSS(8); // DSS to 8 bit
+    /* Send 0xFF to provide clock for MISO to receive one byte */
+    return SPI_SendByte (0xFF);
 }

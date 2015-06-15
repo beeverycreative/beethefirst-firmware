@@ -41,7 +41,7 @@
 struct configuration
 {
   int32_t uid;
-
+/*
   int32_t  machine_model;
   
   double steps_per_mm_x;
@@ -53,15 +53,15 @@ struct configuration
   int32_t maximum_feedrate_y;
   int32_t maximum_feedrate_z;
   int32_t maximum_feedrate_e;
-
+*/
   double  acceleration;
   double  junction_deviation;
-
+/*
   int32_t search_feedrate_x;
   int32_t search_feedrate_y;
   int32_t search_feedrate_z;
   int32_t search_feedrate_e;
-  
+
   // rate when homing (fast)
   int32_t homing_feedrate_x;
   int32_t homing_feedrate_y;
@@ -71,18 +71,18 @@ struct configuration
   int32_t home_direction_x;
   int32_t home_direction_y;
   int32_t home_direction_z;
-  
+*/
   // position at home
-  double home_pos_x;
-  double home_pos_y;
+  //double home_pos_x;
+  //double home_pos_y;
   double home_pos_z;
-
+/*
   // printable volume size
   // TODO: Need to define origin?
   int32_t printing_vol_x;
   int32_t printing_vol_y;
   int32_t printing_vol_z;
-  
+*/
   // dump pos
   //int32_t have_dump_pos;
   //int32_t dump_pos_x;
@@ -101,7 +101,7 @@ struct configuration
   //int32_t wipe_exit_pos_y;
   
   //
-  int32_t steps_per_revolution_e;
+  //int32_t steps_per_revolution_e;
   
   // options
 
@@ -135,13 +135,6 @@ struct configuration
   double blockTemperatureFanMax;
   double blockFanMinSpeed;
   double blockFanMaxSpeed;
-
-  //ShutDown
-  int32_t adc1;
-  int32_t adc2;
-  int32_t adc3;
-  int32_t adc4;
-  int32_t adc5;
 
 };
 

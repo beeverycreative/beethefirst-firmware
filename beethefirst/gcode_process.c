@@ -39,6 +39,7 @@
 #include "pinout.h"
 #include "config.h"
 #include "ff.h"
+#include "sd.h"
 #include "buzzer.h"
 //#include "debug.h"
 #include "planner.h"
@@ -54,6 +55,7 @@
 #endif
 
 FIL       file;
+FATFS Fatfs[_VOLUMES];          /* File system object for each logical drive */
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 
@@ -182,7 +184,7 @@ void zero_x(void)
   int dir;
   int max_travel;
 
-  if (config.home_direction_x < 0)
+  if (HOME_DIR_X < 0)
     {
       dir = -1;
     }
@@ -190,16 +192,16 @@ void zero_x(void)
     {
       dir = 1;
     }
-  max_travel = max (300, config.printing_vol_x);
+  max_travel = max (300, PRINT_VOL_X);
 
   // move to endstop
-  SpecialMoveXY(startpoint.x + dir * max_travel, startpoint.y, config.homing_feedrate_x);
+  SpecialMoveXY(startpoint.x + dir * max_travel, startpoint.y, HOME_FEED_X);
   synch_queue();
 
   // move forward a bit
-  SpecialMoveXY(startpoint.x - dir * 3, startpoint.y, config.search_feedrate_x);
+  SpecialMoveXY(startpoint.x - dir * 3, startpoint.y, SEARCH_FEED_X);
   // move back in to endstop slowly
-  SpecialMoveXY(startpoint.x + dir * 6, startpoint.y, config.search_feedrate_x);
+  SpecialMoveXY(startpoint.x + dir * 6, startpoint.y, SEARCH_FEED_X);
 
   synch_queue();
 
@@ -207,8 +209,7 @@ void zero_x(void)
   tTarget new_pos = startpoint;
 
   //R2C2: XICO B3.1 HOT FIX
-  //new_pos.x = config.home_pos_x;
-  new_pos.x = -96.0;
+  new_pos.x = HOME_POS_X;
   plan_set_current_position (&new_pos);
 }
 
@@ -217,7 +218,7 @@ void zero_y(void)
   int dir;
   int max_travel;
 
-  if (config.home_direction_y < 0)
+  if (HOME_DIR_Y < 0)
     {
       dir = -1;
     }
@@ -225,16 +226,16 @@ void zero_y(void)
     {
       dir = 1;
     }
-  max_travel = max (300, config.printing_vol_y);
+  max_travel = max (300, PRINT_VOL_Y);
 
   // move to endstop
-  SpecialMoveXY(startpoint.x, startpoint.y + dir * max_travel, config.homing_feedrate_y);
+  SpecialMoveXY(startpoint.x, startpoint.y + dir * max_travel, HOME_FEED_Y);
   synch_queue();
 
   // move forward a bit
-  SpecialMoveXY(startpoint.x, startpoint.y - dir * 3, config.search_feedrate_y);
+  SpecialMoveXY(startpoint.x, startpoint.y - dir * 3, SEARCH_FEED_Y);
   // move back in to endstop slowly
-  SpecialMoveXY(startpoint.x, startpoint.y + dir * 6, config.search_feedrate_y);
+  SpecialMoveXY(startpoint.x, startpoint.y + dir * 6, SEARCH_FEED_Y);
 
   synch_queue();
 
@@ -242,7 +243,7 @@ void zero_y(void)
   tTarget new_pos = startpoint;
 
   //R2C2: XICO B3.1 HOT FIX
-  //new_pos.y = config.home_pos_y;
+  //new_pos.y = HOME_POS_Y;
   new_pos.y = -74.5;
   plan_set_current_position (&new_pos);
 }
@@ -252,7 +253,7 @@ void zero_z(void)
   int dir;
   int max_travel;
 
-  if (config.home_direction_z < 0)
+  if (HOME_DIR_Z < 0)
     {
       dir = -1;
     }
@@ -260,10 +261,10 @@ void zero_z(void)
     {
       dir = 1;
     }
-  max_travel = max (300, config.printing_vol_z);
+  max_travel = max (300, PRINT_VOL_Z);
 
   // move to endstop
-  SpecialMoveZ(startpoint.z + dir * max_travel, config.homing_feedrate_z);  
+  SpecialMoveZ(startpoint.z + dir * max_travel, HOME_FEED_Z);
   synch_queue();
 
 
@@ -276,7 +277,7 @@ void zero_z(void)
   next_targetd.y = startpoint.y;
   next_targetd.z = startpoint.z - dir * 10;
   next_targetd.e = startpoint.e;
-  next_targetd.feed_rate =  config.homing_feedrate_z;
+  next_targetd.feed_rate =  HOME_FEED_Z;
   enqueue_moved(&next_targetd);
   synch_queue();
   /*
@@ -287,7 +288,8 @@ void zero_z(void)
   //synch_queue();
 
   // move back in to endstop slowly
-  SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
+  //SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
+  SpecialMoveZ(startpoint.z + dir *15 , SEARCH_FEED_Z);
   synch_queue();
 
   // this is our home point
@@ -319,9 +321,9 @@ FRESULT sd_list_dir_sub (char *path)
   int i;
   char *fn;
 #if _USE_LFN
-  static char lfn[_MAX_LFN * (_DF1S ? 2 : 1) + 1];
-  fno.lfname = lfn;
-  fno.lfsize = sizeof(lfn);
+  //static char lfn[_MAX_LFN * (_DF1S ? 2 : 1) + 1];
+  //fno.lfname = lfn;
+  //fno.lfsize = sizeof(lfn);
 #endif
 
   res = f_opendir(&dir, path);
@@ -347,7 +349,7 @@ FRESULT sd_list_dir_sub (char *path)
 
               strcat (path, "/");
               strcat (path, fn);
-              // sprintf(&path[i], "/%s", fn);
+              // ssersendf(&path[i], "/%s", fn);
               res = sd_list_dir_sub(path);
               if (res != FR_OK)
                 {
@@ -400,7 +402,8 @@ bool sd_read_file(tLineBuffer *pLine)
 {
   char *ptr;
 
-  ptr = f_gets(pLine->data, MAX_LINE, &file);
+  //TODO Implement file read
+  //ptr = f_gets(pLine->data, MAX_LINE, &file);
 
   if (ptr != NULL)
     {
@@ -441,24 +444,117 @@ void sd_seek(FIL *pFile, unsigned pos)
   f_lseek (pFile, pos);
 }
 
+void sd_init()
+{
+  DSTATUS ds;
 
-void sd_init(){
+  ds = disk_initialize(0);
+  if(ds != RES_OK) {
+      sersendf("Error initializing disk - %d\n", ds);
+      return;
+  }
+  sersendf("Card init OK.\n");
+  sersendf("Card type: ");
+  switch (CardType)
+  {
+  case CARDTYPE_MMC:
+    sersendf("MMC\n");
+    break;
+  case CARDTYPE_SDV1:
+    sersendf("Version 1.x Standard Capacity SD card.\n");
+    break;
+  case CARDTYPE_SDV2_SC:
+    sersendf("Version 2.0 or later Standard Capacity SD card.\n");
+    break;
+  case CARDTYPE_SDV2_HC:
+    sersendf("Version 2.0 or later High/eXtended Capacity SD card.\n");
+    break;
+  default:
+    break;
+  }
 
-  /* initialize SPI for SDCard */
-  spi_init();
+  sersendf("Sector size: %d bytes\n", CardConfig.sectorsize);
+  sersendf("Sector count: %d\n", CardConfig.sectorcnt);
+  sersendf("Block size: %d sectors\n", CardConfig.blocksize);
+  sersendf("Card capacity: %d MByte\n\n", (((CardConfig.sectorcnt >> 10) * CardConfig.sectorsize)) >> 10);
 
-  FATFS fs;       /* Work area (file system object) for logical drive */
-  FIL file;       /* file object */
-  FRESULT res;    /* FatFs function common result code */
+  FRESULT fsRes;
 
-  res = f_mount(&fs,"",1);
+  fsRes = f_mount(&Fatfs[0],"",1);
+  //sersendf("FsRes: %d",fsRes);
+  if(fsRes == FR_OK) {
+      sersendf("Disk mounted\n");
+  } else {
+      sersendf("Error Mounting FatFs - %d\n", ds);
+      return;
+  }
+
+  fsRes = f_open(&file, "test", FA_READ);
+  if(fsRes == FR_OK) {
+      sersendf("File test opened\n");
+  } else {
+      sersendf("Error opening file - %d\n", fsRes);
+      return;
+  }
+/*
+  uint32_t s2 = 0;
+  char reply[512];
+  res = f_read(&File1, &reply, 512, &s2);
+  for (i = 0; reply[i] != '\0'; i++){
+      _DBC(reply[i]);
+  }
+*/
+  f_close(&file);
+
+/*
+  FRESULT fsRes;
+  fsRes = f_mount(&fs,"",1);
+  if(fsRes == FR_OK) {
+      sersendf("Disk mounted\n");
+  } else {
+      sersendf("Error Mounting FatFs - %d\n", ds);
+      return;
+  }
+
+  ds = f_getfree("", (DWORD*)&p2, &fs);
+
+  sersendf("FAT type = FAT%u\nBytes/Cluster = %lu\nNumber of FATs = %u\n"
+      "Root DIR entries = %u\nSectors/FAT = %lu\nNumber of clusters = %lu\n"
+      "FAT start (lba) = %lu\nDIR start (lba,clustor) = %lu\nData start (lba) = %lu\n\n...",
+      ft[fs->fs_type & 3], (DWORD)fs->csize * 512, fs->n_fats,
+      fs->n_rootdir, fs->fsize, (DWORD)fs->n_fatent - 2,
+      fs->fatbase, fs->dirbase, fs->database);
+
+  acc_size = acc_files = acc_dirs = 0;
+  res = scan_files("");
+  if (res) {
+      sersendf("\nError Scanning Files - %d\n",res);
+  } else {
+      sersendf("\r%u files, %lu bytes.\n%u folders.\n"
+          "%lu KB total disk space.\n%lu KB available.\n",
+          acc_files, acc_size, acc_dirs,
+          (fs->n_fatent - 2) * (fs->csize / 2), p2 * (fs->csize / 2));
+      return;
+  }
+
+*/
+  return;
+
+
+  //res = f_mount(&fs,"",1);
+  /*
+  res = f_mount(0,&fs);
 
   if(res != FR_OK){
+      sersendf("error mounting fs - %d\n",res);
       serial_writestr ("error mounting fs - ");
       serwrite_uint32(res);
       serial_writestr ("\n");
       return;
   }
+*/
+  //res = f_getfree("", (DWORD*)&p2, &fs);
+
 }
 
 void print_infi(void) {
@@ -643,7 +739,7 @@ eParseResult process_gcode_command(){
         //G28 - go home
       case 28:
         {
-          next_targetd.feed_rate = config.homing_feedrate_z;
+          next_targetd.feed_rate = HOME_FEED_Z;
           double aux = config.acceleration;
           config.acceleration = 1000;
           if(!sd_printing){
@@ -672,13 +768,14 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
 
           if(!axisSelected){
+              /*
               if (config.machine_model == MM_RAPMAN){
                   // move stage down to clear Z endstop
                   // Rapman only?
                   next_targetd = startpoint;
                   next_targetd.z += 3;
                   enqueue_moved(&next_targetd);
-              }/*No need for else*/
+              }*/
 
               zero_x();
               zero_y();
@@ -1391,6 +1488,7 @@ eParseResult process_gcode_command(){
       case 200:
         {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
+              /*
               if(next_target.seen_X) {
                   config.steps_per_mm_x = next_targetd.x;
               } else if(next_target.seen_Y) {
@@ -1402,13 +1500,15 @@ eParseResult process_gcode_command(){
               }
 
               write_config();
+              */
+              sersendf("Option Disabled");
           } else {
               if(!next_target.seen_B && !sd_printing){
                   sersendf ("X%g Y%g Z%g E%g ",
-                      config.steps_per_mm_x,
-                      config.steps_per_mm_y,
-                      config.steps_per_mm_z,
-                      config.steps_per_mm_e);
+                      STEPS_MM_X,
+                      STEPS_MM_Y,
+                      STEPS_MM_Z,
+                      STEPS_MM_E0);
               }/*No need for else*/
           }
 
@@ -1547,56 +1647,60 @@ eParseResult process_gcode_command(){
         //set home position absolute
       case 604:
         {
+          /*
           if (next_target.seen_X){
-              config.home_pos_x = next_target.target.x;
+              HOME_POS_X = next_target.target.x;
               axisSelected = 1;
           }//no need for else
 
           if (next_target.seen_Y){
-              config.home_pos_y = next_target.target.y;
+              HOME_POS_Y = next_target.target.y;
               axisSelected = 1;
           }//no need for else
-
+          */
           if (next_target.seen_Z){
               config.home_pos_z = next_target.target.z;
               axisSelected = 1;
           }//no need for else
-
+          /*
           if(!axisSelected) {
-              config.home_pos_x = 0.0;
-              config.home_pos_y = 0.0;
-              config.home_pos_z = 0.0;
+              HOME_POS_X = 0.0;
+              HOME_POS_Y = 0.0;
+              HOME_POS_Z = 0.0;
           }//no need for else
-
+          */
           if(sd_printing){
               reply_sent = 1;
-          }/*No need for else*/
+          }
         }
         break;
 
         //set home position
       case 605:
         {
+          /*
           if (next_target.seen_X){
-              config.home_pos_x -= next_target.target.x;
+              HOME_POS_X -= next_target.target.x;
               axisSelected = 1;
           }//no need for else
 
           if (next_target.seen_Y){
-              config.home_pos_y -= next_target.target.y;
+              HOME_POS_Y -= next_target.target.y;
               axisSelected = 1;
           }//no need for else
-
+          */
           if (next_target.seen_Z){
               config.home_pos_z -= next_target.target.z;
               axisSelected = 1;
           }//no need for else
-
+          /*
           if(!axisSelected){
-              config.home_pos_x = 0.0;
-              config.home_pos_y = 0.0;
-              config.home_pos_z = 0.0;
+              HOME_POS_X = 0.0;
+              HOME_POS_Y = 0.0;
+              HOME_POS_Z = 0.0;
           }//no need for else
+          */
+          sersendf("Option Disabled");
 
           if(sd_printing){
               reply_sent = 1;

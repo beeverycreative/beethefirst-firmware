@@ -47,7 +47,7 @@ static unsigned byte_ctr = 0;
 void write_data(unsigned cclk,unsigned dst,void * flash_data_buf, unsigned count);
 void erase_sector(unsigned start_sector,unsigned end_sector,unsigned cclk);
 void prepare_sector(unsigned start_sector,unsigned end_sector,unsigned cclk);
-void iap_entry(unsigned param_tab[],unsigned result_tab[]);
+void IAP_entry(unsigned param_tab[],unsigned result_tab[]);
 void compare_data(unsigned cclk, unsigned dst, void * flash_data_buf, unsigned count);
 void read_device_serial_number(void);
 
@@ -55,7 +55,7 @@ void read_device_serial_number(void)
 {
 	  param_table[0] = READ_DEVICE_SERIAL;
 
-	  iap_entry(param_table,result_table);
+	  IAP_entry(param_table,result_table);
 	  if(result_table[0] != CMD_SUCCESS)
 	  {
 		  serial_writestr("Error: reading serial ");
@@ -194,8 +194,8 @@ void write_data(unsigned cclk, unsigned dst, void * flash_data_buf, unsigned cou
  // DBG("Writting address: %d -- ", param_table[1]);
  // DBG("Nr bytes: %d\n", param_table[3]);
 
-  iap_entry(param_table,result_table);
-  //DBG("iap_entry\n");
+  IAP_entry(param_table,result_table);
+  //DBG("IAP_entry\n");
 
   __enable_irq();
 
@@ -211,7 +211,7 @@ void compare_data(unsigned cclk, unsigned dst, void * flash_data_buf, unsigned c
   param_table[3] = count;
   param_table[4] = cclk;
 
-  iap_entry(param_table,result_table);
+  IAP_entry(param_table,result_table);
 
   __enable_irq();
 
@@ -225,7 +225,7 @@ void erase_sector(unsigned start_sector, unsigned end_sector, unsigned cclk)
   param_table[1] = start_sector;
   param_table[2] = end_sector;
   param_table[3] = cclk;
-  iap_entry(param_table,result_table);
+  IAP_entry(param_table,result_table);
   __enable_irq();
 
 }
@@ -238,12 +238,12 @@ void prepare_sector(unsigned start_sector,unsigned end_sector,unsigned cclk)
   param_table[1] = start_sector;
   param_table[2] = end_sector;
   param_table[3] = cclk;
-  iap_entry(param_table,result_table);
+  IAP_entry(param_table,result_table);
   __enable_irq();
 
 }
 
-void iap_entry(unsigned param_tab[], unsigned result_tab[])
+void IAP_entry(unsigned param_tab[], unsigned result_tab[])
 {
   void (*iap)(unsigned [], unsigned []);
 
@@ -284,7 +284,7 @@ int user_code_present(void)
   param_table[0] = BLANK_CHECK_SECTOR;
   param_table[1] = USER_START_SECTOR;
   param_table[2] = USER_START_SECTOR;
-  iap_entry(param_table,result_table);
+  IAP_entry(param_table,result_table);
   if( result_table[0] == CMD_SUCCESS )
     return (FALSE);
 

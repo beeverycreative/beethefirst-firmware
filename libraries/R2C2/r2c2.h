@@ -25,7 +25,7 @@
 #include "adc.h"
 #include "buzzer.h"
 #include "ios.h"
-#include "sdcard.h"
+#include "sd.h"
 #include "serial.h"
 #include "sermsg.h"
 #include "sersendf.h"

@@ -18,7 +18,7 @@
 #include "lpc17xx_gpio.h"
 #include "lpc_types.h"
 #include "ios.h"
-#include "sdcard.h"
+#include "sd.h"
 #include "timer.h"
 #include "gcode_parse.h"
 
@@ -205,11 +205,19 @@ void SysTick_Handler(void)
 #endif
 
   /* 100ms tick for SDCard ***********************************************/
+  //TODO remove unwanted code
+  /*
   counter++;
   if (counter > 99)
-  {
-    MMC_disk_timerproc();
-    counter = 0;
+    {
+      //MMC_disk_timerproc();
+      disk_timerproc();
+      counter = 0;
+    }
+    */
+  if (++counter >= 10) {
+      counter = 0;
+      disk_timerproc();               /* Disk timer function (100Hz) */
   }
   /***********************************************************************/
 

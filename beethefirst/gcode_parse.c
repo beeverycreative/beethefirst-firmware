@@ -62,7 +62,7 @@ void request_resend(void);
 void gcode_parse_init(void)
 {
 
-  next_target.target.feed_rate = config.homing_feedrate_z;
+  next_target.target.feed_rate = HOME_FEED_Z;
 }
 
 

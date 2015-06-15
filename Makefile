@@ -88,7 +88,7 @@
 FW_VERSION = 10.0.1
 
 #Define Config UID
-CFG_UID = 8
+CFG_UID = 9
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -154,10 +154,11 @@ APPSRC = \
 
 # Utility variables
 APPLIBDIR    = libraries
-INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
+INCLUDES = $(APPLIBDIR)/Core/CMSIS/Include \
 	 $(APPLIBDIR)/LPCUSB/inc \
-	 $(APPLIBDIR)/NXP/Drivers/include \
-	 $(APPLIBDIR)/FatFs/src \
+	 $(APPLIBDIR)/Core/Device/NXP/LPC17xx/Include/ \
+	 $(APPLIBDIR)/Drivers/include \
+	 $(APPLIBDIR)/FatFs/ \
 	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/iap/ \
 	 app/grbl/ \
@@ -167,11 +168,9 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 # use file-extension c for "c-only"-files
 SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
-	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
-	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/lpc17xx_*.c) \
-	$(APPLIBDIR)/FatFs/src/ff.c \
-	$(APPLIBDIR)/FatFs/src/fattime.c \
-	$(APPLIBDIR)/FatFs/src/diskio.c \
+	$(APPLIBDIR)/Core/Device/NXP/LPC17xx/Source/system_LPC17xx.c \
+	$(APPLIBDIR)/Drivers/source/debug_frmwrk.c \
+	$(wildcard $(APPLIBDIR)/Drivers/source/lpc17xx_*.c) \
 	$(APPLIBDIR)/R2C2/ios.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
@@ -181,10 +180,12 @@ SRC = \
 	$(APPLIBDIR)/R2C2/timer.c \
 	$(APPLIBDIR)/R2C2/adc.c \
 	$(APPLIBDIR)/R2C2/spi.c \
-	$(APPLIBDIR)/R2C2/sdcard.c \
+	$(APPLIBDIR)/R2C2/sd.c \
 	$(APPLIBDIR)/R2C2/buzzer.c \
-	$(APPLIBDIR)/R2C2/uart.c \
+	$(APPLIBDIR)/FatFs/ff.c \
+	$(APPLIBDIR)/FatFs/fattime.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
+	$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	$(APPSRC) \
 	main.c
 	
@@ -265,7 +266,7 @@ EXTRA_LIBDIRS =
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = 0
+OPT = 2
 #OPT = 1
 #OPT = 2
 #OPT = 3
@@ -285,8 +286,8 @@ CSTANDARD = -std=gnu99
 
 # Flash programming tool
 #FLASH_TOOL = OPENOCD
-#FLASH_TOOL = LPC21ISP
-FLASH_TOOL = R2C2
+FLASH_TOOL = LPC21ISP
+#FLASH_TOOL = R2C2
 
 # Some warnings can be disabled by this setting 
 # (useful for the old single-file AT91-lib) 
@@ -302,16 +303,18 @@ DISABLESPECIALWARNINGS = no
 # integrated uart-bootloader (ISP)
 #
 # Settings and variables:
-LPC21ISP = lpc21isp
-LPC21ISP_FLASHFILE = $(OUTDIR)/$(TARGET).hex
-LPC21ISP_PORT = com1
-LPC21ISP_BAUD = 57600
+LPC21ISP = ./LPC_ISP_183/lpc21isp_183/lpc21isp
+LPC21ISP_FLASHFILE = $(OUTDIR)/$(TARGET).bin
+LPC21ISP_PORT = /dev/ttyUSB1
+LPC21ISP_BAUD = 230400
 LPC21ISP_XTAL = 12000
 # other options:
 # -debug: verbose output
 # -control: enter bootloader via RS232 DTR/RTS (only if hardware 
 #           supports this feature - see NXP AppNote)
-#LPC21ISP_OPTIONS = -control
+LPC21ISP_OPTIONS = -control
+LPC21ISP_OPTIONS += -bin
+LPC21ISP_OPTIONS += -wipe
 #LPC21ISP_OPTIONS += -debug
 # ---------------------------------------------------------------------------
 
@@ -605,6 +608,7 @@ copyBinBTF_OLD_MSFT:
 		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
 	
 copyBinBTF_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
