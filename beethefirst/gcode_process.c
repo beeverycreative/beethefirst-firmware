@@ -727,9 +727,9 @@ eParseResult process_gcode_command(){
                   enqueue_moved(&next_targetd);
               }*/
 
+              zero_z();
               zero_x();
               zero_y();
-              zero_z();
               zero_e();
           }/*No need for else*/
 
