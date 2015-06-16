@@ -54,6 +54,15 @@
   #define FW_V "0.0.0"
 #endif
 
+
+DWORD acc_size;                         /* Work register for fs command */
+WORD acc_files, acc_dirs;
+FILINFO Finfo;
+#if _USE_LFN
+char Lfname[_MAX_LFN+1];
+#endif
+
+char Line[128];                         /* Console input buffer */
 FIL       file;
 FATFS Fatfs[_VOLUMES];          /* File system object for each logical drive */
 uint32_t  filesize = 0;
@@ -313,61 +322,6 @@ void sd_initialise(void)
   sd_active = true;
 }
 
-FRESULT sd_list_dir_sub (char *path)
-{
-  FRESULT res;
-  FILINFO fno;
-  DIR dir;
-  int i;
-  char *fn;
-#if _USE_LFN
-  //static char lfn[_MAX_LFN * (_DF1S ? 2 : 1) + 1];
-  //fno.lfname = lfn;
-  //fno.lfsize = sizeof(lfn);
-#endif
-
-  res = f_opendir(&dir, path);
-
-  if (res == FR_OK)
-    {
-
-      i = strlen(path);
-      for (;;)
-        {
-          res = f_readdir(&dir, &fno);
-
-          if (res != FR_OK || fno.fname[0] == 0) break;
-          if (fno.fname[0] == '.') continue;
-#if _USE_LFN
-          fn = *fno.lfname ? fno.lfname : fno.fname;
-#else
-          fn = fno.fname;
-#endif
-          if (fno.fattrib & AM_DIR)
-            {
-              sersendf("%s/%s/\r\n", path, fn);
-
-              strcat (path, "/");
-              strcat (path, fn);
-              // ssersendf(&path[i], "/%s", fn);
-              res = sd_list_dir_sub(path);
-              if (res != FR_OK)
-                {
-                  break;
-                }
-              path[i] = 0;
-            }
-          else
-            {
-              sersendf("%s/%s\r\n", path, fn);
-            }
-        }
-
-    }
-
-  return res;
-}
-
 void sd_list_dir (void)
 {
   char path[120];
@@ -403,7 +357,7 @@ bool sd_read_file(tLineBuffer *pLine)
   char *ptr;
 
   //TODO Implement file read
-  //ptr = f_gets(pLine->data, MAX_LINE, &file);
+  ptr = f_gets(pLine->data, MAX_LINE, &file);
 
   if (ptr != NULL)
     {
@@ -442,6 +396,41 @@ unsigned sd_filesize (FIL *pFile)
 void sd_seek(FIL *pFile, unsigned pos)
 {
   f_lseek (pFile, pos);
+}
+
+static FRESULT scan_files (char* path)
+{
+        DIR dirs;
+        FRESULT res;
+        BYTE i;
+        char *fn;
+
+
+        if ((res = f_opendir(&dirs, path)) == FR_OK) {
+                i = strlen(path);
+                while (((res = f_readdir(&dirs, &Finfo)) == FR_OK) && Finfo.fname[0]) {
+                        if (_FS_RPATH && Finfo.fname[0] == '.') continue;
+#if _USE_LFN
+                        fn = *Finfo.lfname ? Finfo.lfname : Finfo.fname;
+#else
+                        fn = Finfo.fname;
+#endif
+                        if (Finfo.fattrib & AM_DIR) {
+                                acc_dirs++;
+                                *(path+i) = '/'; strcpy(path+i+1, fn);
+                                res = scan_files(path);
+                                *(path+i) = '\0';
+                                if (res != FR_OK) break;
+                        } else {
+                                sersendf("%s/%s\n", path, fn);
+                                acc_files++;
+                                acc_size += Finfo.fsize;
+                        }
+                        //sersendf("%s/%s\n", path, fn);
+                }
+        }
+
+        return res;
 }
 
 void sd_init()
@@ -489,13 +478,11 @@ void sd_init()
       return;
   }
 
-  fsRes = f_open(&file, "test", FA_READ);
-  if(fsRes == FR_OK) {
-      sersendf("File test opened\n");
-  } else {
-      sersendf("Error opening file - %d\n", fsRes);
-      return;
-  }
+  //SPI_ConfigClockRate (SPI_CLOCKRATE_HIGH);
+
+  //fsRes = scan_files("");
+  //sersendf("FsRes: %d\n",fsRes);
+
 /*
   uint32_t s2 = 0;
   char reply[512];
@@ -504,44 +491,8 @@ void sd_init()
       _DBC(reply[i]);
   }
 */
-  f_close(&file);
+  //f_close(&file);
 
-/*
-  FRESULT fsRes;
-  fsRes = f_mount(&fs,"",1);
-  if(fsRes == FR_OK) {
-      sersendf("Disk mounted\n");
-  } else {
-      sersendf("Error Mounting FatFs - %d\n", ds);
-      return;
-  }
-
-  ds = f_getfree("", (DWORD*)&p2, &fs);
-
-  sersendf("FAT type = FAT%u\nBytes/Cluster = %lu\nNumber of FATs = %u\n"
-      "Root DIR entries = %u\nSectors/FAT = %lu\nNumber of clusters = %lu\n"
-      "FAT start (lba) = %lu\nDIR start (lba,clustor) = %lu\nData start (lba) = %lu\n\n...",
-      ft[fs->fs_type & 3], (DWORD)fs->csize * 512, fs->n_fats,
-      fs->n_rootdir, fs->fsize, (DWORD)fs->n_fatent - 2,
-      fs->fatbase, fs->dirbase, fs->database);
-
-  acc_size = acc_files = acc_dirs = 0;
-  res = scan_files("");
-  if (res) {
-      sersendf("\nError Scanning Files - %d\n",res);
-  } else {
-      sersendf("\r%u files, %lu bytes.\n%u folders.\n"
-          "%lu KB total disk space.\n%lu KB available.\n",
-          acc_files, acc_size, acc_dirs,
-          (fs->n_fatent - 2) * (fs->csize / 2), p2 * (fs->csize / 2));
-      return;
-  }
-
-*/
-  return;
-
-
-  //res = f_mount(&fs,"",1);
   /*
   res = f_mount(0,&fs);
 
@@ -553,7 +504,6 @@ void sd_init()
       return;
   }
 */
-  //res = f_getfree("", (DWORD*)&p2, &fs);
 
 }
 
@@ -878,7 +828,8 @@ eParseResult process_gcode_command(){
               serial_writestr("Begin file list\n");
 
               // list files in root folder
-              sd_list_dir();
+              //sd_list_dir();
+              scan_files("");
               serial_writestr("End file list\r\n");
           }/*No need for else*/
         }
@@ -905,14 +856,27 @@ eParseResult process_gcode_command(){
           //opens a file
           if (sd_open(&file, next_target.filename, FA_READ)) {
               if(!next_target.seen_B) {
-                  sersendf("File opened\n");
+                  sersendf("File opened: %s\n",next_target.filename);
               }/*No need for else*/
               sd_pos = 0;
               //save current filename to config
               strcpy(config.filename, next_target.filename);
+              /*
+              while (p1) {
+                  if ((UINT)p1 >= blen) {
+                      cnt = blen; p1 -= blen;
+                  } else {
+                      cnt = p1; p1 = 0;
+                  }
+                  res = f_read(&File1, Buff, cnt, &s2);
+                  if (res != FR_OK) { put_rc(res); break; }
+                  p2 += s2;
+                  if (cnt != s2) break;
+              }
+              */
           }else{
               if(!next_target.seen_B){
-                  sersendf("error opening file\n");
+                  sersendf("error opening file: %s\n",next_target.filename);
                   serial_writestr(next_target.filename);
                   serial_writestr("\n");
               }/*No need for else*/
@@ -992,6 +956,17 @@ eParseResult process_gcode_command(){
 
           //status = transfering
           config.status = 6;
+        }
+        break;
+
+        //M29 Delete SD File
+      case 29:
+        {
+          FRESULT res;
+          //f_open(&file,next_target.filename,FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+          res = f_unlink(next_target.filename);
+          sersendf("Deleted File: %s - Res: %d\n",next_target.filename,res);
+
         }
         break;
 
@@ -1081,7 +1056,7 @@ eParseResult process_gcode_command(){
 
           FRESULT res;
           res = f_lseek(&file, sd_pos);
-
+          sersendf("Staring print. Seek Result: %d\n",res);
           if(res != FR_OK){
               if(!next_target.seen_B){
                   serial_writestr("error seeking position on file\n");

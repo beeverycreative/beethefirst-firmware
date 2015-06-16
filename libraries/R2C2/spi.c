@@ -43,6 +43,7 @@ void spi_init (void)
 
     /* Configure SSP0 clock rate to 400kHz (100MHz/250) */
     SPI_ConfigClockRate (SPI_CLOCKRATE_LOW);
+    //setSSPclock(LPC_SSP0, 400000);
 
     /* Set SSEL to high */
     SPI_CS_High ();
@@ -59,7 +60,8 @@ void spi_init (void)
 void SPI_ConfigClockRate (uint32_t SPI_CLOCKRATE)
 {
     /* CPSR must be an even value between 2 and 254 */
-    LPC_SSP0->CPSR = (SPI_CLOCKRATE & 0xFE);
+    //LPC_SSP0->CPSR = (SPI_CLOCKRATE & 0xFE);
+  LPC_SSP0->CPSR = (SPI_CLOCKRATE & 0xFF);
 }
 
 /**

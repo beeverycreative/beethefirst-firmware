@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.0.1
+FW_VERSION = 10.1.0
 
 #Define Config UID
 CFG_UID = 9
@@ -615,6 +615,7 @@ copyBinBTF_MSFT:
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST_PLUS-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
 
 copyBinBTF_PLUS_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST_PLUS-Firmware-$(FW_VERSION).BIN

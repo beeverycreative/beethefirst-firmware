@@ -89,6 +89,7 @@ DSTATUS disk_initialize (
 	if (SD_Init() && SD_ReadConfiguration())
 		Stat &= ~STA_NOINIT;
 
+
 	return Stat;
 }
 
@@ -133,6 +134,7 @@ SD_BOOL SD_Init (void)
     (between 100kHz and 400kHz) with CS high and DI (MISO) high. */
     SD_DeSelect();
     SPI_ConfigClockRate (SPI_CLOCKRATE_LOW);
+    //setSSPclock(LPC_SSP0, 400000);
     for (i = 0; i < 10; i++)    SPI_SendByte (0xFF);
 
     /* Send CMD0 with CS low to enter SPI mode and reset the card.
@@ -204,6 +206,7 @@ init_end:
     else     /* Init OK. use high speed during data transaction stage. */
     {
         SPI_ConfigClockRate (SPI_CLOCKRATE_HIGH);
+        //setSSPclock(LPC_SSP0, 25000000);
         return (SD_TRUE);
     }
 }
@@ -218,7 +221,7 @@ init_end:
   */
 SD_BOOL SD_WaitForReady (void)
 {
-    Timer2 = 50;    // 500ms
+    Timer2 = 5;    // 500ms
     SPI_RecvByte(); /* Read a byte (Force enable DO output) */
     do {
         if (SPI_RecvByte () == 0xFF) return SD_TRUE;
@@ -496,6 +499,7 @@ DRESULT disk_write (
 //	if (Stat & STA_PROTECT) return RES_WRPRT;
 
 	if ( SD_WriteSector(sector, buff, count) == SD_TRUE)
+	//if ( MMC_disk_write(buff,sector, count) == 0)
 		return RES_OK;
 	else
 		return 	RES_ERROR;

@@ -68,6 +68,7 @@ SD_BOOL     SD_ReadSector (uint32_t sect, uint8_t *buf, uint32_t cnt);
 SD_BOOL     SD_WriteSector (uint32_t sect, const uint8_t *buf, uint32_t cnt);
 SD_BOOL     SD_ReadConfiguration (void);
 //void        disk_timerproc (void);
+
 #endif // __SD_H
 
 /* --------------------------------- End Of File ------------------------------ */
