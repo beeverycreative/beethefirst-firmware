@@ -1056,7 +1056,7 @@ eParseResult process_gcode_command(){
 
           FRESULT res;
           res = f_lseek(&file, sd_pos);
-          sersendf("Staring print. Seek Result: %d\n",res);
+          sersendf("Staring print\n");
           if(res != FR_OK){
               if(!next_target.seen_B){
                   serial_writestr("error seeking position on file\n");

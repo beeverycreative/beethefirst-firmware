@@ -1,0 +1,29 @@
+Como programar o bootloader:
+
+1º ligar o cabo de ISP (ver imagem)
+2º ligar alimentação da placa
+3º executar o comando para programação: ./lpc21isp -control -wipe -bin ./R2C2_USB_bootloader_v2.1.1.bin /dev/ttyUSB0 230400 12000
+4º fazer reset à R2C2, clicando no botão de Reset. Se tudo correr bem, a programação é efectuada e será visto na consola:
+
+######sudo ./tools/LPC_ISP/lpc21isp_183/lpc21isp -control -wipe -bin ./releases/BEETHEFIRST-bootloader_USB-v2.2.1.bin /dev/ttyUSB0 230400 12000
+
+lpc21isp version 1.83
+File ../../R2C2_USB_bootloader_v2.1.1.bin:
+	loaded...
+	image size : 15296
+Image size : 15296
+Synchronizing (ESC to abort)..... OK
+Read bootcode version: 2
+4
+Read part ID: LPC1758, 512 kiB ROM / 64 kiB SRAM (0x25013F37)
+Will start programming at Sector 1 if possible, and conclude with Sector 0 to ensure that checksum is written last.
+Wiping Device. OK 
+Sector 1: ..............................................................................................
+Sector 2: ..............................................................................................
+Sector 3: ......................................................................
+Sector 0: ..............................................................................................
+Download Finished... taking 1 seconds
+Now launching the brand new code
+
+5º desligar alimentação da placa
+6º desligar o cabo de ISP (ver imagem)

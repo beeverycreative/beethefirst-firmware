@@ -266,7 +266,7 @@ EXTRA_LIBDIRS =
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = 2
+OPT = 1
 #OPT = 1
 #OPT = 2
 #OPT = 3
@@ -614,6 +614,7 @@ copyBinBTF_MSFT:
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BTF
 
 copyBinBTF_PLUS_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN
