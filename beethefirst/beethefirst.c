@@ -656,10 +656,18 @@ int app_main (void){
           && (plan_queue_size() < 10)){
 
           if (sd_read_file (&sd_line_buf)){
-              sd_line_buf.seen_lf = 1;
+              if(print2USB)
+                {
+                  sersendf(&sd_line_buf);
+                } else {
+                    sd_line_buf.seen_lf = 1;
+                }
+
               executed_lines++;
           }else{
               sd_printing = false;
+              print2USB = false;
+              sersendf(";EOF\n");
               filament_coeff = 1;
           }
 

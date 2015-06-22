@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.1.0
+FW_VERSION = 10.1.1
 
 #Define Config UID
 CFG_UID = 9
@@ -185,10 +185,10 @@ SRC = \
 	$(APPLIBDIR)/FatFs/ff.c \
 	$(APPLIBDIR)/FatFs/fattime.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
-	$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	$(APPSRC) \
 	main.c
 	
+	#$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
@@ -266,7 +266,7 @@ EXTRA_LIBDIRS =
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = 1
+OPT = 2
 #OPT = 1
 #OPT = 2
 #OPT = 3
@@ -608,13 +608,14 @@ copyBinBTF_OLD_MSFT:
 		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
 	
 copyBinBTF_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN
-	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BTF
+	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
 
 copyBinBTF_PLUS_MSFT:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN

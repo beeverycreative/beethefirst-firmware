@@ -41,6 +41,7 @@ extern FIL       file;
 extern uint32_t  filesize;
 extern uint32_t  sd_pos;
 extern bool      sd_printing;     // printing from SD file
+extern bool      print2USB;      // printing from SD file to USB
 extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
 extern bool      in_power_saving;      //
@@ -64,6 +65,7 @@ void enqueue_moved (tTarget *pTarget);
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);
+FRESULT scan_files (char* path);
 extern void sd_close (FIL *pFile);
 extern void sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);

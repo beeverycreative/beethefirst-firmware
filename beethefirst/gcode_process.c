@@ -69,6 +69,7 @@ uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 
 bool      sd_printing = false;      // printing from SD file
+bool      print2USB = false;      // printing from SD file to USB
 bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
 bool      in_power_saving = false;      //
@@ -248,7 +249,6 @@ void zero_y(void)
 
   synch_queue();
 
-  // this is our home point
   tTarget new_pos = startpoint;
 
   //R2C2: XICO B3.1 HOT FIX
@@ -356,7 +356,6 @@ bool sd_read_file(tLineBuffer *pLine)
 {
   char *ptr;
 
-  //TODO Implement file read
   ptr = f_gets(pLine->data, MAX_LINE, &file);
 
   if (ptr != NULL)
@@ -398,13 +397,14 @@ void sd_seek(FIL *pFile, unsigned pos)
   f_lseek (pFile, pos);
 }
 
-static FRESULT scan_files (char* path)
+FRESULT scan_files (char* path)
 {
         DIR dirs;
         FRESULT res;
         BYTE i;
         char *fn;
 
+        sersendf("Reading file list");
 
         if ((res = f_opendir(&dirs, path)) == FR_OK) {
                 i = strlen(path);
@@ -477,33 +477,6 @@ void sd_init()
       sersendf("Error Mounting FatFs - %d\n", ds);
       return;
   }
-
-  //SPI_ConfigClockRate (SPI_CLOCKRATE_HIGH);
-
-  //fsRes = scan_files("");
-  //sersendf("FsRes: %d\n",fsRes);
-
-/*
-  uint32_t s2 = 0;
-  char reply[512];
-  res = f_read(&File1, &reply, 512, &s2);
-  for (i = 0; reply[i] != '\0'; i++){
-      _DBC(reply[i]);
-  }
-*/
-  //f_close(&file);
-
-  /*
-  res = f_mount(0,&fs);
-
-  if(res != FR_OK){
-      sersendf("error mounting fs - %d\n",res);
-      serial_writestr ("error mounting fs - ");
-      serwrite_uint32(res);
-      serial_writestr ("\n");
-      return;
-  }
-*/
 
 }
 
@@ -824,6 +797,13 @@ eParseResult process_gcode_command(){
       // SD File functions
       case 20: // M20 - list SD Card files
         {
+          sersendf("Begin file list\n");
+
+          // list files in root folder
+          //sd_list_dir();
+          scan_files("");
+          sersendf("End file list\r\n");
+          /*
           if(!next_target.seen_B){
               serial_writestr("Begin file list\n");
 
@@ -831,7 +811,8 @@ eParseResult process_gcode_command(){
               //sd_list_dir();
               scan_files("");
               serial_writestr("End file list\r\n");
-          }/*No need for else*/
+          }*/
+          /*No need for else*/
         }
         break;
 
@@ -1056,7 +1037,7 @@ eParseResult process_gcode_command(){
 
           FRESULT res;
           res = f_lseek(&file, sd_pos);
-          sersendf("Staring print\n");
+          sersendf("Starting print\n");
           if(res != FR_OK){
               if(!next_target.seen_B){
                   serial_writestr("error seeking position on file\n");
@@ -1071,14 +1052,11 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      case 34: //M33 - FINISH SD print
+      case 34: //M34 - Print file to USB
         {
 
-          if(!next_target.seen_B){
-              serial_writestr("transfer completed ");
-              serial_writestr(" ");
-
-          }/*No need for else*/
+          sd_printing = true;
+          print2USB = true;
 
         }
         break;
@@ -1693,9 +1671,13 @@ eParseResult process_gcode_command(){
         /* M609 - RESTART IN BOOTLOADER MODE*/
       case 609:
         {
-          delay_ms(1000);
-          USBHwConnect(FALSE);
-          go_to_reset(); // reinicia o sistema
+          if(!sd_printing){
+              delay_ms(1000);
+              USBHwConnect(FALSE);
+              go_to_reset(); // reinicia o sistema
+          }else{
+              sersendf("Can't Reset Printer While Printing");
+          }
         }
         break;
 
