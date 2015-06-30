@@ -178,6 +178,6 @@ double filament_coeff;
 void gcode_parse_init(void);
 
 eParseResult gcode_parse_line (tLineBuffer *pLine);
-
+eParseResult gcode_parse_str(char* buff);
 
 #endif	/* GCODE_PARSE_H */

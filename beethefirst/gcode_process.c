@@ -62,6 +62,9 @@ FILINFO Finfo;
 char Lfname[_MAX_LFN+1];
 #endif
 
+double currentE;
+double currentF;
+
 char Line[128];                         /* Console input buffer */
 FIL       file;
 FATFS Fatfs[_VOLUMES];          /* File system object for each logical drive */
@@ -72,6 +75,9 @@ bool      sd_printing = false;      // printing from SD file
 bool      print2USB = false;      // printing from SD file to USB
 bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
+bool      sd_restartPrint = false;
+uint32_t      firstResume = 50;
+bool      disableSerialReply = false;
 bool      in_power_saving = false;      //
 bool      enter_power_saving = false;      // printing from SD file
 bool      leave_power_saving = false;      // printing from SD file
@@ -308,7 +314,7 @@ void zero_z(void)
   plan_set_current_position (&new_pos);
 }
 
-static void zero_e(void)
+void zero_e(void)
 {
   // extruder only runs one way and we have no "endstop", just set this point as home
   //startpoint.E = current_position.E = 0;
@@ -366,8 +372,6 @@ bool sd_read_file(tLineBuffer *pLine)
     }
   else
     {
-
-
       return false;
     }
 }
@@ -404,7 +408,7 @@ FRESULT scan_files (char* path)
         BYTE i;
         char *fn;
 
-        sersendf("Reading file list");
+        //sersendf("Reading file list");
 
         if ((res = f_opendir(&dirs, path)) == FR_OK) {
                 i = strlen(path);
@@ -433,7 +437,7 @@ FRESULT scan_files (char* path)
         return res;
 }
 
-void sd_init()
+FRESULT sd_init()
 {
   DSTATUS ds;
 
@@ -442,6 +446,7 @@ void sd_init()
       sersendf("Error initializing disk - %d\n", ds);
       return;
   }
+  /*
   sersendf("Card init OK.\n");
   sersendf("Card type: ");
   switch (CardType)
@@ -466,18 +471,59 @@ void sd_init()
   sersendf("Sector count: %d\n", CardConfig.sectorcnt);
   sersendf("Block size: %d sectors\n", CardConfig.blocksize);
   sersendf("Card capacity: %d MByte\n\n", (((CardConfig.sectorcnt >> 10) * CardConfig.sectorsize)) >> 10);
-
+   */
   FRESULT fsRes;
 
   fsRes = f_mount(&Fatfs[0],"",1);
   //sersendf("FsRes: %d",fsRes);
   if(fsRes == FR_OK) {
-      sersendf("Disk mounted\n");
+      //sersendf("Disk mounted\n");
   } else {
       sersendf("Error Mounting FatFs - %d\n", ds);
-      return;
   }
 
+  return fsRes;
+}
+
+char *double2str(double val)
+{
+  char str[80];
+  char str2[80];
+  int32_t v1,v2;
+
+  if(val < 0)
+    {
+      val = -val;
+      sprintf(str,"-%d.",(int32_t)val);
+    }
+  else
+    {
+      sprintf(str,"%d.",(int32_t)val);
+    }
+
+  v1 = (int32_t)val;
+  val -= v1;
+  val *= 100000;
+  v2 = (int32_t)val;
+  if(v2 < 10000)
+    {
+      strcat(str,"0");
+    }
+  else if (v2 < 1000)
+    {
+      strcat(str,"00");
+    }
+  else if (v2 < 100)
+    {
+      strcat(str,"000");
+    }
+  else if (v2 < 10)
+    {
+      strcat(str,"000");
+    }
+  sprintf(str2,"%s%d",str,v2);
+
+  return str2;
 }
 
 void print_infi(void) {
@@ -499,14 +545,14 @@ void print_infi(void) {
     //opens a file
     if (sd_open(&file, "INFI", FA_READ)) {
         if(!next_target.seen_B) {
-            sersendf("File opened\n");
+            //sersendf("File opened\n");
         }/*No need for else*/
         sd_pos = 0;
         //save current filename to config
         strcpy(config.filename, next_target.filename);
     }else{
         if(!next_target.seen_B){
-            sersendf("error opening file\n");
+            //sersendf("error opening file\n");
             serial_writestr(next_target.filename);
             serial_writestr("\n");
         }/*No need for else*/
@@ -582,6 +628,7 @@ eParseResult process_gcode_command(){
       next_targetd.e = startpoint.e + next_target.target.e;
       if (next_target.seen_F){
           next_targetd.feed_rate = next_target.target.feed_rate;
+          currentF = next_target.target.feed_rate;
       }/*No need for else*/
   }else{
       // absolute
@@ -604,10 +651,11 @@ eParseResult process_gcode_command(){
               }/* No need for else */
           }else{
               if(sd_printing && (filament_coeff != 1)){
+                  currentE = next_target.target.e;
                   // in the case of a filament change
                   next_targetd.e = startpoint.e + filament_coeff*(next_target.target.e - last_target_e);
-
               }else{
+                  currentE = next_target.target.e;
                   next_targetd.e = next_target.target.e;
               }
 
@@ -618,6 +666,7 @@ eParseResult process_gcode_command(){
 
       if (next_target.seen_F){
           next_targetd.feed_rate = next_target.target.feed_rate;
+          currentF = next_target.target.feed_rate;
       }/*No need for else*/
   }
 
@@ -837,7 +886,7 @@ eParseResult process_gcode_command(){
           //opens a file
           if (sd_open(&file, next_target.filename, FA_READ)) {
               if(!next_target.seen_B) {
-                  sersendf("File opened: %s\n",next_target.filename);
+                  //sersendf("File opened: %s\n",next_target.filename);
               }/*No need for else*/
               sd_pos = 0;
               //save current filename to config
@@ -1037,7 +1086,7 @@ eParseResult process_gcode_command(){
 
           FRESULT res;
           res = f_lseek(&file, sd_pos);
-          sersendf("Starting print\n");
+          //sersendf("Starting print\n");
           if(res != FR_OK){
               if(!next_target.seen_B){
                   serial_writestr("error seeking position on file\n");
@@ -1255,8 +1304,9 @@ eParseResult process_gcode_command(){
           if (next_target.option_inches){
               config.status = 0;
           }else{
-              if(!next_target.seen_B && !sd_printing){
-                  sersendf(" C: X:%g Y:%g Z:%g E:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e);
+              //if(!next_target.seen_B && !sd_printing){
+              if(!next_target.seen_B){
+                  sersendf(" C: X:%g Y:%g Z:%g E:%g F:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e, startpoint.feed_rate);
               }/*No need for else*/
           }
         }
@@ -1756,12 +1806,20 @@ eParseResult process_gcode_command(){
               config.startpoint_x    = startpoint.x;
               config.startpoint_y    = startpoint.y;
               config.startpoint_z    = startpoint.z;
-              config.startpoint_e    = startpoint.e;
-              config.startpoint_feed_rate = startpoint.feed_rate;
+              config.startpoint_e    = currentE;
+
+              if(currentF < 500)
+                {
+                  currentF = 500;
+                }
+
+              config.startpoint_feed_rate = currentF;
               config.startpoint_temperature = target_temp[EXTRUDER_0];
               config.startpoint_filament_coeff = filament_coeff;
 
               write_config();
+
+              //sersendf("Resuming at X%g Y%g Z%g E%g F%g and SD pos: %d\n",config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e, config.startpoint_feed_rate, config.sd_pos);
 
               //config.status = 7;
               sd_printing = false;
@@ -1811,7 +1869,7 @@ eParseResult process_gcode_command(){
       case 643:
         {
           if(next_target.seen_W) {
-              filament_coeff = next_target.W;
+              config.startpoint_filament_coeff= next_target.W;
           }
           if(next_target.seen_S) {
               temp_set(next_target.S, EXTRUDER_0);
@@ -1857,7 +1915,7 @@ eParseResult process_gcode_command(){
   }
 
   if (!reply_sent){
-      if(!next_target.seen_B){
+      if(!next_target.seen_B && !disableSerialReply){
           serial_writestr("ok Q:");
           serwrite_uint32(plan_queue_size());
           if(next_target.seen_N){

@@ -35,6 +35,8 @@
 #include "gcode_parse.h"
 #include "ff.h"
 
+extern double currentE;
+extern double currentF;
 
 // for SD functions
 extern FIL       file;
@@ -44,6 +46,9 @@ extern bool      sd_printing;     // printing from SD file
 extern bool      print2USB;      // printing from SD file to USB
 extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
+extern bool      sd_restartPrint;
+extern uint32_t      firstResume;
+extern bool      disableSerialReply;
 extern bool      in_power_saving;      //
 extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
@@ -65,10 +70,12 @@ void enqueue_moved (tTarget *pTarget);
 void zero_x(void);
 void zero_y(void);
 void zero_z(void);
+void zero_e(void);
 FRESULT scan_files (char* path);
 extern void sd_close (FIL *pFile);
-extern void sd_init(void);
+extern FRESULT sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
+extern char *double2str(double val);
 
 extern void print_infi(void);
 

@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.1.1
+FW_VERSION = 10.2.0
 
 #Define Config UID
 CFG_UID = 9
@@ -186,7 +186,8 @@ SRC = \
 	$(APPLIBDIR)/FatFs/fattime.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
 	$(APPSRC) \
-	main.c
+	main.c \
+	skel.c
 	
 	#$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	
@@ -235,7 +236,7 @@ EXTRAINCDIRS  = $(INCLUDES)
 #    i.e. to link with libxyz.a, libabc.a and libefsl.a: 
 #     EXTRA_LIBS = xyz abc efsl
 #    for newlib-lpc (file: libnewlibc-lpc.a):
-#     EXTRA_LIBS = newlib-lpc
+#EXTRA_LIBS = newlib-lpc
 EXTRA_LIBS = 
 
 # List non-source files which should trigger build here
@@ -293,8 +294,8 @@ FLASH_TOOL = LPC21ISP
 # (useful for the old single-file AT91-lib) 
 #  yes - disable some warnings
 #  no  - keep default settings
-#DISABLESPECIALWARNINGS = yes
-DISABLESPECIALWARNINGS = no
+DISABLESPECIALWARNINGS = yes
+#DISABLESPECIALWARNINGS = no
 
 
 # ---------------------------------------------------------------------------

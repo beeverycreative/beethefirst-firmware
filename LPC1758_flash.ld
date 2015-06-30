@@ -159,6 +159,7 @@ SECTIONS
     *(.ram.b)
     . = ALIGN (8);
     _endbss = .;
+    _ebss = .;
     _end = .;
     __end = .;
   } >ram AT>rom

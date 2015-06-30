@@ -238,8 +238,14 @@ void temperatureTimerCallback (tTimer *pTimer)
             config.startpoint_x    = startpoint.x;
             config.startpoint_y    = startpoint.y;
             config.startpoint_z    = startpoint.z;
-            config.startpoint_e    = startpoint.e;
-            config.startpoint_feed_rate = startpoint.feed_rate;
+            config.startpoint_e    = currentE;
+
+            if(currentF < 500)
+              {
+                currentF = 500;
+              }
+
+            config.startpoint_feed_rate = currentF;
             config.startpoint_temperature = target_temp[EXTRUDER_0];
             config.startpoint_filament_coeff = filament_coeff;
 
@@ -385,7 +391,7 @@ int app_main (void){
   filament_coeff = 1;
 
   // Set initial protection_temperature
-  protection_temperature = 180;
+  protection_temperature = 0;
 
   //debug bip
   bip = 2;
@@ -468,7 +474,7 @@ int app_main (void){
           start_logo_blink = 1;
           stop_logo_blink = 0;
           logo_state = 0;
-          blink_interval = 5000;
+          blink_interval = 1000;
 
           ilum_off();
 
@@ -486,129 +492,138 @@ int app_main (void){
 
 
       //if not executing movements
-            //nor in a error state
-            //nor recovering from shutdown
-            //nor recovering from pause
-            //nor printing form sd card
-            //then is ready
-            if((plan_queue_empty())
-                && (config.status != 0)
-                && (config.status != 7)
-                && (config.status != 9)
-                && (!sd_printing)){
+      //nor in a error state
+      //nor recovering from shutdown
+      //nor recovering from pause
+      //nor printing form sd card
+      //then is ready
+      if((plan_queue_empty())
+          && (config.status != 0)
+          && (config.status != 7)
+          && (config.status != 9)
+          && (!sd_printing)){
 
-                config.status = 3;
-            }/*no need for else*/
+          config.status = 3;
+      }/*no need for else*/
 
-            if ((plan_queue_empty())
-                && (sd_pause)) {
+      if ((plan_queue_empty())
+          && (sd_pause)) {
 
-                tTarget new_pos;
-                /*
-                 * Little retraction to avoid filament break
-                 */
-                st_synchronize();
-                new_pos = startpoint;
-                new_pos.e = 0;
-                plan_set_current_position (&new_pos);
-                st_synchronize();
-                new_pos.e = -2;
-                new_pos.feed_rate = 6000;
-                enqueue_moved(&new_pos);
-                st_synchronize();
+          tTarget new_pos;
+          /*
+           * Little retraction to avoid filament break
+           */
+          st_synchronize();
+          new_pos = startpoint;
+          new_pos.e = 0;
+          plan_set_current_position (&new_pos);
+          st_synchronize();
+          new_pos.e = -2;
+          new_pos.feed_rate = 6000;
+          enqueue_moved(&new_pos);
+          st_synchronize();
 
-                zero_z();
-                zero_x();
-                zero_y();
+          zero_z();
+          zero_x();
+          zero_y();
 
-                config.status = 7;
-                sd_pause = false;
-            }/*no need for else*/
+          config.status = 7;
+          sd_pause = false;
+      }/*no need for else*/
 
-            if ((plan_queue_empty())
-                && (sd_resume)) {
+      if ((plan_queue_empty())
+          && (sd_resume)) {
+          disableSerialReply = true;
 
-                zero_z();
-                zero_x();
-                zero_y();
+          char str[80];
+          gcode_parse_str("G28\n");
+          //sprintf("Resuming from X%g Y%g Z%g E%g F%g and SD pos: %d\n",config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e, config.startpoint_feed_rate, config.sd_pos);
+          //uart_writestr(str);
 
-                tTarget new_pos;
-                /*
-                 * Clean Nozzle
-                 */
-                st_synchronize();
-                new_pos = startpoint;
-                new_pos.e = 0;
-                plan_set_current_position (&new_pos);
-                st_synchronize();
-                new_pos.e = 20;
-                new_pos.feed_rate = 300;
-                enqueue_moved(&new_pos);
-                st_synchronize();
-                new_pos.e = 18;
-                new_pos.feed_rate = 6000;
-                enqueue_moved(&new_pos);
-                new_pos.e = 20;
-                new_pos.feed_rate = 500;
-                enqueue_moved(&new_pos);
+          //Load & Seek SD File
+          FRESULT res;
+          res = sd_init();
+          if(res != FR_OK){
+              //uart_writestr("Error Seeking File");
+              sersendf("error initializing sd card - %d\n",res);
+              sd_resume = false;
+          }
 
-                /*
-                 * Set E POS
-                 */
+          if(res == FR_OK)
+            {
+              sd_close(&file);
+              //uart_writestr("Opening File: %s\n",config.filename);
+              sd_open(&file, config.filename, FA_READ);
+              res = f_lseek(&file, config.sd_pos);
+              sd_pos = config.sd_pos;
+            }
 
-                 // must have no moves pending if changing position
-                st_synchronize();
-                new_pos = startpoint;
-                new_pos.e = config.startpoint_e;
-                plan_set_current_position (&new_pos);
+          if(res != FR_OK){
+              //uart_writestr("Error Seeking File");
+              sersendf("error restarting print");
+              sd_resume = false;
+          } else {
+              /*
+               * Clean Nozzle
+               */
+              gcode_parse_str("G92 E\n");
+              gcode_parse_str("G1 E20 F300\n");
+              gcode_parse_str("G1 E18 F6000\n");
+              gcode_parse_str("G1 E20 F500\n");
+              /*
+               * Set E POS
+               */
+              sprintf(str,"G92 E%s\n",double2str(config.startpoint_e));
+              gcode_parse_str(str);
+              //uart_writestr(&str);
+              /*
+               * MOVE X Y To initial position
+               */
+              sprintf(str,"G0 X%s F10000\n",double2str(config.startpoint_x));
+              gcode_parse_str(str);
+              //uart_writestr(&str);
+              sprintf(str,"G0 Y%s F10000\n",double2str(config.startpoint_y));
+              gcode_parse_str(str);
+              //uart_writestr(&str);
+              /*
+               * Set Filament Coeff.
+               */
+              //sprintf(str,"M642 W%s\n",double2str(config.startpoint_filament_coeff));
+              //gcode_parse_str(str);
+              //sersendf(&str);
+              filament_coeff = config.startpoint_filament_coeff;
+              /*
+               * MOVE Z To initial position
+               */
+              sprintf(str,"G0 Z%s\n",double2str(config.startpoint_z));
+              gcode_parse_str(str);
+              //uart_writestr(&str);
+              /*
+               * Reduce feedrate to print speed
+               */
+              sprintf(str,"G0 F%s\n",double2str(config.startpoint_feed_rate));
+              gcode_parse_str(str);
+              //sersendf(&str);
 
-                /*
-                 * MOVE X Y To initial position
-                 */
-                st_synchronize();
-                new_pos.x = config.startpoint_x;
-                new_pos.y = config.startpoint_y;
-                new_pos.z = startpoint.z;
-                new_pos.e = startpoint.e;
-                new_pos.feed_rate = 5000;
-                enqueue_moved(&new_pos);
+              //uart_writestr("End of resume\n");
 
-                /*
-                 * MOVE Z To initial position
-                 */
-                st_synchronize();
-                new_pos.z = config.startpoint_z;
-                new_pos.feed_rate = 5000;
-                enqueue_moved(&new_pos);
+              sd_restartPrint = true;
+              sd_resume = false;
 
-                /*
-                 * Reduce feedrate to print speed
-                 */
-                new_pos.feed_rate = config.startpoint_feed_rate;
-                enqueue_moved(&new_pos);
+          }
+      }/*no need for else*/
 
-                //Load & Seek SD File
-                sd_init();
-                sd_close(&file);
-                sd_open(&file, config.filename, FA_READ);
+      if(plan_queue_empty() && sd_restartPrint)
+        {
+          config.status = 5;
+          sd_printing = true;
+          sd_pause = false;
+          sd_resume = false;
+          firstResume = 0;
+          sd_restartPrint = false;
 
-                FRESULT res;
-                res = f_lseek(&file, config.sd_pos);
-
-                if(res != FR_OK){
-                    if(!next_target.seen_B){
-                        serial_writestr("error seeking position on file\n");
-                    }/*No need for else*/
-                    break;
-                }/*No need for else*/
-
-                filament_coeff = config.startpoint_filament_coeff;
-
-                config.status = 5;
-                sd_printing = true;
-                sd_pause = false;
-                sd_resume = false;
-            }/*no need for else*/
+          disableSerialReply = false;
+        }
 
 
       if((plan_queue_empty())
@@ -660,7 +675,18 @@ int app_main (void){
                 {
                   sersendf(&sd_line_buf);
                 } else {
-                    sd_line_buf.seen_lf = 1;
+                    if(firstResume < 10) {
+                        //uart_writestr(sd_line_buf);
+                        firstResume ++;
+                    }
+                    if(firstResume == 0)
+                      {
+                        sd_line_buf.seen_lf = 1;
+                      }
+                    else
+                      {
+                        sd_line_buf.seen_lf = 1;
+                      }
                 }
 
               executed_lines++;
