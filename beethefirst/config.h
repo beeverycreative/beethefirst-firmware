@@ -41,14 +41,14 @@
 struct configuration
 {
   int32_t uid;
-/*
-  int32_t  machine_model;
+
+  //int32_t  machine_model;
   
   double steps_per_mm_x;
   double steps_per_mm_y;
   double steps_per_mm_z;
   double steps_per_mm_e;
-
+/*
   int32_t maximum_feedrate_x;
   int32_t maximum_feedrate_y;
   int32_t maximum_feedrate_z;
@@ -127,6 +127,7 @@ struct configuration
   double  startpoint_feed_rate;
   double  startpoint_temperature;
   double  startpoint_filament_coeff;
+  int32_t blowerSpeed;
 
   //Block Fan Control
   double blockControlM;

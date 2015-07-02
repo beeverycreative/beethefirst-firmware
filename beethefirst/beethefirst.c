@@ -248,6 +248,7 @@ void temperatureTimerCallback (tTimer *pTimer)
             config.startpoint_feed_rate = currentF;
             config.startpoint_temperature = target_temp[EXTRUDER_0];
             config.startpoint_filament_coeff = filament_coeff;
+            config.blowerSpeed = currenBWSpeed;
 
             config.status = 9;
             sd_printing = 0;
@@ -405,6 +406,11 @@ int app_main (void){
       reset_config();
   }
 
+  if(config.status == 9)
+    {
+      printerShutdown = true;
+    }
+
   // grbl init
   plan_init();
   st_init();
@@ -527,8 +533,9 @@ int app_main (void){
           zero_x();
           zero_y();
 
-          config.status = 7;
+          //config.status = 7;
           sd_pause = false;
+          printerPause = true;
       }/*no need for else*/
 
       if ((plan_queue_empty())
@@ -570,6 +577,16 @@ int app_main (void){
               gcode_parse_str("G1 E20 F300\n");
               gcode_parse_str("G1 E18 F6000\n");
               gcode_parse_str("G1 E20 F500\n");
+
+              if(config.blowerSpeed == 0)
+                {
+                  gcode_parse_str("M107\n");
+                }
+              else
+                {
+                  sprintf(str,"M106 S%d\n",config.blowerSpeed);
+                }
+
               /*
                * Set E POS
                */
@@ -607,6 +624,9 @@ int app_main (void){
 
               //uart_writestr("End of resume\n");
 
+              time_elapsed = config.time_elapsed;
+              executed_lines = config.executed_lines;
+
               sd_restartPrint = true;
               sd_resume = false;
 
@@ -619,8 +639,9 @@ int app_main (void){
           sd_printing = true;
           sd_pause = false;
           sd_resume = false;
-          firstResume = 0;
           sd_restartPrint = false;
+          printerShutdown = false;
+          printerPause = false;
 
           disableSerialReply = false;
         }
@@ -675,18 +696,7 @@ int app_main (void){
                 {
                   sersendf(&sd_line_buf);
                 } else {
-                    if(firstResume < 10) {
-                        //uart_writestr(sd_line_buf);
-                        firstResume ++;
-                    }
-                    if(firstResume == 0)
-                      {
-                        sd_line_buf.seen_lf = 1;
-                      }
-                    else
-                      {
-                        sd_line_buf.seen_lf = 1;
-                      }
+                    sd_line_buf.seen_lf = 1;
                 }
 
               executed_lines++;

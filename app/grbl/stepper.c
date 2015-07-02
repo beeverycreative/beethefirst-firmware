@@ -304,8 +304,7 @@ void st_wake_up() {
 
   enableHwTimer(1);
   
-  //dac_scale = (33 * 60 * config.steps_per_mm_x * mm_per_sec_per_volt) / 1024/10;
-  dac_scale = (33 * 60 * STEPS_MM_X * mm_per_sec_per_volt) / 1024/10;
+  dac_scale = (33 * 60 * config.steps_per_mm_x * mm_per_sec_per_volt) / 1024/10;
 
 #endif
 }

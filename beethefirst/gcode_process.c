@@ -62,8 +62,10 @@ FILINFO Finfo;
 char Lfname[_MAX_LFN+1];
 #endif
 
+//For Pause Functions
 double currentE;
 double currentF;
+uint32_t  currenBWSpeed = 0;
 
 char Line[128];                         /* Console input buffer */
 FIL       file;
@@ -75,8 +77,9 @@ bool      sd_printing = false;      // printing from SD file
 bool      print2USB = false;      // printing from SD file to USB
 bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
+bool      printerShutdown = false;             // printer in shutdown
+bool      printerPause = false;             // printer in pause
 bool      sd_restartPrint = false;
-uint32_t      firstResume = 50;
 bool      disableSerialReply = false;
 bool      in_power_saving = false;      //
 bool      enter_power_saving = false;      // printing from SD file
@@ -1098,6 +1101,8 @@ eParseResult process_gcode_command(){
           sd_printing = true;
           sd_pause = false;
           sd_resume = false;
+          printerPause = false;
+          printerShutdown = false;
         }
         break;
 
@@ -1142,6 +1147,8 @@ eParseResult process_gcode_command(){
         {
           //set status to shutdown
           config.status = 9;
+          printerPause = false;
+          printerShutdown = true;
 
           write_config();
         }break;
@@ -1184,6 +1191,7 @@ eParseResult process_gcode_command(){
         {
 #ifndef EXP_Board
           extruder_fan_on();
+          currenBWSpeed = 100;
 #endif
 #ifdef EXP_Board
           if(next_target.seen_S){
@@ -1198,9 +1206,11 @@ eParseResult process_gcode_command(){
                     duty = (uint16_t) s_val*0.4;
                 }
 
+              currenBWSpeed = duty;
               pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
               pwm_set_enable(BW_PWM_CHANNEL);
           } else {
+              currenBWSpeed = 100;
               blower_on();
               pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
               pwm_set_enable(BW_PWM_CHANNEL);
@@ -1215,6 +1225,7 @@ eParseResult process_gcode_command(){
         // M107- fan off
       case 107:
         {
+          currenBWSpeed = 0;
 #ifndef EXP_Board
           extruder_fan_off();
 #endif
@@ -1258,6 +1269,10 @@ eParseResult process_gcode_command(){
           sd_printing = false;
           sd_pause = false;
           sd_resume = false;
+          printerPause = false;
+          printerShutdown = false;
+
+          write_config();
         }
         break;
 
@@ -1491,7 +1506,7 @@ eParseResult process_gcode_command(){
       case 200:
         {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
-              /*
+
               if(next_target.seen_X) {
                   config.steps_per_mm_x = next_targetd.x;
               } else if(next_target.seen_Y) {
@@ -1503,15 +1518,13 @@ eParseResult process_gcode_command(){
               }
 
               write_config();
-              */
-              sersendf("Option Disabled");
           } else {
               if(!next_target.seen_B && !sd_printing){
                   sersendf ("X%g Y%g Z%g E%g ",
-                      STEPS_MM_X,
-                      STEPS_MM_Y,
-                      STEPS_MM_Z,
-                      STEPS_MM_E0);
+                      config.steps_per_mm_x,
+                      config.steps_per_mm_y,
+                      config.steps_per_mm_z,
+                      config.steps_per_mm_e);
               }/*No need for else*/
           }
 
@@ -1601,14 +1614,17 @@ eParseResult process_gcode_command(){
         }
         break;
 
+#endif
+
         //M505 - Clear Shutdown flag
       case 505:
         {
           config.status = 3;
+          printerShutdown = false;
           write_config();
         }
         break;
-#endif
+
         //M506 - Load config
       case 506:
         {
@@ -1737,6 +1753,15 @@ eParseResult process_gcode_command(){
               serial_writestr(" S:");
               serwrite_int32(config.status);
               serial_writestr(" ");
+              if(printerPause)
+                {
+                  serial_writestr("Pause ");
+                }
+              if(printerShutdown)
+                {
+                  serial_writestr("Shutdown ");
+                }
+
               if(config.status == 0){
                   if(!sd_printing){
                       config.status = 3;
@@ -1816,6 +1841,7 @@ eParseResult process_gcode_command(){
               config.startpoint_feed_rate = currentF;
               config.startpoint_temperature = target_temp[EXTRUDER_0];
               config.startpoint_filament_coeff = filament_coeff;
+              config.blowerSpeed = currenBWSpeed;
 
               write_config();
 

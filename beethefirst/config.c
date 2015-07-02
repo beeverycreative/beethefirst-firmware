@@ -68,12 +68,12 @@ tConfigItem config_lookup [] =
     {
         { "UID", &config.uid, TYPE_INT, {.val_i=CFG_UID}},
         //{ "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
-/*
+
         { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
         { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
         { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},
-*/
+
         /* used for G0 rapid moves and as a cap for all other feedrates */
         //{ "maximum_feedrate_x", &config.maximum_feedrate_x, TYPE_INT, {.val_i=60000}}, /* 50mm / second */
         //{ "maximum_feedrate_y", &config.maximum_feedrate_y, TYPE_INT, {.val_i=60000}},
@@ -139,13 +139,14 @@ tConfigItem config_lookup [] =
         {"time_elapsed",&config.time_elapsed , TYPE_INT, {.val_i=0}},
         {"number_of_lines",&config.number_of_lines , TYPE_INT, {.val_i=0}},
         {"executed_lines",&config.executed_lines , TYPE_INT, {.val_i=0}},
-        { "startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
-        { "startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}},
+        {"Blower_Speed",&config.blowerSpeed , TYPE_INT, {.val_i=0}},
 
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=2}},

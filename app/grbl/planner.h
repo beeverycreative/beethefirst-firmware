@@ -27,10 +27,12 @@
 #define BLOCK_BUFFER_SIZE 100
 
 //BEETHEFIRST SETTINGS
+/*
 #define STEPS_MM_X              77.778
 #define STEPS_MM_Y              77.778
 #define STEPS_MM_Z              112.540
 #define STEPS_MM_E0             441.3897
+*/
 
 #define MAX_FEED_X              60000
 #define MAX_FEED_Y              60000

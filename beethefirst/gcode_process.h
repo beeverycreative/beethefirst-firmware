@@ -35,8 +35,10 @@
 #include "gcode_parse.h"
 #include "ff.h"
 
+//For Pause Function
 extern double currentE;
 extern double currentF;
+extern uint32_t  currenBWSpeed;
 
 // for SD functions
 extern FIL       file;
@@ -46,8 +48,9 @@ extern bool      sd_printing;     // printing from SD file
 extern bool      print2USB;      // printing from SD file to USB
 extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
+extern bool      printerShutdown;             // printer in shutdown
+extern bool      printerPause;             // printer in pause
 extern bool      sd_restartPrint;
-extern uint32_t      firstResume;
 extern bool      disableSerialReply;
 extern bool      in_power_saving;      //
 extern bool      enter_power_saving;      // printing from SD file

@@ -424,15 +424,11 @@ void plan_buffer_line (tActionRequest *pAction)
   invert_feed_rate = pAction->target.invert_feed_rate;
 
   // Calculate target position in absolute steps
-  //target[X_AXIS] = lround(x*(double)config.steps_per_mm_x);
-  //target[Y_AXIS] = lround(y*(double)config.steps_per_mm_y);
-  //target[Z_AXIS] = lround(z*(double)config.steps_per_mm_z);
-  //target[E_AXIS] = lround(pAction->target.e*(double)config.steps_per_mm_e);
+  target[X_AXIS] = lround(x*(double)config.steps_per_mm_x);
+  target[Y_AXIS] = lround(y*(double)config.steps_per_mm_y);
+  target[Z_AXIS] = lround(z*(double)config.steps_per_mm_z);
+  target[E_AXIS] = lround(pAction->target.e*(double)config.steps_per_mm_e);
 
-  target[X_AXIS] = lround(x*STEPS_MM_X);
-  target[Y_AXIS] = lround(y*STEPS_MM_Y);
-  target[Z_AXIS] = lround(z*STEPS_MM_Z);
-  target[E_AXIS] = lround(pAction->target.e*STEPS_MM_E0);
   // Calculate the buffer tail after we push this block
   next_buffer_tail = next_block_index( block_buffer_tail );	
 
@@ -502,16 +498,12 @@ void plan_buffer_line (tActionRequest *pAction)
   if (block->step_event_count == 0) { return; };
 
   // Compute path vector in terms of absolute step target and current positions
-  /*
+
   delta_mm[X_AXIS] = (target[X_AXIS]-position[X_AXIS])/(double)config.steps_per_mm_x;
   delta_mm[Y_AXIS] = (target[Y_AXIS]-position[Y_AXIS])/(double)config.steps_per_mm_y;
   delta_mm[Z_AXIS] = (target[Z_AXIS]-position[Z_AXIS])/(double)config.steps_per_mm_z;
   delta_mm[E_AXIS] = (target[E_AXIS]-position[E_AXIS])/(double)config.steps_per_mm_e;
-   */
-  delta_mm[X_AXIS] = (target[X_AXIS]-position[X_AXIS])/STEPS_MM_X;
-  delta_mm[Y_AXIS] = (target[Y_AXIS]-position[Y_AXIS])/STEPS_MM_Y;
-  delta_mm[Z_AXIS] = (target[Z_AXIS]-position[Z_AXIS])/STEPS_MM_Z;
-  delta_mm[E_AXIS] = (target[E_AXIS]-position[E_AXIS])/STEPS_MM_E0;
+
   block->millimeters = sqrt(square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + 
       square(delta_mm[Z_AXIS]));
   if (block->millimeters == 0)
@@ -805,16 +797,12 @@ void plan_set_current_position_xyz(double x, double y, double z)
 void plan_set_current_position(tTarget *new_position) 
 {
   startpoint = *new_position;
-  /*
+
   position[X_AXIS] = lround(new_position->x*(double)config.steps_per_mm_x);
   position[Y_AXIS] = lround(new_position->y*(double)config.steps_per_mm_y);
   position[Z_AXIS] = lround(new_position->z*(double)config.steps_per_mm_z);    
   position[E_AXIS] = lround(new_position->e*(double)config.steps_per_mm_e);    
-   */
-  position[X_AXIS] = lround(new_position->x*STEPS_MM_X);
-  position[Y_AXIS] = lround(new_position->y*STEPS_MM_Y);
-  position[Z_AXIS] = lround(new_position->z*STEPS_MM_Z);
-  position[E_AXIS] = lround(new_position->e*STEPS_MM_E0);
+
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
   clear_vector_double(previous_unit_vec);
 }
