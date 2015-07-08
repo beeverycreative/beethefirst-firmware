@@ -2127,10 +2127,11 @@ eParseResult process_gcode_command(){
             {
               memset(statusStr, '\0', sizeof(statusStr));
               disableSerialReply = true;
+              gcode_parse_str("G28 Z\n");
+              gcode_parse_str("G28 X\n");
+              gcode_parse_str("G28 Y\n");
               gcode_parse_str("M104 S0\n");
               gcode_parse_str("M107\n");
-              gcode_parse_str("M206 500\n");
-              gcode_parse_str("G28\n");
               disableSerialReply = false;
               is_heating = false;
             }

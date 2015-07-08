@@ -31,6 +31,7 @@ void LogoLightControl(void)
 #endif
 }
 
+#ifdef EXP_Board
 void setLogoPWM(int32_t val)
 {
   if(val != logoDuty)
@@ -41,7 +42,7 @@ void setLogoPWM(int32_t val)
     }
 }
 
-#ifdef EXP_Board
+
 void PowerSavingLightControl(void)
 {
   ilum_off();
