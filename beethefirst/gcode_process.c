@@ -87,12 +87,15 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
-#ifdef EXP_Board
-  bool      start_logo_blink = false;      // start logo blink
-  bool      stop_logo_blink = true;      // stop logo blink
-  bool      logo_state = false;           // logo state
-  uint32_t  blink_interval = 10000;
+//Status Variables
+char statusStr[32];
+bool is_calibrating = false;
+bool is_heating = false;
 
+//Calibrate Position
+int32_t calibratePos = 0;
+
+#ifdef EXP_Board
   bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
   int32_t   extruderFanSpeed = 0;
 #endif
@@ -760,6 +763,21 @@ eParseResult process_gcode_command(){
 
           config.acceleration = aux ;
           position_ok = 1;
+
+
+          //Cancel Existing Procedures & Clear Status String
+          if(is_calibrating)
+            {
+              calibratePos = 0;
+              is_calibrating = false;
+            }
+          if(is_heating)
+            {
+              is_heating = false;
+              temp_set(0, EXTRUDER_0);
+            }
+          memset(statusStr, '\0', sizeof(statusStr));
+
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -811,6 +829,88 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
         }
         break;
+
+        //Calibration Procedure
+      case 131:
+              {
+                char str[80];
+                //memset(statusStr, '\0', sizeof(statusStr));
+                if(sd_printing)
+                  {
+                    break;
+                  }
+
+                if(next_target.seen_S)
+                  {
+                    switch(next_target.S)
+                    {
+                    case 0:
+                      {
+                        //Verify if a specific Z position is aked before sending any command to the planner queue
+                        if(next_target.seen_Z)
+                          {
+                            sprintf(str,"G0 X0 Y67 Z%s\n",double2str(next_targetd.z));
+                          }
+                        else
+                          {
+                            sprintf(str,"G0 X0 Y67 Z2\n");
+                          }
+                        disableSerialReply = true;
+                        gcode_parse_str("G28 Z\n");
+                        gcode_parse_str("G28 X\n");
+                        gcode_parse_str("G28 Y\n");
+                        gcode_parse_str("G1 F15000\n");
+                        gcode_parse_str("M206 X400\n");
+                        gcode_parse_str(str);
+                        gcode_parse_str("M206 X1000\n");
+                        calibratePos = 1;
+                        disableSerialReply = false;
+                        strcpy(statusStr, "Calibration");
+                        is_calibrating = true;
+                      }
+                      break;
+                    }
+
+
+                  }
+                else {
+                    if(calibratePos == 1)
+                      {
+                        disableSerialReply = true;
+                        strcpy(statusStr, "Calibration");
+                        gcode_parse_str("M603\n");
+                        gcode_parse_str("M601\n");
+                        gcode_parse_str("G1 F15000\n");
+                        gcode_parse_str("M206 X400\n");
+                        gcode_parse_str("G0 Z10\n");
+                        gcode_parse_str("G0 X-31 Y-65\n");
+                        gcode_parse_str("G0 Z0\n");
+                        disableSerialReply = false;
+                        calibratePos = 2;
+                      }
+                    else if(calibratePos == 2)
+                      {
+                        disableSerialReply = true;
+                        strcpy(statusStr, "Calibration");
+                        gcode_parse_str("G1 F15000\n");
+                        gcode_parse_str("M206 X400\n");
+                        gcode_parse_str("G0 Z10\n");
+                        gcode_parse_str("G0 X31 Y-65\n");
+                        gcode_parse_str("G0 Z0\n");
+                        disableSerialReply = false;
+                        calibratePos = 3;
+                      }
+                    else if(calibratePos == 3)
+                      {
+                        disableSerialReply = true;
+                        memset(statusStr, '\0', sizeof(statusStr));
+                        gcode_parse_str("G28\n");
+                        disableSerialReply = false;
+                        calibratePos = 0;
+                      }
+                }
+              }
+              break;
 
         // unknown gcode: spit an error
       default:
@@ -873,9 +973,6 @@ eParseResult process_gcode_command(){
           sd_printing = false;
           sd_init();
 
-          //TODO - Config is corrupted after initiating the SD Card File System, read_config to reload.
-          read_config();
-
         }
         break;
 
@@ -885,6 +982,7 @@ eParseResult process_gcode_command(){
           executed_lines = 0;
           //closes file
           sd_close(&file);
+          char fileName[120];
 
           //opens a file
           if (sd_open(&file, next_target.filename, FA_READ)) {
@@ -894,19 +992,6 @@ eParseResult process_gcode_command(){
               sd_pos = 0;
               //save current filename to config
               strcpy(config.filename, next_target.filename);
-              /*
-              while (p1) {
-                  if ((UINT)p1 >= blen) {
-                      cnt = blen; p1 -= blen;
-                  } else {
-                      cnt = p1; p1 = 0;
-                  }
-                  res = f_read(&File1, Buff, cnt, &s2);
-                  if (res != FR_OK) { put_rc(res); break; }
-                  p2 += s2;
-                  if (cnt != s2) break;
-              }
-              */
           }else{
               if(!next_target.seen_B){
                   sersendf("error opening file: %s\n",next_target.filename);
@@ -1006,22 +1091,34 @@ eParseResult process_gcode_command(){
         //M30 <filename>
       case 30:
         {
+          char fName[120];
           //closes file
           sd_close(&file);
+          sd_init();
+
+          memset(fName, '\0', sizeof(fName));
+
+          if(strlen(next_target.filename) > 0)
+            {
+              strcpy(fName, next_target.filename);
+            }
+          else
+            {
+              strcpy(fName, "ABCDE");
+            }
 
           //opens as empty file
-          if (sd_open(&file, next_target.filename, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
+          if (sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
               if(!next_target.seen_B) {
-                  sersendf("File created\n");
+                  sersendf("File created: %s\n",fName);
               }/*No need for else*/
               sd_pos = 0;
               //save current filename to config
               strcpy(config.filename, next_target.filename);
+              strcpy(statusStr, "Waiting4File");
           }else{
               if(!next_target.seen_B){
-                  sersendf("error creating file\n");
-                  serial_writestr(next_target.filename);
-                  serial_writestr("\n");
+                  sersendf("error creating file: %s\n",fName);
               }/*No need for else*/
           }
           executed_lines = 0;
@@ -1086,8 +1183,34 @@ eParseResult process_gcode_command(){
 
       case 33: //M33 - Start SD print
         {
-
           FRESULT res;
+
+          if(next_target.filename != "") //Of file name is passed, init SD card and open file
+            {
+              //Init SD Card
+              res = sd_init();
+              if(res != FR_OK)
+                {
+                  sersendf("error mouting file system");
+                  break;
+                }
+              //opens a file
+              if (sd_open(&file, next_target.filename, FA_READ)) {
+                  if(!next_target.seen_B) {
+                      //sersendf("File opened: %s\n",next_target.filename);
+                  }/*No need for else*/
+                  sd_pos = 0;
+                  //save current filename to config
+                  strcpy(config.filename, next_target.filename);
+              }else{
+                  if(!next_target.seen_B){
+                      sersendf("error opening file: %s",next_target.filename);
+                      serial_writestr(next_target.filename);
+                      serial_writestr("\n");
+                  }/*No need for else*/
+              }
+            }
+
           res = f_lseek(&file, sd_pos);
           //sersendf("Starting print\n");
           if(res != FR_OK){
@@ -1273,6 +1396,15 @@ eParseResult process_gcode_command(){
           printerShutdown = false;
 
           write_config();
+
+          disableSerialReply = true;
+          gcode_parse_str("G28 Z\n");
+          gcode_parse_str("G28 X Y\n");
+          gcode_parse_str("M104 S0\n");
+          gcode_parse_str("M107\n");
+          gcode_parse_str("M641 A1\n");
+          disableSerialReply = false;
+
         }
         break;
 
@@ -1762,6 +1894,14 @@ eParseResult process_gcode_command(){
                   serial_writestr("Shutdown ");
                 }
 
+              if(strlen(statusStr) > 0)
+                {
+                  serial_writestr("W:");
+                  serial_writestr(statusStr);
+                  serial_writestr(" ");
+                }
+
+
               if(config.status == 0){
                   if(!sd_printing){
                       config.status = 3;
@@ -1820,32 +1960,10 @@ eParseResult process_gcode_command(){
         //stop sd_printing and copy state to config
       case 640:
         {
-          if(sd_printing){
-
-              //save vars
-              config.sd_pos          = sd_pos;
-              config.estimated_time  = estimated_time;
-              config.time_elapsed    = time_elapsed;
-              config.number_of_lines = number_of_lines;
-              config.executed_lines  = executed_lines;
-              config.startpoint_x    = startpoint.x;
-              config.startpoint_y    = startpoint.y;
-              config.startpoint_z    = startpoint.z;
-              config.startpoint_e    = currentE;
-
-              if(currentF < 500)
-                {
-                  currentF = 500;
-                }
-
-              config.startpoint_feed_rate = currentF;
-              config.startpoint_temperature = target_temp[EXTRUDER_0];
-              config.startpoint_filament_coeff = filament_coeff;
-              config.blowerSpeed = currenBWSpeed;
-
+          if(sd_printing)
+            {
+              initPause();
               write_config();
-
-              //sersendf("Resuming at X%g Y%g Z%g E%g F%g and SD pos: %d\n",config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e, config.startpoint_feed_rate, config.sd_pos);
 
               //config.status = 7;
               sd_printing = false;
@@ -1905,6 +2023,117 @@ eParseResult process_gcode_command(){
           enqueue_wait_temp();
 
           sd_resume = true;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //Load Filament
+      case 701:
+        {
+          if(!sd_printing)
+            {
+              disableSerialReply = true;
+              gcode_parse_str("G92 E\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("G1 F300 E100\n");
+              gcode_parse_str("G92 E\n");
+              disableSerialReply = false;
+            }
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //Unload Filament
+      case 702:
+        {
+          if(!sd_printing)
+            {
+              disableSerialReply = true;
+              gcode_parse_str("G92 E\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("M300 P500\n");
+              gcode_parse_str("M300 S0 P500\n");
+              gcode_parse_str("G1 F300 E50\n");
+              gcode_parse_str("G92 E\n");
+              gcode_parse_str("G1 F1000 E-23\n");
+              gcode_parse_str("G1 F800 E2\n");
+              gcode_parse_str("G1 F2000 E-23\n");
+              gcode_parse_str("G1 F200 E-50\n");
+              gcode_parse_str("G92 E\n");
+              disableSerialReply = false;
+            }
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //Start Heating and got to heat position
+      case 703:
+        {
+          if(!sd_printing)
+            {
+              if(next_target.seen_S && !is_heating)
+                {
+                  char str[80];
+                  sprintf(str,"M104 S%s\n",double2str(next_target.S));
+                  disableSerialReply = true;
+                  gcode_parse_str(str);
+                  gcode_parse_str("G28 Z\n");
+                  gcode_parse_str("G28 X\n");
+                  gcode_parse_str("G28 Y\n");
+                  gcode_parse_str("G1 F15000\n");
+                  gcode_parse_str("M206 X400\n");
+                  gcode_parse_str("G0 X-30 Y0 Z10\n");
+                  gcode_parse_str("M206 X1000\n");
+                  disableSerialReply = false;
+                  strcpy(statusStr, "Heating");
+                  is_heating = true;
+                }
+              else if(is_heating && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
+                {
+                  disableSerialReply = true;
+                  gcode_parse_str("G1 F15000\n");
+                  gcode_parse_str("M206 X400\n");
+                  gcode_parse_str("G0 X-50 Y0 Z110\n");
+                  gcode_parse_str("M206 X1000\n");
+                  disableSerialReply = false;
+                  is_heating = false;
+                  strcpy(statusStr, "Load/Unload");
+                }
+            }
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //Cancel Heating
+      case 704:
+        {
+          if(!sd_printing)
+            {
+              memset(statusStr, '\0', sizeof(statusStr));
+              disableSerialReply = true;
+              gcode_parse_str("M104 S0\n");
+              gcode_parse_str("M107\n");
+              gcode_parse_str("M206 500\n");
+              gcode_parse_str("G28\n");
+              disableSerialReply = false;
+              is_heating = false;
+            }
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/

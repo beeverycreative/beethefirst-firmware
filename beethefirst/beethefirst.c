@@ -43,6 +43,8 @@
 #include "debug.h"
 #include "config.h"
 #include "temp.h"
+#include "pause.h"
+#include "lights.h"
 
 #include "planner.h"
 #include "stepper.h"
@@ -226,34 +228,12 @@ void temperatureTimerCallback (tTimer *pTimer)
 
     if(sDown_filtered < 1200)   //2700 -> 24V Shutdown threshold at ~10V
       {
-        if(sd_printing){
-
-
-            //save vars
-            config.sd_pos          = sd_pos;
-            config.estimated_time  = estimated_time;
-            config.time_elapsed    = time_elapsed;
-            config.number_of_lines = number_of_lines;
-            config.executed_lines  = executed_lines;
-            config.startpoint_x    = startpoint.x;
-            config.startpoint_y    = startpoint.y;
-            config.startpoint_z    = startpoint.z;
-            config.startpoint_e    = currentE;
-
-            if(currentF < 500)
-              {
-                currentF = 500;
-              }
-
-            config.startpoint_feed_rate = currentF;
-            config.startpoint_temperature = target_temp[EXTRUDER_0];
-            config.startpoint_filament_coeff = filament_coeff;
-            config.blowerSpeed = currenBWSpeed;
-
+        if(sd_printing)
+          {
+            initPause();
             config.status = 9;
-            sd_printing = 0;
-
             write_config();
+            sd_printing = 0;
 
             queue_flush();
             reset_current_block();
@@ -439,27 +419,20 @@ int app_main (void){
 
       bip++;
 
-#ifdef EXP_Board
-      //Logo Blink
-      if(start_logo_blink && (blink_time > blink_interval)) {
+      /***********************************************************************
+       *
+       *                     Logo Light Control
+       *
+       ***********************************************************************/
+      LogoLightControl();
 
-          if(logo_state) {
-              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
-              logo_state = 0;
-          } else {
-              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
-              logo_state = 1;
-          }
-
-          pwm_set_enable(LOGO_PWM_CHANNEL);
-
-          blink_time = 0;
-
-      }
-#endif
-
+      /***********************************************************************
+       *
+       *                        POWER SAVING
+       *
+       ***********************************************************************/
       //Power saving check
-      if(enter_power_saving && (rest_time > 30000) && !sd_printing){
+      if(enter_power_saving && (rest_time > 5000) && !sd_printing){
 
           zero_z();
 
@@ -497,6 +470,11 @@ int app_main (void){
       }/* No need for else */
 
 
+      /***********************************************************************
+       *
+       *                HANDLE CONFIG.SATTUS
+       *
+       ***********************************************************************/
       //if not executing movements
       //nor in a error state
       //nor recovering from shutdown
@@ -512,125 +490,32 @@ int app_main (void){
           config.status = 3;
       }/*no need for else*/
 
-      if ((plan_queue_empty())
-          && (sd_pause)) {
+      if((plan_queue_empty())
+          && (config.status != 0)
+          && (sd_printing)){
 
-          tTarget new_pos;
-          /*
-           * Little retraction to avoid filament break
-           */
-          st_synchronize();
-          new_pos = startpoint;
-          new_pos.e = 0;
-          plan_set_current_position (&new_pos);
-          st_synchronize();
-          new_pos.e = -2;
-          new_pos.feed_rate = 6000;
-          enqueue_moved(&new_pos);
-          st_synchronize();
-
-          zero_z();
-          zero_x();
-          zero_y();
-
-          //config.status = 7;
-          sd_pause = false;
-          printerPause = true;
+          config.status = 5;
       }/*no need for else*/
 
+      /***********************************************************************
+       *
+       *                        PAUSE PRINT
+       *
+       ***********************************************************************/
+      if ((plan_queue_empty())
+          && (sd_pause)) {
+          pausePrint();
+
+      }/*no need for else*/
+
+      /***********************************************************************
+       *
+       *                        RESUME PRINT
+       *
+       ***********************************************************************/
       if ((plan_queue_empty())
           && (sd_resume)) {
-          disableSerialReply = true;
-
-          char str[80];
-          gcode_parse_str("G28\n");
-          //sprintf("Resuming from X%g Y%g Z%g E%g F%g and SD pos: %d\n",config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e, config.startpoint_feed_rate, config.sd_pos);
-          //uart_writestr(str);
-
-          //Load & Seek SD File
-          FRESULT res;
-          res = sd_init();
-          if(res != FR_OK){
-              //uart_writestr("Error Seeking File");
-              sersendf("error initializing sd card - %d\n",res);
-              sd_resume = false;
-          }
-
-          if(res == FR_OK)
-            {
-              sd_close(&file);
-              //uart_writestr("Opening File: %s\n",config.filename);
-              sd_open(&file, config.filename, FA_READ);
-              res = f_lseek(&file, config.sd_pos);
-              sd_pos = config.sd_pos;
-            }
-
-          if(res != FR_OK){
-              //uart_writestr("Error Seeking File");
-              sersendf("error restarting print");
-              sd_resume = false;
-          } else {
-              /*
-               * Clean Nozzle
-               */
-              gcode_parse_str("G92 E\n");
-              gcode_parse_str("G1 E20 F300\n");
-              gcode_parse_str("G1 E18 F6000\n");
-              gcode_parse_str("G1 E20 F500\n");
-
-              if(config.blowerSpeed == 0)
-                {
-                  gcode_parse_str("M107\n");
-                }
-              else
-                {
-                  sprintf(str,"M106 S%d\n",config.blowerSpeed);
-                }
-
-              /*
-               * Set E POS
-               */
-              sprintf(str,"G92 E%s\n",double2str(config.startpoint_e));
-              gcode_parse_str(str);
-              //uart_writestr(&str);
-              /*
-               * MOVE X Y To initial position
-               */
-              sprintf(str,"G0 X%s F10000\n",double2str(config.startpoint_x));
-              gcode_parse_str(str);
-              //uart_writestr(&str);
-              sprintf(str,"G0 Y%s F10000\n",double2str(config.startpoint_y));
-              gcode_parse_str(str);
-              //uart_writestr(&str);
-              /*
-               * Set Filament Coeff.
-               */
-              //sprintf(str,"M642 W%s\n",double2str(config.startpoint_filament_coeff));
-              //gcode_parse_str(str);
-              //sersendf(&str);
-              filament_coeff = config.startpoint_filament_coeff;
-              /*
-               * MOVE Z To initial position
-               */
-              sprintf(str,"G0 Z%s\n",double2str(config.startpoint_z));
-              gcode_parse_str(str);
-              //uart_writestr(&str);
-              /*
-               * Reduce feedrate to print speed
-               */
-              sprintf(str,"G0 F%s\n",double2str(config.startpoint_feed_rate));
-              gcode_parse_str(str);
-              //sersendf(&str);
-
-              //uart_writestr("End of resume\n");
-
-              time_elapsed = config.time_elapsed;
-              executed_lines = config.executed_lines;
-
-              sd_restartPrint = true;
-              sd_resume = false;
-
-          }
+          resumePrint();
       }/*no need for else*/
 
       if(plan_queue_empty() && sd_restartPrint)
@@ -645,16 +530,11 @@ int app_main (void){
 
           disableSerialReply = false;
         }
-
-
-      if((plan_queue_empty())
-          && (config.status != 0)
-          && (sd_printing)){
-
-          config.status = 5;
-      }/*no need for else*/
-
-      // process characters from the usb port
+      /***********************************************************************
+       *
+       *                PROCESS CHARACTERS FROM USB PORT
+       *
+       ***********************************************************************/
       while (!serial_line_buf.seen_lf
           && (serial_rxchars() != 0)){
 
@@ -686,6 +566,11 @@ int app_main (void){
           }/*no need for else*/
       }
 
+      /***********************************************************************
+       *
+       *                PROCESS SD FILE
+       *
+       ***********************************************************************/
       // process SD file if no serial command pending
       if (!sd_line_buf.seen_lf
           && sd_printing
@@ -709,6 +594,11 @@ int app_main (void){
 
       }/*no need for else*/
 
+      /***********************************************************************
+       *
+       *        PARSE LINES FROM USB OR SD
+       *
+       ***********************************************************************/
       // if queue is full, we wait
       if (!plan_queue_full()
           && !transfer_mode
@@ -735,7 +625,11 @@ int app_main (void){
           }
       }/*no need for else*/
 
-
+      /***********************************************************************
+       *
+       *       TRANSFER MODE - RECEIVING SD FILE
+       *
+       ***********************************************************************/
       if (transfer_mode
           && (serial_line_buf.len != 0)){
 

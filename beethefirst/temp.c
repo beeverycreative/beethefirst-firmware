@@ -62,7 +62,7 @@ double temptable[NUMTEMPS][3] = {
   static double read_R2C2_temp(void);
 #endif
 
-static double current_temp [NUMBER_OF_SENSORS] = {0};
+double current_temp [NUMBER_OF_SENSORS] = {0};
 double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
 
