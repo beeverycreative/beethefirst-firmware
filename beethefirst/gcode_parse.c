@@ -223,17 +223,19 @@ void gcode_parse_char(uint8_t c)
   save_ch = c;
 
   // uppercase
+  /*
   if (c >= 'a' && c <= 'z')
   {
     c &= ~32;
   }
+  */
 
   // process previous field
   if (last_field)
   {
     // check if we're seeing a new field or end of line
     // any character will start a new field, even invalid/unknown ones
-    if ((c >= 'A' && c <= 'Z') || c == '*' || (c == 10) || (c == 13))
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '*' || (c == 10) || (c == 13))
     {
       // before using value, apply the sign
       if (read_digit.sign)
@@ -252,7 +254,7 @@ void gcode_parse_char(uint8_t c)
         // this is a bit hacky since string parameters don't fit in general G code syntax
         // NB: filename MUST start with a letter and MUST NOT contain spaces
         // letters will also be converted to uppercase
-        if ((next_target.M == 23) || (next_target.M == 29) || (next_target.M == 30) || (next_target.M == 33) || (next_target.M == 639))
+        if ((next_target.M == 23) || (next_target.M == 29) || (next_target.M == 30) || (next_target.M == 33) || (next_target.M == 1000) || (next_target.M == 639))
         {
           next_target.getting_string = 1;
         }
@@ -383,7 +385,7 @@ void gcode_parse_char(uint8_t c)
 
   if (next_target.getting_string)
   {
-    if ((c == 10) || (c == 13) || ( c == ' ')  || ( c == '*'))
+    if ((c == 10) || (c == 13)  || ( c == '*')) /*|| ( c == ' ')*/
     {
       next_target.getting_string = 0;
     }

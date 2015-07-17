@@ -85,10 +85,10 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.2.0
+FW_VERSION = 10.3.0
 
 #Define Config UID
-CFG_UID = 10
+CFG_UID = 13
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-

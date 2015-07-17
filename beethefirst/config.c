@@ -155,6 +155,7 @@ tConfigItem config_lookup [] =
         { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=28}},
         { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=50}},
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
+        {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}}
 
     };
 

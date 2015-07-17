@@ -1726,11 +1726,13 @@ eParseResult process_gcode_command(){
         {
           if(next_target.seen_A){
               config.bcode= next_target.A;
+              write_config();
           }else{
               serial_writestr(" bcode:A");
               serwrite_int32(config.bcode);
               serial_writestr(" ");
           }
+
         }
         break;
 
@@ -2138,6 +2140,27 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+        }
+        break;
+
+        //Set Filament String
+      case 1000:
+        {
+          if(strlen(next_target.filename) > 0)
+            {
+              strcpy(config.bcodeStr,next_target.filename);
+              memset(next_target.filename, '\0', sizeof(next_target.filename));
+              write_config();
+            } else {
+                sersendf("Error, Please Specify Filament String");
+            }
+        }
+        break;
+
+        //Read Filament String
+      case 1001:
+        {
+          sersendf("'%s'\n",config.bcodeStr);
         }
         break;
 

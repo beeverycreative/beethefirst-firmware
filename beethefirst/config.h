@@ -136,6 +136,7 @@ struct configuration
   double blockTemperatureFanMax;
   double blockFanMinSpeed;
   double blockFanMaxSpeed;
+  char bcodeStr[100];
 
 };
 
