@@ -69,7 +69,6 @@ FRESULT scan_files (char* path);
 extern void sd_close (FIL *pFile);
 extern FRESULT sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
-extern char *double2str(double val);
 
 extern void print_infi(void);
 

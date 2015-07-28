@@ -263,47 +263,6 @@ FRESULT sd_init()
   return fsRes;
 }
 
-char *double2str(double val)
-{
-  char str[80];
-  char str2[80];
-  int32_t v1,v2;
-
-  if(val < 0)
-    {
-      val = -val;
-      sprintf(str,"-%d.",(int32_t)val);
-    }
-  else
-    {
-      sprintf(str,"%d.",(int32_t)val);
-    }
-
-  v1 = (int32_t)val;
-  val -= v1;
-  val *= 100000;
-  v2 = (int32_t)val;
-  if(v2 < 10000)
-    {
-      strcat(str,"0");
-    }
-  else if (v2 < 1000)
-    {
-      strcat(str,"00");
-    }
-  else if (v2 < 100)
-    {
-      strcat(str,"000");
-    }
-  else if (v2 < 10)
-    {
-      strcat(str,"000");
-    }
-  sprintf(str2,"%s%d",str,v2);
-
-  return str2;
-}
-
 void print_infi(void) {
   /*
      * AUTOMATIC START PRINTING FILE NAMED INFI
@@ -1642,6 +1601,7 @@ eParseResult process_gcode_command(){
                   }
               }
               serial_writestr(" ");
+              memset(config.filename, '\0', sizeof(config.filename));
           }/*No need for else*/
         }
         break;
