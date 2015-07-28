@@ -917,7 +917,19 @@ eParseResult process_gcode_command(){
 
       case 33: //M33 - Start SD print
         {
+          char fName[120];
           FRESULT res;
+
+          memset(fName, '\0', sizeof(fName));
+
+          if(strlen(next_target.filename) > 0)
+            {
+              strcpy(fName, next_target.filename);
+            }
+          else
+            {
+              strcpy(fName, "ABCDE");
+            }
 
           //Init SD Card
           res = sd_init();
@@ -927,40 +939,19 @@ eParseResult process_gcode_command(){
               break;
             }
 
-          if(next_target.filename != "") //Of file name is passed, init SD card and open file
-            {
-              //opens a file
-              if (sd_open(&file, next_target.filename, FA_READ)) {
-                  if(!next_target.seen_B) {
-                      //sersendf("File opened: %s\n",next_target.filename);
-                  }/*No need for else*/
-                  sd_pos = 0;
-                  //save current filename to config
-                  strcpy(config.filename, next_target.filename);
-              }else{
-                  if(!next_target.seen_B){
-                      sersendf("error opening file: %s",next_target.filename);
-                      serial_writestr(next_target.filename);
-                      serial_writestr("\n");
-                  }/*No need for else*/
-              }
-            } else {
-                //opens a file
-                if (sd_open(&file, "ABCDE", FA_READ)) {
-                    if(!next_target.seen_B) {
-                        //sersendf("File opened: %s\n",next_target.filename);
-                    }/*No need for else*/
-                    sd_pos = 0;
-                    //save current filename to config
-                    strcpy("ABCDE", next_target.filename);
-                }else{
-                    if(!next_target.seen_B){
-                        sersendf("error opening file: %s",next_target.filename);
-                        serial_writestr("ABCDE");
-                        serial_writestr("\n");
-                    }/*No need for else*/
-                }
-            }
+          //opens a file
+          if (sd_open(&file, fName, FA_READ)) {
+              if(!next_target.seen_B) {
+                  //sersendf("File opened: %s\n",next_target.filename);
+              }/*No need for else*/
+              sd_pos = 0;
+              //save current filename to config
+              strcpy(config.filename, fName);
+          }else{
+              if(!next_target.seen_B){
+                  sersendf("error opening file: %s \n",fName);
+              }/*No need for else*/
+          }
 
           res = f_lseek(&file, sd_pos);
           //sersendf("Starting print\n");
