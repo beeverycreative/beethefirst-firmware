@@ -1601,7 +1601,7 @@ eParseResult process_gcode_command(){
                   }
               }
               serial_writestr(" ");
-              memset(config.filename, '\0', sizeof(config.filename));
+              memset(next_target.filename, '\0', sizeof(next_target.filename));
           }/*No need for else*/
         }
         break;
