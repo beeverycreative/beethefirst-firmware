@@ -36,82 +36,24 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
-//#define CFG_UID           0x20
-
 struct configuration
 {
   int32_t uid;
-
-  //int32_t  machine_model;
   
   double steps_per_mm_x;
   double steps_per_mm_y;
   double steps_per_mm_z;
   double steps_per_mm_e;
-/*
-  int32_t maximum_feedrate_x;
-  int32_t maximum_feedrate_y;
-  int32_t maximum_feedrate_z;
-  int32_t maximum_feedrate_e;
-*/
+
   double  acceleration;
   double  junction_deviation;
-/*
-  int32_t search_feedrate_x;
-  int32_t search_feedrate_y;
-  int32_t search_feedrate_z;
-  int32_t search_feedrate_e;
 
-  // rate when homing (fast)
-  int32_t homing_feedrate_x;
-  int32_t homing_feedrate_y;
-  int32_t homing_feedrate_z;
-  
-  // direction to move when homing (depends on endstop locations)
-  int32_t home_direction_x;
-  int32_t home_direction_y;
-  int32_t home_direction_z;
-*/
-  // position at home
-  //double home_pos_x;
-  //double home_pos_y;
   double home_pos_z;
-/*
-  // printable volume size
-  // TODO: Need to define origin?
-  int32_t printing_vol_x;
-  int32_t printing_vol_y;
-  int32_t printing_vol_z;
-*/
-  // dump pos
-  //int32_t have_dump_pos;
-  //int32_t dump_pos_x;
-  //int32_t dump_pos_y;
-  
-  // rest pos
-  //int32_t have_rest_pos;
-  //int32_t rest_pos_x;
-  //int32_t rest_pos_y;
-
-  // wipe pos
-  //int32_t have_wipe_pos;
-  //int32_t wipe_entry_pos_x;
-  //int32_t wipe_entry_pos_y;
-  //int32_t wipe_exit_pos_x;
-  //int32_t wipe_exit_pos_y;
-  
-  //
-  //int32_t steps_per_revolution_e;
   
   // options
 
   int32_t status;
   int32_t bcode;
-
-  // pid
-  //double kp;
-  //double ki;
-  //double kd;
 
   // autonomous
   char filename[10];

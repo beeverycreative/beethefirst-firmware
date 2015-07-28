@@ -45,6 +45,7 @@
 #include "temp.h"
 #include "pause.h"
 #include "lights.h"
+#include "fans.h"
 
 #include "planner.h"
 #include "stepper.h"
@@ -238,7 +239,7 @@ void temperatureTimerCallback (tTimer *pTimer)
             queue_flush();
             reset_current_block();
 
-            zero_z();
+            home_z();
 
         }
       }
@@ -434,7 +435,7 @@ int app_main (void){
       //Power saving check
       if(enter_power_saving && (rest_time > 5000) && !sd_printing){
 
-          zero_z();
+          home_z();
 
           while(!(plan_queue_empty())){
               continue;

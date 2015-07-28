@@ -27,12 +27,12 @@
 #define BLOCK_BUFFER_SIZE 100
 
 //BEETHEFIRST SETTINGS
-/*
+
 #define STEPS_MM_X              77.778
 #define STEPS_MM_Y              77.778
 #define STEPS_MM_Z              112.540
 #define STEPS_MM_E0             441.3897
-*/
+
 
 #define MAX_FEED_X              60000
 #define MAX_FEED_Y              60000
@@ -59,6 +59,34 @@
 #define PRINT_VOL_X             190
 #define PRINT_VOL_Y             135
 #define PRINT_VOL_Z             125
+
+/*
+double MAX_FEED_X;
+double MAX_FEED_Y;
+double MAX_FEED_Z;
+double MAX_FEED_E0;
+
+double SEARCH_FEED_X;
+double SEARCH_FEED_Y;
+double SEARCH_FEED_Z;
+double SEARCH_FEED_E0;
+
+double HOME_FEED_X;
+double HOME_FEED_Y;
+double HOME_FEED_Z;
+double HOME_FEED_E0;
+
+double HOME_DIR_X;
+double HOME_DIR_Y;
+double HOME_DIR_Z;
+
+double HOME_POS_X;
+double HOME_POS_Y;
+
+double PRINT_VOL_X;
+double PRINT_VOL_Y;
+double PRINT_VOL_Z;
+*/
 
 typedef enum {
   AT_MOVE,

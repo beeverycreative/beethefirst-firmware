@@ -65,7 +65,6 @@ char Lfname[_MAX_LFN+1];
 //For Pause Functions
 double currentE;
 double currentF;
-uint32_t  currenBWSpeed = 0;
 
 char Line[128];                         /* Console input buffer */
 FIL       file;
@@ -118,29 +117,6 @@ const double auto_reverse_feed_rate = 18000;
 double auto_prime_factor = 640;
 double auto_reverse_factor = 640;
 
-void enqueue_moved (tTarget *pTarget)
-{
-  // grbl
-  tActionRequest request;
-
-
-  if (pTarget->x != startpoint.x || pTarget->y != startpoint.y ||
-      pTarget->z != startpoint.z || pTarget->e != startpoint.e
-  )
-    {
-      request.ActionType = AT_MOVE;
-      request.target= *pTarget;
-      request.target.invert_feed_rate =  false;
-
-      plan_buffer_action (&request);
-    }
-  else
-    {
-      // no move, just set feed rate
-      plan_set_feed_rate (pTarget);
-    }
-}
-
 static void enqueue_wait_temp (void)
 {
   tActionRequest request;
@@ -149,185 +125,7 @@ static void enqueue_wait_temp (void)
   plan_buffer_action (&request);
 }
 
-static void enqueue_wait (void)
-{
-  tActionRequest request;
 
-  request.ActionType = AT_WAIT;
-  plan_buffer_action (&request);
-}
-
-// wait for move queue to be empty
-static void synch_queue (void)
-{
-  st_synchronize();
-}
-
-static void SpecialMoveXY(double x, double y, double f) 
-{
-  tActionRequest request;
-
-  request.ActionType = AT_MOVE_ENDSTOP;
-  request.target.x = x;
-  request.target.y = y;
-  request.target.z = startpoint.z;
-  request.target.e = startpoint.e;
-  request.target.feed_rate = f; 
-  request.target.invert_feed_rate =  false;
-  plan_buffer_action (&request);
-}
-
-static void SpecialMoveZ(double z, double f) 
-{
-  tActionRequest request;
-
-  request.ActionType = AT_MOVE_ENDSTOP;
-  request.target.x = startpoint.x;
-  request.target.y = startpoint.y;
-  request.target.z = z;
-  request.target.e = startpoint.e;
-  request.target.feed_rate = f; 
-  request.target.invert_feed_rate =  false;
-  plan_buffer_action (&request);
-}
-
-static void SpecialMoveE (double e, double feed_rate) 
-{
-  tTarget next_targetd;
-
-  next_targetd = startpoint;
-  next_targetd.e = startpoint.e + e;
-  next_targetd.feed_rate = feed_rate;
-  enqueue_moved(&next_targetd);
-}
-
-void zero_x(void)
-{
-  int dir;
-  int max_travel;
-
-  if (HOME_DIR_X < 0)
-    {
-      dir = -1;
-    }
-  else
-    {
-      dir = 1;
-    }
-  max_travel = max (300, PRINT_VOL_X);
-
-  // move to endstop
-  SpecialMoveXY(startpoint.x + dir * max_travel, startpoint.y, HOME_FEED_X);
-  synch_queue();
-
-  // move forward a bit
-  SpecialMoveXY(startpoint.x - dir * 3, startpoint.y, SEARCH_FEED_X);
-  // move back in to endstop slowly
-  SpecialMoveXY(startpoint.x + dir * 6, startpoint.y, SEARCH_FEED_X);
-
-  synch_queue();
-
-  // this is our home point
-  tTarget new_pos = startpoint;
-
-  //R2C2: XICO B3.1 HOT FIX
-  new_pos.x = HOME_POS_X;
-  plan_set_current_position (&new_pos);
-}
-
-void zero_y(void)
-{
-  int dir;
-  int max_travel;
-
-  if (HOME_DIR_Y < 0)
-    {
-      dir = -1;
-    }
-  else
-    {
-      dir = 1;
-    }
-  max_travel = max (300, PRINT_VOL_Y);
-
-  // move to endstop
-  SpecialMoveXY(startpoint.x, startpoint.y + dir * max_travel, HOME_FEED_Y);
-  synch_queue();
-
-  // move forward a bit
-  SpecialMoveXY(startpoint.x, startpoint.y - dir * 3, SEARCH_FEED_Y);
-  // move back in to endstop slowly
-  SpecialMoveXY(startpoint.x, startpoint.y + dir * 6, SEARCH_FEED_Y);
-
-  synch_queue();
-
-  tTarget new_pos = startpoint;
-
-  //R2C2: XICO B3.1 HOT FIX
-  //new_pos.y = HOME_POS_Y;
-  new_pos.y = -74.5;
-  plan_set_current_position (&new_pos);
-}
-
-void zero_z(void)
-{
-  int dir;
-  int max_travel;
-
-  if (HOME_DIR_Z < 0)
-    {
-      dir = -1;
-    }
-  else
-    {
-      dir = 1;
-    }
-  max_travel = max (300, PRINT_VOL_Z);
-
-  // move to endstop
-  SpecialMoveZ(startpoint.z + dir * max_travel, HOME_FEED_Z);
-  synch_queue();
-
-
-  /**
-   * Normal move Z
-   **/
-
-  tTarget next_targetd = startpoint;
-  next_targetd.x = startpoint.x;
-  next_targetd.y = startpoint.y;
-  next_targetd.z = startpoint.z - dir * 10;
-  next_targetd.e = startpoint.e;
-  next_targetd.feed_rate =  HOME_FEED_Z;
-  enqueue_moved(&next_targetd);
-  synch_queue();
-  /*
-   * end
-   */
-   // move forward a bit
-  //SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
-  //synch_queue();
-
-  // move back in to endstop slowly
-  //SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
-  SpecialMoveZ(startpoint.z + dir *15 , SEARCH_FEED_Z);
-  synch_queue();
-
-  // this is our home point
-  tTarget new_pos = startpoint;
-  new_pos.z = config.home_pos_z;
-
-  plan_set_current_position (&new_pos);
-}
-
-void zero_e(void)
-{
-  // extruder only runs one way and we have no "endstop", just set this point as home
-  //startpoint.E = current_position.E = 0;
-  tTarget new_pos = startpoint;
-  new_pos.e = 0;
-  plan_set_current_position (&new_pos);
-}
 
 void sd_initialise(void)
 {
@@ -452,32 +250,6 @@ FRESULT sd_init()
       sersendf("Error initializing disk - %d\n", ds);
       return;
   }
-  /*
-  sersendf("Card init OK.\n");
-  sersendf("Card type: ");
-  switch (CardType)
-  {
-  case CARDTYPE_MMC:
-    sersendf("MMC\n");
-    break;
-  case CARDTYPE_SDV1:
-    sersendf("Version 1.x Standard Capacity SD card.\n");
-    break;
-  case CARDTYPE_SDV2_SC:
-    sersendf("Version 2.0 or later Standard Capacity SD card.\n");
-    break;
-  case CARDTYPE_SDV2_HC:
-    sersendf("Version 2.0 or later High/eXtended Capacity SD card.\n");
-    break;
-  default:
-    break;
-  }
-
-  sersendf("Sector size: %d bytes\n", CardConfig.sectorsize);
-  sersendf("Sector count: %d\n", CardConfig.sectorcnt);
-  sersendf("Block size: %d sectors\n", CardConfig.blocksize);
-  sersendf("Card capacity: %d MByte\n\n", (((CardConfig.sectorcnt >> 10) * CardConfig.sectorsize)) >> 10);
-   */
   FRESULT fsRes;
 
   fsRes = f_mount(&Fatfs[0],"",1);
@@ -603,9 +375,7 @@ void reinit_system(){
   z_enable();
   e_enable();
 
-  zero_x();
-  zero_y();
-  zero_z();
+  home();
 
   while(!(plan_queue_empty())){
       continue;
@@ -717,52 +487,35 @@ eParseResult process_gcode_command(){
         //G28 - go home
       case 28:
         {
-          next_targetd.feed_rate = HOME_FEED_Z;
-          double aux = config.acceleration;
-          config.acceleration = 1000;
+
           if(!sd_printing){
               config.status = 4;
           }else{
               config.status = 5;
           }
           if (next_target.seen_X){
-              zero_x();
+              home_x();
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_Y){
-              zero_y();
+              home_y();
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_Z){
-              zero_z();
+              home_z();
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_E){
-              zero_e();
+              home_e();
               axisSelected = 1;
           }/*No need for else*/
 
           if(!axisSelected){
-              /*
-              if (config.machine_model == MM_RAPMAN){
-                  // move stage down to clear Z endstop
-                  // Rapman only?
-                  next_targetd = startpoint;
-                  next_targetd.z += 3;
-                  enqueue_moved(&next_targetd);
-              }*/
-
-              zero_z();
-              zero_x();
-              zero_y();
-              zero_e();
+              home();
           }/*No need for else*/
-
-          config.acceleration = aux ;
-          position_ok = 1;
 
 
           //Cancel Existing Procedures & Clear Status String
@@ -787,43 +540,32 @@ eParseResult process_gcode_command(){
         //G92 - set current position
       case 92:
         {
-
-          tTarget new_pos;
-
-          // must have no moves pending if changing position
-          synch_queue();
-
-          new_pos = startpoint;
-
           if (next_target.seen_X){
-              new_pos.x = next_target.target.x;
+              SetXPos(next_target.target.x);
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_Y){
-              new_pos.y = next_target.target.y;
+              SetYPos(next_target.target.y);
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_Z){
-              new_pos.z = next_target.target.z;
+              SetZPos(next_target.target.z);
               axisSelected = 1;
           }/*No need for else*/
 
           if (next_target.seen_E){
-              new_pos.e = next_target.target.e;
+              SetEPos(next_target.target.e);
               axisSelected = 1;
           }/*No need for else*/
 
           if(!axisSelected){
-              new_pos.x = 0;
-              new_pos.y = 0;
-              new_pos.z = 0;
-              new_pos.e = 0;
+              SetXPos(0);
+              SetYPos(0);
+              SetZPos(0);
+              SetEPos(0);
           }/*No need for else*/
-
-          plan_set_current_position (&new_pos);
-
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -846,25 +588,17 @@ eParseResult process_gcode_command(){
                     {
                     case 0:
                       {
+                        double zCal = 2.0;
                         //Verify if a specific Z position is aked before sending any command to the planner queue
                         if(next_target.seen_Z)
                           {
-                            sprintf(str,"G0 X0 Y67 Z%s\n",double2str(next_targetd.z));
+                            zCal = next_targetd.z;
                           }
-                        else
-                          {
-                            sprintf(str,"G0 X0 Y67 Z2\n");
-                          }
-                        disableSerialReply = true;
-                        gcode_parse_str("G28 Z\n");
-                        gcode_parse_str("G28 X\n");
-                        gcode_parse_str("G28 Y\n");
-                        gcode_parse_str("G1 F15000\n");
-                        gcode_parse_str("M206 X400\n");
-                        gcode_parse_str(str);
-                        gcode_parse_str("M206 X1000\n");
+                        home();
+                        config.acceleration = 400;
+                        GoTo5D(0,67,zCal,startpoint.e,15000);
+                        config.acceleration = 1000;
                         calibratePos = 1;
-                        disableSerialReply = false;
                         strcpy(statusStr, "Calibration");
                         is_calibrating = true;
                       }
@@ -876,35 +610,35 @@ eParseResult process_gcode_command(){
                 else {
                     if(calibratePos == 1)
                       {
-                        disableSerialReply = true;
                         strcpy(statusStr, "Calibration");
-                        gcode_parse_str("M603\n");
-                        gcode_parse_str("M601\n");
-                        gcode_parse_str("G1 F15000\n");
-                        gcode_parse_str("M206 X400\n");
-                        gcode_parse_str("G0 Z10\n");
-                        gcode_parse_str("G0 X-31 Y-65\n");
-                        gcode_parse_str("G0 Z0\n");
-                        disableSerialReply = false;
+                        //recalculate distante from home
+                        config.home_pos_z -= startpoint.z;
+                        SetZPos(0);
+                        write_config();
+
+                        config.acceleration = 400;
+                        GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
+                        GoTo5D(-31,-65,10,startpoint.e,15000);
+                        GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+
                         calibratePos = 2;
                       }
                     else if(calibratePos == 2)
                       {
-                        disableSerialReply = true;
                         strcpy(statusStr, "Calibration");
-                        gcode_parse_str("G1 F15000\n");
-                        gcode_parse_str("M206 X400\n");
-                        gcode_parse_str("G0 Z10\n");
-                        gcode_parse_str("G0 X31 Y-65\n");
-                        gcode_parse_str("G0 Z0\n");
-                        disableSerialReply = false;
+
+                        config.acceleration = 400;
+                        GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
+                        GoTo5D(31,-65,10,startpoint.e,15000);
+                        GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+
                         calibratePos = 3;
                       }
                     else if(calibratePos == 3)
                       {
                         disableSerialReply = true;
                         memset(statusStr, '\0', sizeof(statusStr));
-                        gcode_parse_str("G28\n");
+                        home();
                         disableSerialReply = false;
                         calibratePos = 0;
                       }
@@ -1185,15 +919,16 @@ eParseResult process_gcode_command(){
         {
           FRESULT res;
 
+          //Init SD Card
+          res = sd_init();
+          if(res != FR_OK)
+            {
+              sersendf("error mouting file system");
+              break;
+            }
+
           if(next_target.filename != "") //Of file name is passed, init SD card and open file
             {
-              //Init SD Card
-              res = sd_init();
-              if(res != FR_OK)
-                {
-                  sersendf("error mouting file system");
-                  break;
-                }
               //opens a file
               if (sd_open(&file, next_target.filename, FA_READ)) {
                   if(!next_target.seen_B) {
@@ -1209,6 +944,22 @@ eParseResult process_gcode_command(){
                       serial_writestr("\n");
                   }/*No need for else*/
               }
+            } else {
+                //opens a file
+                if (sd_open(&file, "ABCDE", FA_READ)) {
+                    if(!next_target.seen_B) {
+                        //sersendf("File opened: %s\n",next_target.filename);
+                    }/*No need for else*/
+                    sd_pos = 0;
+                    //save current filename to config
+                    strcpy("ABCDE", next_target.filename);
+                }else{
+                    if(!next_target.seen_B){
+                        sersendf("error opening file: %s",next_target.filename);
+                        serial_writestr("ABCDE");
+                        serial_writestr("\n");
+                    }/*No need for else*/
+                }
             }
 
           res = f_lseek(&file, sd_pos);
@@ -1237,32 +988,6 @@ eParseResult process_gcode_command(){
 
         }
         break;
-
-        //resume print from shutdown, get vars from config
-      case 35:
-        {
-          //get all the vars from config
-          strcpy(next_target.filename, config.filename);
-          sd_pos              = config.sd_pos;
-          estimated_time      = config.estimated_time;
-          time_elapsed        = config.time_elapsed;
-          number_of_lines     = config.number_of_lines;
-          executed_lines      = config.executed_lines;
-
-          sd_close(&file);
-          //opens a file
-          if (sd_open(&file, next_target.filename, FA_READ)) {
-              if(!next_target.seen_B) {
-                  sersendf("File opened\n");
-              }/*No need for else*/
-          }else{
-              if(!next_target.seen_B){
-                  sersendf("error opening file\n");
-                  serial_writestr(next_target.filename);
-                  serial_writestr("\n");
-              }/*No need for else*/
-          }
-        } break;
 
         //Prepare to shutdown save vars to config
         //Only use during prints, after M640 - which prepares the config
@@ -1313,30 +1038,13 @@ eParseResult process_gcode_command(){
       case 106:
         {
 #ifndef EXP_Board
-          extruder_fan_on();
-          currenBWSpeed = 100;
+          enableBlower();
 #endif
 #ifdef EXP_Board
           if(next_target.seen_S){
-              blower_on();
-
-              uint16_t s_val = next_target.S;
-              uint16_t duty = 0;
-              if(s_val >= 255)
-                {
-                  duty = 100;
-                } else {
-                    duty = (uint16_t) s_val*0.4;
-                }
-
-              currenBWSpeed = duty;
-              pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
-              pwm_set_enable(BW_PWM_CHANNEL);
+              setBlowerSpeed((int16_t) next_target.S);
           } else {
-              currenBWSpeed = 100;
-              blower_on();
-              pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
-              pwm_set_enable(BW_PWM_CHANNEL);
+              enableBlower();
           }
 #endif
           if(sd_printing){
@@ -1348,15 +1056,7 @@ eParseResult process_gcode_command(){
         // M107- fan off
       case 107:
         {
-          currenBWSpeed = 0;
-#ifndef EXP_Board
-          extruder_fan_off();
-#endif
-#ifdef EXP_Board
-          blower_off();
-          pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
-          pwm_set_disable(BW_PWM_CHANNEL);
-#endif
+          disableBlower();
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -1397,13 +1097,10 @@ eParseResult process_gcode_command(){
 
           write_config();
 
-          disableSerialReply = true;
-          gcode_parse_str("G28 Z\n");
-          gcode_parse_str("G28 X Y\n");
-          gcode_parse_str("M104 S0\n");
-          gcode_parse_str("M107\n");
-          gcode_parse_str("M641 A1\n");
-          disableSerialReply = false;
+          home();
+          temp_set(0,EXTRUDER_0);
+          disableBlower();
+          enter_power_saving = 0;
 
         }
         break;
@@ -1414,6 +1111,7 @@ eParseResult process_gcode_command(){
           if(!next_target.seen_B && !sd_printing){
               //serial_writestr(" 0.0.0");
               serial_writestr(FW_V);
+              sersendf("clock: %d",SystemCoreClock);
               serial_writestr(" ");
           }
         }
@@ -1967,7 +1665,6 @@ eParseResult process_gcode_command(){
               initPause();
               write_config();
 
-              //config.status = 7;
               sd_printing = false;
               sd_pause = true;
               sd_resume = false;
@@ -2036,17 +1733,10 @@ eParseResult process_gcode_command(){
         {
           if(!sd_printing)
             {
-              disableSerialReply = true;
-              gcode_parse_str("G92 E\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("G1 F300 E100\n");
-              gcode_parse_str("G92 E\n");
-              disableSerialReply = false;
+              buzzer_wait ();
+              buzzer_play (3000);
+              Extrude(100,300);
+              SetEPos(0);
             }
           if(sd_printing){
               reply_sent = 1;
@@ -2059,22 +1749,14 @@ eParseResult process_gcode_command(){
         {
           if(!sd_printing)
             {
-              disableSerialReply = true;
-              gcode_parse_str("G92 E\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("M300 P500\n");
-              gcode_parse_str("M300 S0 P500\n");
-              gcode_parse_str("G1 F300 E50\n");
-              gcode_parse_str("G92 E\n");
-              gcode_parse_str("G1 F1000 E-23\n");
-              gcode_parse_str("G1 F800 E2\n");
-              gcode_parse_str("G1 F2000 E-23\n");
-              gcode_parse_str("G1 F200 E-50\n");
-              gcode_parse_str("G92 E\n");
-              disableSerialReply = false;
+              buzzer_wait ();
+              buzzer_play (3000);
+              Extrude(50,300);
+              Extrude(-23,1000);
+              Extrude(25,800);
+              Extrude(-30,2000);
+              Extrude(-50,200);
+              SetEPos(0);
             }
           if(sd_printing){
               reply_sent = 1;
@@ -2089,29 +1771,20 @@ eParseResult process_gcode_command(){
             {
               if(next_target.seen_S && !is_heating)
                 {
-                  char str[80];
-                  sprintf(str,"M104 S%s\n",double2str(next_target.S));
-                  disableSerialReply = true;
-                  gcode_parse_str(str);
-                  gcode_parse_str("G28 Z\n");
-                  gcode_parse_str("G28 X\n");
-                  gcode_parse_str("G28 Y\n");
-                  gcode_parse_str("G1 F15000\n");
-                  gcode_parse_str("M206 X400\n");
-                  gcode_parse_str("G0 X-30 Y0 Z10\n");
-                  gcode_parse_str("M206 X1000\n");
-                  disableSerialReply = false;
+                  temp_set(next_target.S,EXTRUDER_0);
+                  home();
+                  config.acceleration = 400;
+                  GoTo5D(-30,0,10,startpoint.e,15000);
+                  config.acceleration = 1000;
                   strcpy(statusStr, "Heating");
                   is_heating = true;
                 }
               else if(is_heating && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
-                  disableSerialReply = true;
-                  gcode_parse_str("G1 F15000\n");
-                  gcode_parse_str("M206 X400\n");
-                  gcode_parse_str("G0 X-50 Y0 Z110\n");
-                  gcode_parse_str("M206 X1000\n");
-                  disableSerialReply = false;
+                  GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,15000);
+                  config.acceleration = 400;
+                  GoTo5D(-50,0,110,startpoint.e,startpoint.feed_rate);
+                  config.acceleration = 1000;
                   is_heating = false;
                   strcpy(statusStr, "Load/Unload");
                 }
@@ -2128,13 +1801,9 @@ eParseResult process_gcode_command(){
           if(!sd_printing)
             {
               memset(statusStr, '\0', sizeof(statusStr));
-              disableSerialReply = true;
-              gcode_parse_str("G28 Z\n");
-              gcode_parse_str("G28 X\n");
-              gcode_parse_str("G28 Y\n");
-              gcode_parse_str("M104 S0\n");
-              gcode_parse_str("M107\n");
-              disableSerialReply = false;
+              home();
+              temp_set(0,EXTRUDER_0);
+              disableBlower();
               is_heating = false;
             }
           if(sd_printing){
@@ -2146,6 +1815,7 @@ eParseResult process_gcode_command(){
         //Set Filament String
       case 1000:
         {
+
           if(strlen(next_target.filename) > 0)
             {
               strcpy(config.bcodeStr,next_target.filename);
@@ -2154,6 +1824,7 @@ eParseResult process_gcode_command(){
             } else {
                 sersendf("Error, Please Specify Filament String");
             }
+
         }
         break;
 

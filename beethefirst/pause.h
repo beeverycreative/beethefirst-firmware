@@ -5,6 +5,6 @@
 #include "temp.h"
 #include "ff.h"
 
-extern void initPause();
-extern void pausePrint();
-extern void resumePrint();
+void initPause();
+void pausePrint();
+void resumePrint();

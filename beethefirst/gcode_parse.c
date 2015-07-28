@@ -187,6 +187,7 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     return result;
 }
 
+/*
 eParseResult gcode_parse_str(char* buff)
 {
   eParseResult res;
@@ -203,7 +204,7 @@ eParseResult gcode_parse_str(char* buff)
 
   return res;
 }
-
+*/
 /****************************************************************************
 *                                                                           *
 * Character Received - add it to our command                                *

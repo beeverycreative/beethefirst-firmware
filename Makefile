@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.3.0
+FW_VERSION = 10.3.1
 
 #Define Config UID
 CFG_UID = 13
@@ -151,6 +151,8 @@ APPSRC = \
 	$(APPDIR)/pwm.c \
 	$(APPDIR)/pause.c \
 	$(APPDIR)/lights.c \
+	$(APPDIR)/fans.c \
+	$(APPDIR)/MovementController.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
 

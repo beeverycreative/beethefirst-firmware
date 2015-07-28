@@ -35,11 +35,12 @@
 #include "gcode_parse.h"
 #include "ff.h"
 #include "lights.h"
+#include "fans.h"
+#include "MovementController.h"
 
 //For Pause Function
 extern double currentE;
 extern double currentF;
-extern uint32_t  currenBWSpeed;
 
 // for SD functions
 extern FIL       file;
@@ -64,11 +65,6 @@ extern bool      sd_writing_file; // writing to SD file
   extern int32_t   extruderFanSpeed;
 #endif
 
-void enqueue_moved (tTarget *pTarget);
-void zero_x(void);
-void zero_y(void);
-void zero_z(void);
-void zero_e(void);
 FRESULT scan_files (char* path);
 extern void sd_close (FIL *pFile);
 extern FRESULT sd_init(void);

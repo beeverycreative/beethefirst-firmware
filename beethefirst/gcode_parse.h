@@ -33,8 +33,10 @@
 
 #include <stdint.h>
 #include "planner.h"
+#include "MovementController.h"
+
 uint32_t bip_switch;
-char position_ok;
+//char position_ok;
 // whether the asterisk (checksum-command) is included for checksum calculation
 // undefined for RepRap host software
 //#define ASTERISK_IN_CHECKSUM_INCLUDED
@@ -45,16 +47,6 @@ char position_ok;
 
 // wether to insist on a checksum
 //#define	REQUIRE_CHECKSUM
-
-#ifdef BTF_PLUS
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
-#ifdef BTF_ME
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
-#ifdef BTF_SCHOOL
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
 
 #ifndef ABS
 #define ABS(v)          (((v) >= 0)?(v):(-(v)))
@@ -178,6 +170,6 @@ double filament_coeff;
 void gcode_parse_init(void);
 
 eParseResult gcode_parse_line (tLineBuffer *pLine);
-eParseResult gcode_parse_str(char* buff);
+//eParseResult gcode_parse_str(char* buff);
 
 #endif	/* GCODE_PARSE_H */

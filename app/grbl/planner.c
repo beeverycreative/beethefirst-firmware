@@ -37,6 +37,34 @@
 
 #include "beethefirst/config.h"
 
+/*
+double MAX_FEED_X = 60000;
+double MAX_FEED_Y = 60000;
+double MAX_FEED_Z = 60000;
+double MAX_FEED_E0 = 60000;
+
+double SEARCH_FEED_X = 1000;
+double SEARCH_FEED_Y = 1000;
+double SEARCH_FEED_Z = 1000;
+double SEARCH_FEED_E0 = 1000;
+
+double HOME_FEED_X = 2000;
+double HOME_FEED_Y = 2000;
+double HOME_FEED_Z = 2000;
+double HOME_FEED_E0 = 2000;
+
+double HOME_DIR_X = -1;
+double HOME_DIR_Y = -1;
+double HOME_DIR_Z = 1;
+
+double HOME_POS_X = -96;
+double HOME_POS_Y = -65;
+
+double PRINT_VOL_X = 190;
+double PRINT_VOL_Y = 135;
+double PRINT_VOL_Z = 125;
+*/
+
 // The number of linear motions that can be in the plan at any give time
 
 tTarget startpoint;

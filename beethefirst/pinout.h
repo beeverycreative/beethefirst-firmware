@@ -34,6 +34,16 @@
 #include "ios.h"
 #include "machine.h"
 
+#ifdef BTF_PLUS
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+#ifdef BTF_ME
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+#ifdef BTF_SCHOOL
+  #define EXP_Board       //Expansion Board P02V04A
+#endif
+
 /*
         Machine Pin Definitions
 */

@@ -30,11 +30,10 @@ void pausePrint()
   /*
    * Little retraction to avoid filament break
    */
-  gcode_parse_str("G92 E\n");
-  gcode_parse_str("G1 E-2 F6000\n");
-  gcode_parse_str("G28\n");
+  SetEPos(0);
+  Extrude(-2,6000);
+  home();
 
-  //config.status = 7;
   sd_pause = false;
   printerPause = true;
 }
@@ -46,15 +45,11 @@ void resumePrint()
   disableSerialReply = true;
 
   char str[80];
-  gcode_parse_str("G28\n");
-  //sprintf("Resuming from X%g Y%g Z%g E%g F%g and SD pos: %d\n",config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e, config.startpoint_feed_rate, config.sd_pos);
-  //uart_writestr(str);
-
+  home();
   //Load & Seek SD File
   FRESULT res;
   res = sd_init();
   if(res != FR_OK){
-      //uart_writestr("Error Seeking File");
       sersendf("error initializing sd card - %d\n",res);
       sd_resume = false;
   }
@@ -62,76 +57,57 @@ void resumePrint()
   if(res == FR_OK)
     {
       sd_close(&file);
-      //uart_writestr("Opening File: %s\n",config.filename);
       sd_open(&file, config.filename, FA_READ);
       res = f_lseek(&file, config.sd_pos);
       sd_pos = config.sd_pos;
     }
 
   if(res != FR_OK){
-      //uart_writestr("Error Seeking File");
       sersendf("error restarting print");
       sd_resume = false;
   } else {
       /*
        * Clean Nozzle
        */
-      gcode_parse_str("G92 E\n");
-      gcode_parse_str("G1 E20 F300\n");
-      gcode_parse_str("G1 E18 F6000\n");
-      gcode_parse_str("G1 E20 F500\n");
+      SetEPos(0);
+      Extrude(20,300);
+      Extrude(-2,6000);
+      Extrude(2,500);
 
       if(config.blowerSpeed == 0)
         {
-          gcode_parse_str("M107\n");
+          disableBlower();
         }
       else
         {
-          sprintf(str,"M106 S%d\n",config.blowerSpeed);
+          setBlowerSpeed(config.blowerSpeed);
         }
 
       /*
        * Set E POS
        */
-      sprintf(str,"G92 E%s\n",double2str(config.startpoint_e));
-      gcode_parse_str(str);
-      //uart_writestr(&str);
+      SetEPos(config.startpoint_e);
       /*
        * MOVE X Y To initial position
        */
-      sprintf(str,"G0 X%s F10000\n",double2str(config.startpoint_x));
-      gcode_parse_str(str);
-      //uart_writestr(&str);
-      sprintf(str,"G0 Y%s F10000\n",double2str(config.startpoint_y));
-      gcode_parse_str(str);
-      //uart_writestr(&str);
+      GoTo5D(config.startpoint_x,config.startpoint_y,startpoint.z,startpoint.e,10000);
       /*
        * Set Filament Coeff.
        */
-      //sprintf(str,"M642 W%s\n",double2str(config.startpoint_filament_coeff));
-      //gcode_parse_str(str);
-      //sersendf(&str);
       filament_coeff = config.startpoint_filament_coeff;
       /*
        * MOVE Z To initial position
        */
-      sprintf(str,"G0 Z%s\n",double2str(config.startpoint_z));
-      gcode_parse_str(str);
-      //uart_writestr(&str);
+      GoTo5D(startpoint.x,startpoint.y,config.startpoint_z,startpoint.e,10000);
       /*
        * Reduce feedrate to print speed
        */
-      sprintf(str,"G0 F%s\n",double2str(config.startpoint_feed_rate));
-      gcode_parse_str(str);
-      //sersendf(&str);
-
-      //uart_writestr("End of resume\n");
+      GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,config.startpoint_feed_rate);
 
       time_elapsed = config.time_elapsed;
       executed_lines = config.executed_lines;
 
       sd_restartPrint = true;
       sd_resume = false;
-
   }
 }
