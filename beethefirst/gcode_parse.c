@@ -178,7 +178,8 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     next_target.G = 0;
     next_target.A = 0;
 
-    if (next_target.option_relative)
+    //if (next_target.option_relative)
+    if (relativeCoordinates)
     {
       next_target.target.x = next_target.target.y = next_target.target.z = 0.0;
       next_target.target.e = 0.0;

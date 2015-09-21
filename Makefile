@@ -85,10 +85,10 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.3.3
+FW_VERSION = 10.4.0
 
 #Define Config UID
-CFG_UID = 13
+CFG_UID = 14
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -153,6 +153,7 @@ APPSRC = \
 	$(APPDIR)/lights.c \
 	$(APPDIR)/fans.c \
 	$(APPDIR)/MovementController.c \
+	$(APPDIR)/ExpBoard.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
 
@@ -188,6 +189,7 @@ SRC = \
 	$(APPLIBDIR)/R2C2/buzzer.c \
 	$(APPLIBDIR)/FatFs/ff.c \
 	$(APPLIBDIR)/FatFs/fattime.c \
+	$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
 	$(APPSRC) \
 	main.c \
@@ -526,7 +528,8 @@ DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
 
 # Default target.
 #all: begin createdirs gccversion build sizeafter end
-all: btf msftbtf btfold btfplus btfme btfschool
+#all: btf msftbtf btfold btfplus btfme btfschool btfplusbatt
+all:
 
 #Debug UART BTF+
 debugPlus: CFLAGS += -DDEBUG_UART
@@ -537,50 +540,32 @@ btf: CFLAGS += -DBTF
 btf: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btf: begin createdirs gccversion build sizeafter copyBinBTF end
 
-# MSFT_BTF
-msftbtf: CFLAGS += -DBTF
-msftbtf: CFLAGS += -DFW_V='"MSFT-BEETHEFIRST-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-msftbtf: begin createdirs gccversion build sizeafter copyBinBTF_MSFT end
-
 # BTF_OLD
 btfold: CFLAGS += -DBTF_OLD
 btfold: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST0-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfold: begin createdirs gccversion build sizeafter copyBinBTF_OLD end
 
-# MSFT_BTF_OLD
-msftbtfold: CFLAGS += -DBTF_OLD
-msftbtfold: CFLAGS += -DFW_V='"MSFT-BEETHEFIRST0-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-msftbtfold: begin createdirs gccversion build sizeafter copyBinBTF_OLD_MSFT end
-
 # BTF_PLUS
 btfplus: CFLAGS += -DBTF_PLUS
-btfplus: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRSTPLUS-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfplus: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST_PLUS-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS end
 
-# MSFT_BTF_PLUS
-msftbtfplus: CFLAGS += -DBTF_PLUS
-msftbtfplus: CFLAGS += -DFW_V='"MSFT-BEETHEFIRSTPLUS-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-msftbtfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_MSFT end
+# BTF_PLUS_BATT
+btfplusbatt: CFLAGS += -DBTF_PLUS_BATT
+btfplusbatt: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST_PLUS_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfplusbatt: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_Batt end
 
 # BTF_ME
 btfme: CFLAGS += -DBTF_ME
 btfme: CFLAGS += -DFW_V='"BEEVC-BEEME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfme: begin createdirs gccversion build sizeafter copyBinBTF_ME end
 
-# MSFT_BTF_ME
-msftbtfme: CFLAGS += -DBTF_ME
-msftbtfme: CFLAGS += -DFW_V='"MSFT-BEEME-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-msftbtfme: begin createdirs gccversion build sizeafter copyBinBTF_ME_MSFT end
 
 # BTF_IS
 btfschool: CFLAGS += -DBTF_SCHOOL
 btfschool: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
-# MSFT_BTF_IS
-msftbtfschool: CFLAGS += -DBTF_SCHOOL
-msftbtfschool: CFLAGS += -DFW_V='"MSFT-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-msftbtfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_MSFT end
 #
 
 # Target for the build-sequence.
@@ -607,35 +592,22 @@ createdirs:
 #Copy bin files to bin directory
 copyBinBTF_OLD:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST0-Firmware-$(FW_VERSION).BIN
-
-copyBinBTF_OLD_MSFT:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST0-Firmware-$(FW_VERSION).BIN
 		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
-	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
-	
-copyBinBTF_MSFT:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
 	
 copyBinBTF_PLUS:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN
-	cp $(OUTDIR)/$(TARGET).bin ~/git/LiClipse\ Workspace/BeePythonConsole/BTF
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-PLUS-Firmware-$(FW_VERSION).BIN
 
-copyBinBTF_PLUS_MSFT:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEETHEFIRSTPLUS-Firmware-$(FW_VERSION).BIN
+copyBinBTF_PLUS_Batt:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-PLUS-A-Firmware-$(FW_VERSION).BIN
 	
 copyBinBTF_ME:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEME-Firmware-$(FW_VERSION).BIN
 
-copyBinBTF_ME_MSFT:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEEME-Firmware-$(FW_VERSION).BIN
-
 copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
 
-copyBinBTF_SCHOOL_MSFT:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/MSFT-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
 endif
 
 # Eye candy.

@@ -46,6 +46,7 @@
 #include "pause.h"
 #include "lights.h"
 #include "fans.h"
+#include "ExpBoard.h"
 
 #include "planner.h"
 #include "stepper.h"
@@ -60,6 +61,11 @@ tTimer temperatureTimer;
   int32_t sDown_filtered = 4095;
 
   tTimer blockFanTimer;
+#endif
+#ifdef USE_BATT
+  int32_t i_BattADC_raw;
+  int32_t battADC_raw[8];
+  int32_t batt_filtered = 4095;
 #endif
 
 tLineBuffer serial_line_buf;
@@ -138,12 +144,26 @@ void adc_init(void)
 
 #endif
 
+#ifdef USE_BATT
+  //Battery ADC CONFIG
+
+  PinCfg.Funcnum = PINSEL_FUNC_1;
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = BATT_ADC_PORT;
+  PinCfg.Pinnum = BATT_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+#endif
+
+
   ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
 }
 
 void io_init(void)
 {
   /* setup I/O pins */
+
   pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
   digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
 
@@ -192,6 +212,16 @@ void io_init(void)
   pin_mode(R2C2_FAN_PORT,R2C2_FAN_PIN, OUTPUT);
   r2c2_fan_on();
 #endif
+
+#ifdef USE_BATT
+  //Battery Digital I/Os
+  pin_mode(PS_EXT_READ_PORT,PS_EXT_READ_PIN,INPUT);
+
+  pin_mode(STEP_uC_ON_PORT, STEP_uC_ON_PIN, OUTPUT);
+  STEP_uC_enable();
+  pin_mode(BATT_uC_ON_PORT, BATT_uC_ON_PIN, OUTPUT);
+  BATT_uC_enable();
+#endif
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -201,6 +231,8 @@ void temperatureTimerCallback (tTimer *pTimer)
 }
 
 #ifdef EXP_Board
+
+#ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
     int i, j;
@@ -213,58 +245,36 @@ void temperatureTimerCallback (tTimer *pTimer)
         i_sDownADC_raw = 0;
       }
 
-    //Sort the array
-    int32_t sortedArray[5];
+    sDown_filtered = getMedianValue(sDownADC_raw);
 
-    for(i = 0; i < 5; i++)
-      {
-        sortedArray[i] = sDownADC_raw[i];
-      }
-
-    bubble_sort(sortedArray, 5);
-
-    sDown_filtered = sortedArray[2];
-    // filter the ADC values with simple IIR
-    //sDown_filtered = ((sDown_filtered * 2) + sDownADC_raw) / 3;
-
-    if(sDown_filtered < 1200)   //2700 -> 24V Shutdown threshold at ~10V
-      {
-        if(sd_printing)
-          {
-            initPause();
-            config.status = 9;
-            write_config();
-            sd_printing = 0;
-
-            queue_flush();
-            reset_current_block();
-
-            home_z();
-
-        }
-      }
+    verifySDownConditions();
 
   }
+#endif
 
-  void bubble_sort(int list[], int n)
+#ifdef USE_BATT
+  void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int c, d, t;
+    int i, j;
+    int32_t a;
 
-    for (c = 0 ; c < ( n - 1 ); c++)
-    {
-      for (d = 0 ; d < n - c - 1; d++)
+    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+    battADC_raw[i_BattADC_raw] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+    i_sDownADC_raw ++;
+    i_BattADC_raw ++;
+    if(i_sDownADC_raw >= 5)
       {
-        if (list[d] > list[d+1])
-        {
-          /* Swapping */
-
-          t         = list[d];
-          list[d]   = list[d+1];
-          list[d+1] = t;
-        }
+        i_sDownADC_raw = 0;
+        i_BattADC_raw = 0;
       }
-    }
+
+    sDown_filtered = getMedianValue(sDownADC_raw);
+    batt_filtered = getMedianValue(battADC_raw);
+
+    ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
+    verifyBatteryLevels();
   }
+#endif
 
   void blockFanTimerCallBack(tTimer *pTimer) {
 
@@ -298,11 +308,10 @@ void init(void)
 {
   // set up inputs and outputs
   io_init();
-  //temperature read
-  adc_init();
   //pwm
   pwm_init();
-
+  //temperature read
+  adc_init();
 #ifdef DEBUG_UART
   uart_init();
 #endif
@@ -316,13 +325,6 @@ void init(void)
   temperatureTimer.AutoReload = 1;
 
 #ifdef EXP_Board
-  //shutdown interruption
-  sDownADC_raw[0] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  sDownADC_raw[1] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  sDownADC_raw[2] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  sDownADC_raw[3] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  sDownADC_raw[4] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  i_sDownADC_raw = 0;
 
   AddSlowTimer(&sDownTimer);
   StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
@@ -346,7 +348,6 @@ void WDT_IRQHandler(void){
 int app_main (void){
   long timer1 = 0;
   eParseResult parse_result;
-  unsigned int bip;
   int temperature = 0;
 
   /*variables used to write the gcode in the sd card*/
@@ -369,15 +370,21 @@ int app_main (void){
 
   number_of_lines = 0;
   rest_time = 0;
+  powerSavingDelay = 5000;
   last_target_e = 0;
   filament_coeff = 1;
+  feedrate_coeff = 1;
+
+#ifdef USE_BATT
+  batt_time = 0;
+  charge_time = 0;
+  batteryMode = false;
+  charging = false;
+#endif
 
   // Set initial protection_temperature
   protection_temperature = 0;
 
-  //debug bip
-  bip = 2;
-  bip_switch = 0;
   position_ok = 0;
 
   init();
@@ -409,17 +416,6 @@ int app_main (void){
   for (;;){
       WDT_Feed();
 
-      //bip a cada +-20s
-      if(bip == 1){
-          if(bip_switch){
-              buzzer_play(200);
-          }
-      }else if(bip == 2000000){
-          bip=0;
-      }
-
-      bip++;
-
       /***********************************************************************
        *
        *                     Logo Light Control
@@ -433,8 +429,9 @@ int app_main (void){
        *
        ***********************************************************************/
       //Power saving check
-      if(enter_power_saving && (rest_time > 5000) && !sd_printing){
+      if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing){
 
+          synch_queue();
           home_z();
 
           while(!(plan_queue_empty())){
@@ -467,7 +464,7 @@ int app_main (void){
 
           leave_power_saving = 1;
           enter_power_saving = 0;
-          in_power_saving = TRUE;
+          in_power_saving = true;
       }/* No need for else */
 
 
@@ -590,7 +587,10 @@ int app_main (void){
               sd_printing = false;
               print2USB = false;
               sersendf(";EOF\n");
+              config.last_print_time = time_elapsed;
+              write_config();
               filament_coeff = 1;
+              feedrate_coeff = 1;
           }
 
       }/*no need for else*/

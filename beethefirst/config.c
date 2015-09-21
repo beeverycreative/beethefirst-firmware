@@ -80,7 +80,6 @@ tConfigItem config_lookup [] =
         { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=123.495}},
 
         { "status", &config.status, TYPE_INT, {.val_i=1}},
-        { "bcode", &config.bcode, TYPE_INT, {.val_i=0}},
 
         {"filename",config.filename , TYPE_STRING, {.val_s=0}},
         {"sd_pos",&config.sd_pos , TYPE_INT, {.val_i=0}},
@@ -94,8 +93,11 @@ tConfigItem config_lookup [] =
         {"startpoint_e", &config.startpoint_e, TYPE_DOUBLE, {.val_d=0}},
         {"startpoint_feed_rate", &config.startpoint_feed_rate, TYPE_DOUBLE, {.val_d=0}},
         {"startpoint_temperature", &config.startpoint_temperature, TYPE_DOUBLE, {.val_d=0}},
-        {"startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=0}},
+        {"startpoint_filament_coeff", &config.startpoint_filament_coeff, TYPE_DOUBLE, {.val_d=1}},
+        {"startpoint_feedrate_coeff", &config.startpoint_feedrate_coeff, TYPE_DOUBLE, {.val_d=1}},
         {"Blower_Speed",&config.blowerSpeed , TYPE_INT, {.val_i=0}},
+        {"Last_Print_Time",&config.last_print_time , TYPE_INT, {.val_i=0}},
+        {"Battery_Shutdown",&config.battery_ShutDown , TYPE_INT, {.val_i=0}},
 
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=2}},
@@ -106,7 +108,12 @@ tConfigItem config_lookup [] =
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
 
         //bcode string
-        {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}}
+        {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
+
+        //Battery Variables
+        {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=5}},
+        {"standBy_Time",&config.standByTime , TYPE_INT, {.val_i=300}},
+        {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}}
 
     };
 

@@ -203,6 +203,16 @@ void SysTick_Handler(void)
 #ifdef EXP_Board
   blink_time++;
 #endif
+#ifdef USE_BATT
+  if(!ps_ext_state && batteryMode)
+    {
+      batt_time++;
+    }
+  else if(ps_ext_state && batteryMode)
+    {
+      charge_time++;
+    }
+#endif
 
   /* 100ms tick for SDCard ***********************************************/
   //TODO remove unwanted code

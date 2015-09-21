@@ -62,6 +62,9 @@ FILINFO Finfo;
 char Lfname[_MAX_LFN+1];
 #endif
 
+//Relative Coordinates Option
+bool relativeCoordinates = false;
+
 //For Pause Functions
 double currentE;
 double currentF;
@@ -78,6 +81,7 @@ bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
 bool      printerShutdown = false;             // printer in shutdown
 bool      printerPause = false;             // printer in pause
+bool      sDownAfterPause = false;              // wait for printer to pause and enter shutdown
 bool      sd_restartPrint = false;
 bool      disableSerialReply = false;
 bool      in_power_saving = false;      //
@@ -86,6 +90,11 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+#ifdef USE_BATT
+bool ps_ext_state = false;
+bool batteryMode = false;
+bool charging = false;
+#endif
 //Status Variables
 char statusStr[32];
 bool is_calibrating = false;
@@ -117,7 +126,7 @@ const double auto_reverse_feed_rate = 18000;
 double auto_prime_factor = 640;
 double auto_reverse_factor = 640;
 
-static void enqueue_wait_temp (void)
+void enqueue_wait_temp (void)
 {
   tActionRequest request;
 
@@ -205,40 +214,36 @@ void sd_seek(FIL *pFile, unsigned pos)
   f_lseek (pFile, pos);
 }
 
+static TCHAR lfname[_MAX_LFN];
+
 FRESULT scan_files (char* path)
 {
-        DIR dirs;
-        FRESULT res;
-        BYTE i;
-        char *fn;
+  DIR dirs;
+  FRESULT res;
+  BYTE i;
+  char *fn;
 
-        //sersendf("Reading file list");
+  if ((res = f_opendir(&dirs, path)) == FR_OK) {
 
-        if ((res = f_opendir(&dirs, path)) == FR_OK) {
-                i = strlen(path);
-                while (((res = f_readdir(&dirs, &Finfo)) == FR_OK) && Finfo.fname[0]) {
-                        if (_FS_RPATH && Finfo.fname[0] == '.') continue;
-#if _USE_LFN
-                        fn = *Finfo.lfname ? Finfo.lfname : Finfo.fname;
-#else
-                        fn = Finfo.fname;
-#endif
-                        if (Finfo.fattrib & AM_DIR) {
-                                acc_dirs++;
-                                *(path+i) = '/'; strcpy(path+i+1, fn);
-                                res = scan_files(path);
-                                *(path+i) = '\0';
-                                if (res != FR_OK) break;
-                        } else {
-                                sersendf("%s/%s\n", path, fn);
-                                acc_files++;
-                                acc_size += Finfo.fsize;
-                        }
-                        //sersendf("%s/%s\n", path, fn);
-                }
-        }
+      for (;; ) {
+          Finfo.lfname = lfname;
+          Finfo.lfsize = _MAX_LFN - 1;
+          /* Read a directory item */
+          res = f_readdir(&dirs, &Finfo);
+          if (res || !Finfo.fname[0]) {
+              break;                                  /* Error or end of dir */
+          }
+          if (Finfo.fattrib & AM_DIR) {
 
-        return res;
+          }
+          else {
+              sersendf("/%s\r\n", Finfo.lfname[0] ? Finfo.lfname : Finfo.fname);
+          }
+
+      }
+  }
+
+  return res;
 }
 
 FRESULT sd_init()
@@ -263,50 +268,57 @@ FRESULT sd_init()
   return fsRes;
 }
 
-void print_infi(void) {
-  /*
-     * AUTOMATIC START PRINTING FILE NAMED INFI
-     */
+bool print_file()
+{
+  FRESULT res;
 
-    sd_printing = false;
-    sd_init();
-
-    executed_lines = 0;
-    //closes file
-    sd_close(&file);
-
-    char path [120] = "INFI";
-
-    //strcpy(next_target.filename, path);
-
-    //opens a file
-    if (sd_open(&file, "INFI", FA_READ)) {
-        if(!next_target.seen_B) {
-            //sersendf("File opened\n");
-        }/*No need for else*/
-        sd_pos = 0;
-        //save current filename to config
-        strcpy(config.filename, next_target.filename);
-    }else{
-        if(!next_target.seen_B){
-            //sersendf("error opening file\n");
-            serial_writestr(next_target.filename);
-            serial_writestr("\n");
-        }/*No need for else*/
+  //Init SD Card
+  res = sd_init();
+  if(res != FR_OK)
+    {
+      sersendf("error mouting file system");
+      return false;
     }
 
-    FRESULT res;
-    res = f_lseek(&file, sd_pos);
+  //opens a file
+  if (sd_open(&file, config.filename, FA_READ)) {
+      if(!next_target.seen_B) {
+          //sersendf("File opened: %s\n",next_target.filename);
+      }/*No need for else*/
+      sd_pos = 0;
+      //save current filename to config
+      //strcpy(config.filename, fName);
+  }else{
+      if(!next_target.seen_B){
+          sersendf("error opening file: %s \n",config.filename);
+      }/*No need for else*/
+  }
 
-    if(res != FR_OK){
-        if(!next_target.seen_B){
-            serial_writestr("error seeking position on file\n");
-        }/*No need for else*/
-        //break;
-    }/*No need for else*/
+  res = f_lseek(&file, sd_pos);
+  //sersendf("Starting print\n");
+  if(res != FR_OK){
+      if(!next_target.seen_B){
+          serial_writestr("error seeking position on file\n");
+      }/*No need for else*/
+      return false;
+  }/*No need for else*/
 
-    config.status = 5;
-    sd_printing = true;
+  time_elapsed = 0;
+  estimated_time = 0;
+  number_of_lines = 0;
+  executed_lines = 0;
+
+  config.last_print_time = 0;
+  write_config();
+
+  config.status = 5;
+  sd_printing = true;
+  sd_pause = false;
+  sd_resume = false;
+  printerPause = false;
+  printerShutdown = false;
+
+  return true;
 }
 
 void reinit_system(){
@@ -356,14 +368,15 @@ eParseResult process_gcode_command(){
   tTarget next_targetd = startpoint;
 
   // convert relative to absolute
-  if (next_target.option_relative){
+  //if (next_target.option_relative){
+  if (relativeCoordinates){
       next_targetd.x = startpoint.x + next_target.target.x;
       next_targetd.y = startpoint.y + next_target.target.y;
       next_targetd.z = startpoint.z + next_target.target.z;
       next_targetd.e = startpoint.e + next_target.target.e;
       if (next_target.seen_F){
-          next_targetd.feed_rate = next_target.target.feed_rate;
-          currentF = next_target.target.feed_rate;
+          next_targetd.feed_rate = next_target.target.feed_rate * feedrate_coeff;
+          currentF = next_target.target.feed_rate * feedrate_coeff;
       }/*No need for else*/
   }else{
       // absolute
@@ -400,8 +413,8 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_F){
-          next_targetd.feed_rate = next_target.target.feed_rate;
-          currentF = next_target.target.feed_rate;
+          next_targetd.feed_rate = next_target.target.feed_rate * feedrate_coeff;
+          currentF = next_target.target.feed_rate * feedrate_coeff;
       }/*No need for else*/
   }
 
@@ -446,6 +459,7 @@ eParseResult process_gcode_command(){
         //G28 - go home
       case 28:
         {
+          relativeCoordinates = false;
 
           if(!sd_printing){
               config.status = 4;
@@ -483,7 +497,7 @@ eParseResult process_gcode_command(){
               calibratePos = 0;
               is_calibrating = false;
             }
-          if(is_heating)
+          if(is_heating && !sd_printing)
             {
               is_heating = false;
               temp_set(0, EXTRUDER_0);
@@ -493,6 +507,20 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+        }
+        break;
+
+        //G90 - Set to Absolute Positioning
+      case 90:
+        {
+          relativeCoordinates = false;
+        }
+        break;
+
+        //G91 - Set to Relative Positioning
+      case 91:
+        {
+          relativeCoordinates = true;
         }
         break;
 
@@ -531,79 +559,70 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //Calibration Procedure
+        //Start Calibration Procedure
       case 131:
-              {
-                char str[80];
-                //memset(statusStr, '\0', sizeof(statusStr));
-                if(sd_printing)
-                  {
-                    break;
-                  }
-
-                if(next_target.seen_S)
-                  {
-                    switch(next_target.S)
-                    {
-                    case 0:
-                      {
-                        double zCal = 2.0;
-                        //Verify if a specific Z position is aked before sending any command to the planner queue
-                        if(next_target.seen_Z)
-                          {
-                            zCal = next_targetd.z;
-                          }
-                        home();
-                        config.acceleration = 400;
-                        GoTo5D(0,67,zCal,startpoint.e,15000);
-                        config.acceleration = 1000;
-                        calibratePos = 1;
-                        strcpy(statusStr, "Calibration");
-                        is_calibrating = true;
-                      }
-                      break;
-                    }
-
-
-                  }
-                else {
-                    if(calibratePos == 1)
-                      {
-                        strcpy(statusStr, "Calibration");
-                        //recalculate distante from home
-                        config.home_pos_z -= startpoint.z;
-                        SetZPos(0);
-                        write_config();
-
-                        config.acceleration = 400;
-                        GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
-                        GoTo5D(-31,-65,10,startpoint.e,15000);
-                        GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
-
-                        calibratePos = 2;
-                      }
-                    else if(calibratePos == 2)
-                      {
-                        strcpy(statusStr, "Calibration");
-
-                        config.acceleration = 400;
-                        GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
-                        GoTo5D(31,-65,10,startpoint.e,15000);
-                        GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
-
-                        calibratePos = 3;
-                      }
-                    else if(calibratePos == 3)
-                      {
-                        disableSerialReply = true;
-                        memset(statusStr, '\0', sizeof(statusStr));
-                        home();
-                        disableSerialReply = false;
-                        calibratePos = 0;
-                      }
-                }
-              }
+        {
+          char str[80];
+          //memset(statusStr, '\0', sizeof(statusStr));
+          if(sd_printing)
+            {
               break;
+            }
+
+          double zCal = 2.0;
+          //Verify if a specific Z position is aked before sending any command to the planner queue
+          if(next_target.seen_Z)
+            {
+              zCal = next_targetd.z;
+            }
+          home();
+          config.acceleration = 400;
+          GoTo5D(0,67,zCal,startpoint.e,15000);
+          config.acceleration = 1000;
+          calibratePos = 1;
+          strcpy(statusStr, "Calibration");
+          is_calibrating = true;
+        }
+        break;
+        //Prceed to next Calibration Procedure step
+      case 132:
+        {
+          if(calibratePos == 1)
+            {
+              strcpy(statusStr, "Calibration");
+              //recalculate distante from home
+              config.home_pos_z -= startpoint.z;
+              SetZPos(0);
+              write_config();
+
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
+              GoTo5D(-31,-65,10,startpoint.e,15000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+
+              calibratePos = 2;
+            }
+          else if(calibratePos == 2)
+            {
+              strcpy(statusStr, "Calibration");
+
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
+              GoTo5D(31,-65,10,startpoint.e,15000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+
+              calibratePos = 3;
+            }
+          else if(calibratePos == 3)
+            {
+              disableSerialReply = true;
+              memset(statusStr, '\0', sizeof(statusStr));
+              home();
+              disableSerialReply = false;
+              calibratePos = 0;
+            }
+        }
+        break;
 
         // unknown gcode: spit an error
       default:
@@ -852,23 +871,41 @@ eParseResult process_gcode_command(){
           }else{
               if(!next_target.seen_B){
 
-                  serial_writestr("A");
-                  serwrite_uint32(estimated_time);
-                  serial_writestr(" B");
+                  if(estimated_time == 0 && number_of_lines == 0)
+                    {
+                      serial_writestr("A");
+                      serwrite_uint32(estimated_time);
+                      serial_writestr(" B");
+                      __disable_irq();
+                      serwrite_uint32(time_elapsed);
+                      __enable_irq();
 
-                  __disable_irq();
-                  serwrite_uint32(time_elapsed);
-                  __enable_irq();
+                      serial_writestr(" C");
+                      serwrite_uint32(sd_pos);
+                      serial_writestr(" D");
+                      serwrite_uint32(file.fsize);
+                      serial_writestr(" ");
 
-                  serial_writestr(" C");
-                  serwrite_uint32(number_of_lines);
-                  serial_writestr(" D");
-                  serwrite_uint32(executed_lines);
-                  serial_writestr(" ");
+                    } else {
 
-                  if(number_of_lines == executed_lines){
-                      serial_writestr("Done printing file\n");
-                  }/*No need for else*/
+                        serial_writestr("A");
+                        serwrite_uint32(estimated_time);
+                        serial_writestr(" B");
+
+                        __disable_irq();
+                        serwrite_uint32(time_elapsed);
+                        __enable_irq();
+
+                        serial_writestr(" C");
+                        serwrite_uint32(number_of_lines);
+                        serial_writestr(" D");
+                        serwrite_uint32(executed_lines);
+                        serial_writestr(" ");
+
+                        if(number_of_lines == executed_lines){
+                            serial_writestr("Done printing file\n");
+                        }/*No need for else*/
+                    }
               }/*No need for else*/
           }
         }
@@ -890,43 +927,13 @@ eParseResult process_gcode_command(){
               strcpy(fName, "ABCDE");
             }
 
-          //Init SD Card
-          res = sd_init();
-          if(res != FR_OK)
+          strcpy(config.filename, fName);
+
+          if(print_file() == false)
             {
-              sersendf("error mouting file system");
               break;
             }
 
-          //opens a file
-          if (sd_open(&file, fName, FA_READ)) {
-              if(!next_target.seen_B) {
-                  //sersendf("File opened: %s\n",next_target.filename);
-              }/*No need for else*/
-              sd_pos = 0;
-              //save current filename to config
-              strcpy(config.filename, fName);
-          }else{
-              if(!next_target.seen_B){
-                  sersendf("error opening file: %s \n",fName);
-              }/*No need for else*/
-          }
-
-          res = f_lseek(&file, sd_pos);
-          //sersendf("Starting print\n");
-          if(res != FR_OK){
-              if(!next_target.seen_B){
-                  serial_writestr("error seeking position on file\n");
-              }/*No need for else*/
-              break;
-          }/*No need for else*/
-
-          config.status = 5;
-          sd_printing = true;
-          sd_pause = false;
-          sd_resume = false;
-          printerPause = false;
-          printerShutdown = false;
         }
         break;
 
@@ -943,12 +950,7 @@ eParseResult process_gcode_command(){
         //Only use during prints, after M640 - which prepares the config
       case 36: //M36
         {
-          //set status to shutdown
-          config.status = 9;
-          printerPause = false;
-          printerShutdown = true;
-
-          write_config();
+          enterShutDown();
         }break;
 
         // M104- set temperature
@@ -1101,19 +1103,6 @@ eParseResult process_gcode_command(){
               //if(!next_target.seen_B && !sd_printing){
               if(!next_target.seen_B){
                   sersendf(" C: X:%g Y:%g Z:%g E:%g F:%g ", startpoint.x, startpoint.y, startpoint.z, startpoint.e, startpoint.feed_rate);
-              }/*No need for else*/
-          }
-        }
-        break;
-
-        /*M122- report XYZE from config to host  */
-      case 122:
-        {
-          if (next_target.option_inches){
-              config.status = 0;
-          }else{
-              if(!next_target.seen_B && !sd_printing){
-                  sersendf(" C: X:%g Y:%g Z:%g E:%g ", config.startpoint_x, config.startpoint_y, config.startpoint_z, config.startpoint_e);
               }/*No need for else*/
           }
         }
@@ -1337,6 +1326,23 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M220 - Set speed factor override percentage
+      case 220:
+        {
+          if(next_target.seen_S)
+            {
+              double currentFeedrate = feedrate_coeff;
+              feedrate_coeff = (double) next_target.S / 100;
+              startpoint.feed_rate = startpoint.feed_rate * feedrate_coeff/currentFeedrate;
+            }
+          else {
+              serial_writestr("feedrate coefficient:");
+              serwrite_double((double)feedrate_coeff*100);
+              serial_writestr(" ");
+          }
+        }
+        break;
+
         // M300 - beep
         // S: frequency
         // P: duration
@@ -1368,28 +1374,13 @@ eParseResult process_gcode_command(){
       }
       break;
 
-        // M400 bcode
-      case 400:
-        {
-          if(next_target.seen_A){
-              config.bcode= next_target.A;
-              write_config();
-          }else{
-              serial_writestr(" bcode:A");
-              serwrite_int32(config.bcode);
-              serial_writestr(" ");
-          }
-
-        }
-        break;
-
 #ifdef EXP_Board
         //M504 - Report Power input voltage
       case 504:
         {
           double voltsInput;
 
-          voltsInput = (double) sDown_filtered/112.5;
+          voltsInput = (double) sDown_filtered/108.3;
 
           sersendf("Raw input: %u Volts: %g\n", sDown_filtered,voltsInput);
         }
@@ -1542,6 +1533,10 @@ eParseResult process_gcode_command(){
                 {
                   serial_writestr("Shutdown ");
                 }
+              if(in_power_saving)
+                {
+                  serial_writestr("Power_Saving ");
+                }
 
               if(strlen(statusStr) > 0)
                 {
@@ -1562,16 +1557,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      case 636:
-        {
-          if(bip_switch == 0){
-              bip_switch = 1;
-          }else{
-              bip_switch = 0;
-          }
-        }
-        break;
-
+        //Alive Command
       case 637:
         {
           reply_sent = 1;
@@ -1590,6 +1576,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //echo
       case 639:
         {
           if(!next_target.seen_B ){
@@ -1624,6 +1611,10 @@ eParseResult process_gcode_command(){
 
       case 641:
         {
+          if(next_target.seen_S)
+            {
+              powerSavingDelay = (uint32_t) next_target.S;
+            }
           if(next_target.seen_A){
 
               if (next_target.A == 1){
@@ -1785,6 +1776,98 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //Read Last Print Time
+      case 1002:
+        {
+          sersendf("Last Print Time: %u\n",config.last_print_time);
+        }
+        break;
+        //Print Last file
+      case 1003:
+        {
+          synch_queue();
+          print_file();
+        }
+        break;
+
+#ifdef USE_BATT
+        //Read PS Ext Input
+      case 1100:
+        {
+          //ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
+
+          sersendf("Power Supply State: %u\n", ps_ext_state);
+
+        }
+        break;
+
+        //Enable Battery Charge
+      case 1101:
+        {
+          STEP_uC_enable();
+        }
+        break;
+
+        //Disable Battery Charge
+      case 1102:
+        {
+          STEP_uC_disable();
+        }
+        break;
+
+        //Enable Battery
+      case 1103:
+        {
+          BATT_uC_enable();
+        }
+        break;
+
+        //Disable Battery
+      case 1104:
+        {
+          BATT_uC_disable();
+        }
+        break;
+
+        //M1105 - Report Battery input voltage
+      case 1105:
+        {
+          double voltsInput;
+
+          voltsInput = (double) batt_filtered/112.5;
+
+          sersendf("Raw input: %u Volts: %g\n", batt_filtered,voltsInput);
+        }
+        break;
+        //M1106 - Change Battery Print Time
+      case 1106:
+        {
+          if(next_target.seen_S){
+              config.batteryPrintTime = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+        //M1107 - Change Battery Stand By Time
+      case 1107:
+        {
+          if(next_target.seen_S){
+              config.standByTime = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+        //M1108 - Change Auto Resume Mode
+      case 1108:
+        {
+          if(next_target.seen_S){
+              config.autoResume = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+
+#endif
         // unknown mcode: spit an error
       default:
         {
@@ -1826,6 +1909,7 @@ eParseResult process_gcode_command(){
           serial_writestr("\r\n");
       }/*No need for else*/
   }/*No need for else*/
+
 
   if(next_target.seen_M && enter_power_saving){
       if(!(next_target.M == 625 || next_target.M == 637)){

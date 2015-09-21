@@ -53,10 +53,9 @@ struct configuration
   // options
 
   int32_t status;
-  int32_t bcode;
 
   // autonomous
-  char filename[10];
+  char filename[50];
   int32_t  sd_pos;
   int32_t estimated_time;
   int32_t time_elapsed;
@@ -69,7 +68,10 @@ struct configuration
   double  startpoint_feed_rate;
   double  startpoint_temperature;
   double  startpoint_filament_coeff;
+  double  startpoint_feedrate_coeff;
   int32_t blowerSpeed;
+  int32_t last_print_time;
+  int32_t battery_ShutDown;
 
   //Block Fan Control
   double blockControlM;
@@ -79,6 +81,11 @@ struct configuration
   double blockFanMinSpeed;
   double blockFanMaxSpeed;
   char bcodeStr[100];
+
+  //Battery Variables
+  uint32_t batteryPrintTime;
+  uint32_t standByTime;
+  uint32_t autoResume;
 
 };
 

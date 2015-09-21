@@ -43,6 +43,10 @@
 #ifdef BTF_SCHOOL
   #define EXP_Board       //Expansion Board P02V04A
 #endif
+#ifdef BTF_PLUS_BATT
+  #define EXP_Board       //Expansion Board P02V04A
+  #define USE_BATT
+#endif
 
 /*
         Machine Pin Definitions
@@ -159,7 +163,7 @@
 
   #define SDOWN_ADC_PORT                  1       /* P1.31 */
   #define SDOWN_ADC_PIN                   31      /* P1.31 */
-  #define SDOWN_ADC_SENSOR_ADC_CHANNEL    5        /* P0.3 */
+  #define SDOWN_ADC_SENSOR_ADC_CHANNEL    5        /* P1.31 */
 
   #define FAN_EXT_ON_PORT                 1       /* P1.10 */
   #define FAN_EXT_ON_PIN                  (1 << 10)      /* P1.10 */
@@ -187,6 +191,28 @@
   #define ilum_off() digital_write(ILUM_PORT, ILUM_PIN, LOW);
 
 #endif
+
+#ifdef USE_BATT
+  #define BATT_ADC_PORT                  0       /* P0.26 */
+  #define BATT_ADC_PIN                   26      /* P0.26 */
+  #define BATT_ADC_SENSOR_ADC_CHANNEL    3       /* P0.26 */
+
+  #define PS_EXT_READ_PORT                   0       /* P0.7 */
+  #define PS_EXT_READ_PIN                    (1 << 7)      /* P0.7 */
+
+  #define STEP_uC_ON_PORT                   0       /* P0.6 */
+  #define STEP_uC_ON_PIN                    (1 << 6)      /* P0.6 */
+
+  #define BATT_uC_ON_PORT                   1       /* P1.8 */
+  #define BATT_uC_ON_PIN                    (1 << 8)      /* P1.8 */
+
+  #define STEP_uC_enable() digital_write(STEP_uC_ON_PORT, STEP_uC_ON_PIN, 1)
+  #define STEP_uC_disable() digital_write(STEP_uC_ON_PORT, STEP_uC_ON_PIN, 0)
+
+  #define BATT_uC_enable() digital_write(BATT_uC_ON_PORT, BATT_uC_ON_PIN, 0)
+  #define BATT_uC_disable() digital_write(BATT_uC_ON_PORT, BATT_uC_ON_PIN, 1)
+#endif
+
 /*
         X Stepper
 */

@@ -38,6 +38,9 @@
 #include "fans.h"
 #include "MovementController.h"
 
+//Relative Coordinates Option
+bool relativeCoordinates;
+
 //For Pause Function
 extern double currentE;
 extern double currentF;
@@ -52,6 +55,7 @@ extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
 extern bool      printerShutdown;             // printer in shutdown
 extern bool      printerPause;             // printer in pause
+extern bool      sDownAfterPause;              // wait for printer to pause and enter shutdown
 extern bool      sd_restartPrint;
 extern bool      disableSerialReply;
 extern bool      in_power_saving;      //
@@ -65,12 +69,14 @@ extern bool      sd_writing_file; // writing to SD file
   extern int32_t   extruderFanSpeed;
 #endif
 
+void enqueue_wait_temp (void);
+
 FRESULT scan_files (char* path);
 extern void sd_close (FIL *pFile);
 extern FRESULT sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
 
-extern void print_infi(void);
+extern bool print_file();
 
 extern bool sd_read_file (tLineBuffer *pLine);
 

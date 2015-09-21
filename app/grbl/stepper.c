@@ -31,7 +31,7 @@
 #else
 #include "lpc17xx_timer.h"
 #include "lpc17xx_gpio.h"
-#include "lpc17xx_dac.h"
+//#include "lpc17xx_dac.h"
 #include "lpc17xx_pinsel.h"
 
 #include "timer.h"
@@ -74,7 +74,7 @@ static tTimer blinkTimer;
 
 // DAC scale is calculated as voltage range * 10 (3.3V=33/10) and seconds, steps per mm, and finally mm/s per volt divided by DAC range (10 bits)
 const uint32_t mm_per_sec_per_volt = 200;
-uint32_t dac_scale;
+//uint32_t dac_scale;
 
 
 static block_t *current_block;  // A pointer to the block currently being traced
@@ -304,7 +304,7 @@ void st_wake_up() {
 
   enableHwTimer(1);
   
-  dac_scale = (33 * 60 * config.steps_per_mm_x * mm_per_sec_per_volt) / 1024/10;
+  //dac_scale = (33 * 60 * config.steps_per_mm_x * mm_per_sec_per_volt) / 1024/10;
 
 #endif
 }
@@ -639,7 +639,7 @@ void st_init()
   TCCR2B = (1<<CS21); // Full speed, 1/8 prescaler
   TIMSK2 |= (1<<TOIE2);      
 #else
-  init_dac();
+  //init_dac();
   
   // set up timers
   // use hardware timer 0 and 1
@@ -737,7 +737,7 @@ static void set_step_events_per_minute(uint32_t steps_per_minute)
   }
   cycles_per_step_event = config_step_timer((TICKS_PER_MICROSECOND*1000000*6)/steps_per_minute*10);
   
-  DAC_UpdateValue (LPC_DAC, steps_per_minute/dac_scale);
+  //DAC_UpdateValue (LPC_DAC, steps_per_minute/dac_scale);
 }
 
 #if 0

@@ -170,7 +170,7 @@ typedef struct {
 	WORD	fdate;			/* Last modified date */
 	WORD	ftime;			/* Last modified time */
 	BYTE	fattrib;		/* Attribute */
-	TCHAR	fname[13];		/* Short file name (8.3 format) */
+	TCHAR	fname[30];		/* Short file name (8.3 format) */
 #if _USE_LFN
 	TCHAR*	lfname;			/* Pointer to the LFN buffer */
 	UINT 	lfsize;			/* Size of LFN buffer in TCHAR */

@@ -1,6 +1,6 @@
 #include "pause.h"
 
-void initPause()
+void initPause(void)
 {
   //save vars
   config.sd_pos          = sd_pos;
@@ -21,10 +21,34 @@ void initPause()
   config.startpoint_feed_rate = currentF;
   config.startpoint_temperature = target_temp[EXTRUDER_0];
   config.startpoint_filament_coeff = filament_coeff;
+  config.startpoint_feedrate_coeff = feedrate_coeff;
   config.blowerSpeed = currenBWSpeed;
 }
 
-void pausePrint()
+void enterShutDown(void)
+{
+  if(printerShutdown)
+    {
+      return;
+    }
+
+  if(printerPause)
+    {
+      //set status to shutdown
+      config.status = 9;
+      printerPause = false;
+      printerShutdown = true;
+    }
+  else
+    {
+      initPause();
+      sDownAfterPause = true;
+    }
+
+  write_config();
+}
+
+void pausePrint(void)
 {
   tTarget new_pos;
   /*
@@ -36,11 +60,17 @@ void pausePrint()
 
   sd_pause = false;
   printerPause = true;
+
+  if(sDownAfterPause)
+    {
+      enterShutDown();
+      sDownAfterPause = false;
+    }
 }
 
 
 
-void resumePrint()
+void resumePrint(void)
 {
   disableSerialReply = true;
 
@@ -95,6 +125,10 @@ void resumePrint()
        * Set Filament Coeff.
        */
       filament_coeff = config.startpoint_filament_coeff;
+      /*
+       * Set Feedrate Coeff.
+       */
+      feedrate_coeff = config.startpoint_feedrate_coeff;
       /*
        * MOVE Z To initial position
        */

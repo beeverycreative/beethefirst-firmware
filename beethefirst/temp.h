@@ -40,11 +40,15 @@
   extern double current_temp_r2c2;
   extern int32_t sDown_filtered;
 #endif
+#ifdef USE_BATT
+  extern int32_t batt_filtered;
+#endif
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "adc.h"
 #include "gcode_parse.h"
+#include "ExpBoard.h"
 
 // set target temperature
 void temp_set(double t, uint8_t sensor_number);

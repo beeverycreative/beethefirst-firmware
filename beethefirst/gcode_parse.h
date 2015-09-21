@@ -35,7 +35,6 @@
 #include "planner.h"
 #include "MovementController.h"
 
-uint32_t bip_switch;
 //char position_ok;
 // whether the asterisk (checksum-command) is included for checksum calculation
 // undefined for RepRap host software
@@ -154,13 +153,22 @@ uint32_t number_of_bytes;
 uint32_t estimated_time;
 uint32_t time_elapsed;
 uint32_t rest_time;
+uint32_t powerSavingDelay;
 uint32_t number_of_lines;
 uint32_t executed_lines;
 double last_target_e;
 double filament_coeff;
+double feedrate_coeff;
 
 #ifdef EXP_Board
   uint32_t blink_time;
+#endif
+#ifdef USE_BATT
+  uint32_t charge_time;
+  uint32_t batt_time;
+  bool ps_ext_state;
+  bool batteryMode;
+  bool charging;
 #endif
 
 // utility functions
