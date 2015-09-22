@@ -56,7 +56,7 @@
 tTimer temperatureTimer;
 #ifdef EXP_Board
   int32_t i_sDownADC_raw;
-  int32_t sDownADC_raw[8];
+  int32_t sDownADC_raw[5];
   tTimer sDownTimer;
   int32_t sDown_filtered = 4095;
 
@@ -64,7 +64,7 @@ tTimer temperatureTimer;
 #endif
 #ifdef USE_BATT
   int32_t i_BattADC_raw;
-  int32_t battADC_raw[8];
+  int32_t battADC_raw[5];
   int32_t batt_filtered = 4095;
 #endif
 

@@ -1404,6 +1404,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
+
         // M600 print the values read from the config file
       case 600:
         {
@@ -1864,6 +1865,15 @@ eParseResult process_gcode_command(){
               config.autoResume = (uint32_t) next_target.S;
               write_config();
           }
+        }
+        break;
+
+#endif
+#ifdef EXP_Board
+        //M1109 - Report r2c2 raw adc temperature
+      case 1109:
+        {
+          sersendf("Raw input: %u\n", adc_filtered_r2c2);
         }
         break;
 

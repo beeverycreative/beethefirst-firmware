@@ -57,8 +57,9 @@ double temptable[NUMTEMPS][3] = {
 #ifdef EXP_Board
   double extruderBlockTemp = 0;
   double current_temp_r2c2 = {0};
-  static uint32_t adc_filtered_r2c2 = 4095;
-
+  uint32_t adc_filtered_r2c2 = 4095;
+  int32_t adc_r2c2_raw[5] = {0};
+  int32_t i_r2c2 = 0;
   static double read_R2C2_temp(void);
 #endif
 
@@ -233,19 +234,20 @@ static double read_temp(uint8_t sensor_number)
   /* Read and average the R2C2 ADC input signal */
   static double read_R2C2_temp(void)
   {
-    int32_t raw = 0; // initialize raw with value equal to lowest temperature.
     double celsius = 0;
-    uint8_t i;
-    raw = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
 
-    // filter the ADC values with simple IIR
-    adc_filtered_r2c2 = ((adc_filtered_r2c2 * 15) + raw) / 16;
+    adc_r2c2_raw[i_r2c2] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+    i_r2c2 ++;
+    if(i_r2c2 >= 5)
+      {
+        i_r2c2 = 0;
+      }
 
-    raw = adc_filtered_r2c2;
+    adc_filtered_r2c2 = getMedianValue(adc_r2c2_raw);
 
-    double volts = (double) raw*(3.3/4096);
+    double volts = (double) adc_filtered_r2c2*(3.3/4096);
 
-    celsius = (volts - 0.5)*100;
+    celsius = (volts - 0.6)*100;
 
     return celsius;
   }
