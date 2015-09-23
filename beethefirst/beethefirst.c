@@ -586,7 +586,7 @@ int app_main (void){
           }else{
               sd_printing = false;
               print2USB = false;
-              sersendf(";EOF\n");
+              //sersendf(";EOF\n");
               config.last_print_time = time_elapsed;
               write_config();
               filament_coeff = 1;

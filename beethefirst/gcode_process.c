@@ -218,6 +218,7 @@ static TCHAR lfname[_MAX_LFN];
 
 FRESULT scan_files (char* path)
 {
+  /*
   DIR dirs;
   FRESULT res;
   BYTE i;
@@ -228,10 +229,10 @@ FRESULT scan_files (char* path)
       for (;; ) {
           Finfo.lfname = lfname;
           Finfo.lfsize = _MAX_LFN - 1;
-          /* Read a directory item */
+          /* Read a directory item
           res = f_readdir(&dirs, &Finfo);
           if (res || !Finfo.fname[0]) {
-              break;                                  /* Error or end of dir */
+              break;                                  // Error or end of dir
           }
           if (Finfo.fattrib & AM_DIR) {
 
@@ -240,6 +241,37 @@ FRESULT scan_files (char* path)
               sersendf("/%s\r\n", Finfo.lfname[0] ? Finfo.lfname : Finfo.fname);
           }
 
+      }
+   */
+
+  DIR dirs;
+  FRESULT res;
+  BYTE i;
+  char *fn;
+
+  //sersendf("Reading file list");
+
+  if ((res = f_opendir(&dirs, path)) == FR_OK) {
+      i = strlen(path);
+      while (((res = f_readdir(&dirs, &Finfo)) == FR_OK) && Finfo.fname[0]) {
+          if (_FS_RPATH && Finfo.fname[0] == '.') continue;
+#if _USE_LFN
+          fn = *Finfo.lfname ? Finfo.lfname : Finfo.fname;
+#else
+          fn = Finfo.fname;
+#endif
+          if (Finfo.fattrib & AM_DIR) {
+              acc_dirs++;
+              *(path+i) = '/'; strcpy(path+i+1, fn);
+              res = scan_files(path);
+              *(path+i) = '\0';
+              if (res != FR_OK) break;
+          } else {
+              sersendf("%s/%s\n", path, fn);
+              acc_files++;
+              acc_size += Finfo.fsize;
+          }
+          //sersendf("%s/%s\n", path, fn);
       }
   }
 

@@ -189,7 +189,6 @@ SRC = \
 	$(APPLIBDIR)/R2C2/buzzer.c \
 	$(APPLIBDIR)/FatFs/ff.c \
 	$(APPLIBDIR)/FatFs/fattime.c \
-	$(APPLIBDIR)/FatFs/option/ccsbcs.c \
 	$(APPLIBDIR)/iap/sbl_iap.c \
 	$(APPSRC) \
 	main.c \
