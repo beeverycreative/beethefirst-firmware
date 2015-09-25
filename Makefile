@@ -594,6 +594,7 @@ copyBinBTF_OLD:
 		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-PLUS-Firmware-$(FW_VERSION).BIN

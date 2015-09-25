@@ -90,6 +90,10 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+//Pause at Z Vars
+bool pauseAtZ = false;
+double pauseAtZVal;
+
 #ifdef USE_BATT
 bool ps_ext_state = false;
 bool batteryMode = false;
@@ -485,6 +489,19 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+
+          if(pauseAtZ)
+            {
+              if(startpoint.z >= pauseAtZVal)
+                {
+                  initPause();
+                  write_config();
+
+                  sd_printing = false;
+                  sd_pause = true;
+                  sd_resume = false;
+                }
+            }
         }
         break;
 
@@ -1685,6 +1702,11 @@ eParseResult process_gcode_command(){
         //Resume SD Print from pause
       case 643:
         {
+          if(pauseAtZ)
+            {
+              pauseAtZ = false;
+            }
+
           if(next_target.seen_W) {
               config.startpoint_filament_coeff= next_target.W;
           }
@@ -1910,6 +1932,42 @@ eParseResult process_gcode_command(){
         break;
 
 #endif
+        //TODO M1200 - Replacement for M640 Command - Pause
+        //TODO M1201 - Replacement for M643 Command - Resume
+        //M1202- Pause ate Z
+      case 1202:
+        {
+          if(next_target.seen_Z)
+            {
+              if(pauseAtZ == true)
+                {
+                  sersendf("Can't set pause at Z, waiting for pending pause\n");
+                }
+              else {
+                  if(next_targetd.z <= startpoint.z)
+                    {
+                      pauseAtZ = false;
+                      pauseAtZVal = 0;
+                    }
+                  else
+                    {
+                      pauseAtZ = true;
+                      pauseAtZVal = next_targetd.z;
+                    }
+              }
+            }
+          else
+            {
+              if(pauseAtZ == true)
+                {
+                  sersendf("Pausing at Z: %g\n",pauseAtZVal);
+                }
+              else {
+                  sersendf("No pause pending\n");
+              }
+            }
+        }
+        break;
         // unknown mcode: spit an error
       default:
         {

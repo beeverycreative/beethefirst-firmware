@@ -247,7 +247,7 @@ static double read_temp(uint8_t sensor_number)
 
     double volts = (double) adc_filtered_r2c2*(3.3/4096);
 
-    celsius = (volts - 0.6)*100;
+    celsius = (volts - 0.5)*100;
 
     return celsius;
   }
