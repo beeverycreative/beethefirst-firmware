@@ -69,6 +69,8 @@ extern bool      sd_writing_file; // writing to SD file
   extern int32_t   extruderFanSpeed;
 #endif
 
+extern bool     debugMode;              //Enable debug functions
+
 void enqueue_wait_temp (void);
 
 FRESULT scan_files (char* path);

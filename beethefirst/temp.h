@@ -39,8 +39,7 @@
   extern double extruderBlockTemp;
   extern double current_temp_r2c2;
   extern uint32_t adc_filtered_r2c2;
-  int32_t adc_r2c2_raw[5];
-  int32_t i_r2c2;
+  int32_t adc_r2c2_raw;
   extern int32_t sDown_filtered;
 #endif
 #ifdef USE_BATT

@@ -125,7 +125,7 @@ void verifyBatteryLevels(void)
               && in_power_saving && printerShutdown)
             {
               //If standby exceeded or Low Battery charge turn off pritner
-              if(batt_time > (config.standByTime * 1000) || batt_filtered < 2475){
+              if(batt_time > (config.standByTime * 1000) || batt_filtered < 2482){
                   BATT_uC_disable();
               }
             }
@@ -182,7 +182,7 @@ void verifyBatteryLevels(void)
             }
 
           //Charge battery
-          if(current_temp_r2c2 > 0 && current_temp_r2c2 < 40)
+          if(current_temp_r2c2 > 0 && current_temp_r2c2 < 45)
             {
               STEP_uC_enable();
             }

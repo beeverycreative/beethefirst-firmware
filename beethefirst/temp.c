@@ -58,8 +58,7 @@ double temptable[NUMTEMPS][3] = {
   double extruderBlockTemp = 0;
   double current_temp_r2c2 = {0};
   uint32_t adc_filtered_r2c2 = 4095;
-  int32_t adc_r2c2_raw[5] = {0};
-  int32_t i_r2c2 = 0;
+  int32_t adc_r2c2_raw;
   static double read_R2C2_temp(void);
 #endif
 
@@ -236,14 +235,15 @@ static double read_temp(uint8_t sensor_number)
   {
     double celsius = 0;
 
-    adc_r2c2_raw[i_r2c2] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-    i_r2c2 ++;
-    if(i_r2c2 >= 5)
+    int32_t adc_r2c2_buf[5];
+    for(int32_t i = 0; i < 5; i++)
       {
-        i_r2c2 = 0;
+        adc_r2c2_buf[i] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
       }
 
-    adc_filtered_r2c2 = getMedianValue(adc_r2c2_raw);
+    adc_r2c2_raw = getMedianValue(adc_r2c2_buf);
+
+    adc_filtered_r2c2 = adc_filtered_r2c2*0.9 + adc_r2c2_raw*0.1;
 
     double volts = (double) adc_filtered_r2c2*(3.3/4096);
 

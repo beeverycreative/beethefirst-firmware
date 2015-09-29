@@ -63,8 +63,7 @@ tTimer temperatureTimer;
   tTimer blockFanTimer;
 #endif
 #ifdef USE_BATT
-  int32_t i_BattADC_raw;
-  int32_t battADC_raw[5];
+  int32_t battADC_raw;
   int32_t batt_filtered = 4095;
 #endif
 
@@ -247,7 +246,10 @@ void temperatureTimerCallback (tTimer *pTimer)
 
     sDown_filtered = getMedianValue(sDownADC_raw);
 
-    verifySDownConditions();
+    if(debugMode == false)
+      {
+        verifySDownConditions();
+      }
 
   }
 #endif
@@ -259,26 +261,37 @@ void temperatureTimerCallback (tTimer *pTimer)
     int32_t a;
 
     sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    battADC_raw[i_BattADC_raw] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+    //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
     i_sDownADC_raw ++;
-    i_BattADC_raw ++;
     if(i_sDownADC_raw >= 5)
       {
         i_sDownADC_raw = 0;
-        i_BattADC_raw = 0;
       }
 
+    int32_t batt_buf[5];
+    for(int32_t j = 0; j < 5; j++)
+      {
+        batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+      }
+
+    battADC_raw = getMedianValue(batt_buf);
+
     sDown_filtered = getMedianValue(sDownADC_raw);
-    batt_filtered = getMedianValue(battADC_raw);
+    batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
 
     ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
-    verifyBatteryLevels();
+
+    if(debugMode == false)
+      {
+        verifyBatteryLevels();
+      }
+
   }
 #endif
 
   void blockFanTimerCallBack(tTimer *pTimer) {
 
-    if (manualBlockFanControl == false)
+    if (manualBlockFanControl == false && debugMode == false)
       {
         extruderFanSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
 
@@ -319,12 +332,23 @@ void init(void)
   /* Initialize Gcode parse variables */
   gcode_parse_init();
 
-  //temperature interruption
-  AddSlowTimer (&temperatureTimer);
-  StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
-  temperatureTimer.AutoReload = 1;
-
 #ifdef EXP_Board
+
+  __disable_irq();
+  adc_filtered_r2c2 = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  adc_filtered_r2c2 /= 3;
+  __enable_irq();
+
+#ifdef USE_BATT
+  __disable_irq();
+  batt_filtered = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+  batt_filtered /= 3;
+  __enable_irq();
+#endif
 
   AddSlowTimer(&sDownTimer);
   StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
@@ -335,6 +359,11 @@ void init(void)
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
 #endif
+
+  //temperature interruption
+  AddSlowTimer (&temperatureTimer);
+  StartSlowTimer (&temperatureTimer, 50, temperatureTimerCallback);
+  temperatureTimer.AutoReload = 1;
 
 #ifdef DEBUG_UART
   uart_writestr("R2C2 Firmware initiated\n");
@@ -421,7 +450,10 @@ int app_main (void){
        *                     Logo Light Control
        *
        ***********************************************************************/
-      LogoLightControl();
+      if(debugMode == false)
+        {
+          LogoLightControl();
+        }
 
       /***********************************************************************
        *
@@ -429,7 +461,8 @@ int app_main (void){
        *
        ***********************************************************************/
       //Power saving check
-      if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing){
+      if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
+        {
 
           synch_queue();
           home_z();

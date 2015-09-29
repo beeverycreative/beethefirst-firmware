@@ -90,6 +90,8 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+extern bool     debugMode = false;              //Enable debug functions
+
 //Pause at Z Vars
 bool pauseAtZ = false;
 double pauseAtZVal;
@@ -1889,7 +1891,7 @@ eParseResult process_gcode_command(){
         {
           double voltsInput;
 
-          voltsInput = (double) batt_filtered/112.5;
+          voltsInput = (double) batt_filtered * (3.3 / (double) 4096) * 11;
 
           sersendf("Raw input: %u Volts: %g\n", batt_filtered,voltsInput);
         }
@@ -1932,6 +1934,21 @@ eParseResult process_gcode_command(){
         break;
 
 #endif
+        //M1110 - Toggle Debug Mode
+      case 1110:
+        {
+          if(debugMode == false)
+            {
+              debugMode = true;
+              sersendf("Debug Mode Enabled\n");
+            }
+          else
+            {
+              debugMode = false;
+              sersendf("Debug Mode Disabled\n");
+            }
+        }
+        break;
         //TODO M1200 - Replacement for M640 Command - Pause
         //TODO M1201 - Replacement for M643 Command - Resume
         //M1202- Pause ate Z
