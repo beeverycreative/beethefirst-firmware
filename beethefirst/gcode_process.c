@@ -1937,16 +1937,30 @@ eParseResult process_gcode_command(){
         //M1110 - Toggle Debug Mode
       case 1110:
         {
-          if(debugMode == false)
+          if(next_target.seen_S)
             {
-              debugMode = true;
-              sersendf("Debug Mode Enabled\n");
+              if(next_target.S == 1)
+                {
+                  debugMode = true;
+                  sersendf("Debug Mode Enabled\n");
+                }
+              else if(next_target.S == 0)
+                {
+                  debugMode = false;
+                  sersendf("Debug Mode Disabled\n");
+                }
+            } else {
+                if(debugMode == false)
+                  {
+                    sersendf("Debug Mode Disabled\n");
+                  }
+                else
+                  {
+                    sersendf("Debug Mode Enabled\n");
+                  }
             }
-          else
-            {
-              debugMode = false;
-              sersendf("Debug Mode Disabled\n");
-            }
+
+
         }
         break;
         //TODO M1200 - Replacement for M640 Command - Pause
