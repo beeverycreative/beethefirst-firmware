@@ -85,10 +85,10 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.4.1
+FW_VERSION = 10.4.2
 
 #Define Config UID
-CFG_UID = 14
+CFG_UID = 16
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -598,15 +598,19 @@ copyBinBTF:
 	
 copyBinBTF_PLUS:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-PLUS-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 
 copyBinBTF_PLUS_Batt:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-PLUS-A-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 	
 copyBinBTF_ME:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEME-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 
 copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 
 endif
 

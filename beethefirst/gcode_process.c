@@ -932,9 +932,9 @@ eParseResult process_gcode_command(){
                       __enable_irq();
 
                       serial_writestr(" C");
-                      serwrite_uint32(sd_pos);
-                      serial_writestr(" D");
                       serwrite_uint32(file.fsize);
+                      serial_writestr(" D");
+                      serwrite_uint32(sd_pos);
                       serial_writestr(" ");
 
                     } else {
@@ -1074,10 +1074,8 @@ eParseResult process_gcode_command(){
           }else{
               config.status = 5;
           }
-
           temp_set(next_target.S, EXTRUDER_0);
           enqueue_wait_temp();
-
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/

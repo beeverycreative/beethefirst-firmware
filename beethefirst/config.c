@@ -100,19 +100,19 @@ tConfigItem config_lookup [] =
         {"Battery_Shutdown",&config.battery_ShutDown , TYPE_INT, {.val_i=0}},
 
         //Block Fan Control
-        { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=2}},
-        { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=10}},
-        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=18}},
-        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=28}},
-        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=50}},
+        { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=8.75}},
+        { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=-276.25}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=35}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=43}},
+        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
 
         //bcode string
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
 
         //Battery Variables
-        {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=5}},
-        {"standBy_Time",&config.standByTime , TYPE_INT, {.val_i=300}},
+        {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=300}},
+        {"standBy_Time",&config.standByTime , TYPE_INT, {.val_i=18000}},
         {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}}
 
     };
