@@ -1770,18 +1770,34 @@ eParseResult process_gcode_command(){
                 {
                   temp_set(next_target.S,EXTRUDER_0);
                   home();
-                  config.acceleration = 400;
-                  GoTo5D(-30,0,10,startpoint.e,15000);
-                  config.acceleration = 1000;
+                  if(printerPause || printerShutdown)
+                    {
+
+                    }
+                  else
+                    {
+                      config.acceleration = 400;
+                      GoTo5D(-30,0,10,startpoint.e,15000);
+                      config.acceleration = 1000;
+                    }
+
                   strcpy(statusStr, "Heating");
                   is_heating = true;
                 }
               else if(is_heating && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
-                  GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,15000);
-                  config.acceleration = 400;
-                  GoTo5D(-50,0,110,startpoint.e,startpoint.feed_rate);
-                  config.acceleration = 1000;
+                  if(printerPause || printerShutdown)
+                    {
+
+                    }
+                  else
+                    {
+                      GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,15000);
+                      config.acceleration = 400;
+                      GoTo5D(-50,0,110,startpoint.e,startpoint.feed_rate);
+                      config.acceleration = 1000;
+                    }
+
                   is_heating = false;
                   strcpy(statusStr, "Load/Unload");
                 }
