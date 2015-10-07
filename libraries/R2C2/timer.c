@@ -32,7 +32,6 @@ static volatile long millis_ticks;
 static tTimer *SlowTimerHead;
 static tTimer *SlowTimerTail;
 
-
 static tHwTimer HwTimer [NUM_HARDWARE_TIMERS];
 
 static LPC_TIM_TypeDef *pTimerRegs [NUM_HARDWARE_TIMERS] = 

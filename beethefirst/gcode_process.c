@@ -51,7 +51,7 @@
 #include "lpc17xx_wdt.h"
 
 #ifndef FW_V
-  #define FW_V "0.0.0"
+#define FW_V "0.0.0"
 #endif
 
 
@@ -110,8 +110,8 @@ bool is_heating = false;
 int32_t calibratePos = 0;
 
 #ifdef EXP_Board
-  bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
-  int32_t   extruderFanSpeed = 0;
+bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
+int32_t   extruderFanSpeed = 0;
 #endif
 
 double kp = 6.0;
@@ -459,7 +459,7 @@ eParseResult process_gcode_command(){
   if(leave_power_saving){
       if(next_target.seen_M){
           if((next_target.M == 625 || next_target.M == 637)){
-                //do nothing
+              //do nothing
           }else{
               reinit_system();
           }
@@ -709,7 +709,7 @@ eParseResult process_gcode_command(){
         }
         break;
 #endif
-      // SD File functions
+        // SD File functions
       case 20: // M20 - list SD Card files
         {
           sersendf("Begin file list\n");
@@ -1075,6 +1075,7 @@ eParseResult process_gcode_command(){
               config.status = 5;
           }
           temp_set(next_target.S, EXTRUDER_0);
+          is_heating = true;
           enqueue_wait_temp();
           if(sd_printing){
               reply_sent = 1;
@@ -1203,7 +1204,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
-       //M128 - Excruder block regression adjust
+        //M128 - Excruder block regression adjust
       case 128:
         {
 
@@ -1412,16 +1413,16 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      // M302 set safe temp
+        // M302 set safe temp
       case 302:
-      {
-        if (next_target.seen_S){
-            protection_temperature=next_target.S;
-        }else{
-            protection_temperature=0;
+        {
+          if (next_target.seen_S){
+              protection_temperature=next_target.S;
+          }else{
+              protection_temperature=0;
+          }
         }
-      }
-      break;
+        break;
 
 #ifdef EXP_Board
         //M504 - Report Power input voltage
@@ -1498,7 +1499,7 @@ eParseResult process_gcode_command(){
               HOME_POS_Y = next_target.target.y;
               axisSelected = 1;
           }//no need for else
-          */
+           */
           if (next_target.seen_Z){
               config.home_pos_z = next_target.target.z;
               axisSelected = 1;
@@ -1509,7 +1510,7 @@ eParseResult process_gcode_command(){
               HOME_POS_Y = 0.0;
               HOME_POS_Z = 0.0;
           }//no need for else
-          */
+           */
           if(sd_printing){
               reply_sent = 1;
           }
@@ -1529,7 +1530,7 @@ eParseResult process_gcode_command(){
               HOME_POS_Y -= next_target.target.y;
               axisSelected = 1;
           }//no need for else
-          */
+           */
           if (next_target.seen_Z){
               config.home_pos_z -= next_target.target.z;
               axisSelected = 1;
@@ -1540,7 +1541,7 @@ eParseResult process_gcode_command(){
               HOME_POS_Y = 0.0;
               HOME_POS_Z = 0.0;
           }//no need for else
-          */
+           */
           sersendf("Option Disabled");
 
           if(sd_printing){
@@ -1655,7 +1656,7 @@ eParseResult process_gcode_command(){
               sd_printing = false;
               sd_pause = true;
               sd_resume = false;
-          }/* No need for else */
+            }/* No need for else */
         }
         break;
 

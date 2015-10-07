@@ -63,6 +63,7 @@ extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
+extern bool      is_heating;
 
 #ifdef EXP_Board
   extern bool      manualBlockFanControl;        //manual control of fan using M132 and M133 M-Codes

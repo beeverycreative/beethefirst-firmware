@@ -283,6 +283,11 @@ void temperatureTimerCallback (tTimer *pTimer)
 
     if(debugMode == false)
       {
+        verifySDownConditions();
+      }
+
+    if(debugMode == false)
+      {
         verifyBatteryLevels();
       }
 
@@ -293,14 +298,37 @@ void temperatureTimerCallback (tTimer *pTimer)
 
     if (manualBlockFanControl == false && debugMode == false)
       {
-        extruderFanSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
+        double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
 
-        if(extruderFanSpeed > 100) {
-            extruderFanSpeed = 100;
-        }
-        if(extruderFanSpeed < 0) {
+        if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
+          {
+            if(fSpeed > 100) fSpeed = 100;
+            extruderFanSpeed = fSpeed;
+          }
+        else if(extruderFanSpeed != 0)
+          {
+            if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
+              {
+                extruderFanSpeed = 0;
+              }
+            if(fSpeed < 0)
+              {
+                extruderFanSpeed = 0;
+              }
+            else if(fSpeed > 100)
+              {
+                extruderFanSpeed = 100;
+              }
+            else
+              {
+                extruderFanSpeed = fSpeed;
+              }
+          }
+
+        if(target_temp[EXTRUDER_0] == 0 || is_heating)
+          {
             extruderFanSpeed = 0;
-        }
+          }
 
         extruder_block_fan_on();
         pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
@@ -460,6 +488,14 @@ int app_main (void){
        *                        POWER SAVING
        *
        ***********************************************************************/
+      //Verify if printer should enter in power saving
+/*
+      if(!sd_printing && connectedUSB == 0)
+        {
+          enter_power_saving = 1;
+          rest_time = 0;
+        }
+*/
       //Power saving check
       if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
         {

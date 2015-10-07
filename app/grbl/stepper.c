@@ -49,6 +49,8 @@
 
 #include "endstops.h"
 
+#include "gcode_process.h"
+
 // Some useful constants
 #define STEP_MASK       ((1<<X_STEP_BIT)|(1<<Y_STEP_BIT)|(1<<Z_STEP_BIT)) // All step bits
 #define DIRECTION_MASK  ((1<<X_DIRECTION_BIT)|(1<<Y_DIRECTION_BIT)|(1<<Z_DIRECTION_BIT)) // All direction bits
@@ -527,6 +529,7 @@ void st_interrupt (void)
       {
         current_block = NULL;
         plan_discard_current_block();
+        is_heating = false;
       }
     }
     else if (current_block->action_type == AT_WAIT)

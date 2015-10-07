@@ -56,7 +56,7 @@ double temptable[NUMTEMPS][3] = {
 
 #ifdef EXP_Board
   double extruderBlockTemp = 0;
-  double current_temp_r2c2 = {0};
+  double current_temp_r2c2 = 0;
   uint32_t adc_filtered_r2c2 = 4095;
   int32_t adc_r2c2_raw;
   static double read_R2C2_temp(void);
@@ -191,9 +191,15 @@ static double read_temp(uint8_t sensor_number)
   if (sensor_number == EXTRUDER_0){
     raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
 
-  }else if (sensor_number == HEATED_BED_0){
-
-    raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+  }else if (sensor_number == HEATED_BED_0)
+    {
+      //raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+      int32_t bed_temp_buf[5];
+      for(int32_t i = 0; i < 5; i++)
+        {
+          bed_temp_buf[i] = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+        }
+      raw = getMedianValue(bed_temp_buf);
   }
   
   // filter the ADC values with simple IIR

@@ -45,15 +45,16 @@ void setLogoPWM(int32_t val)
 
 void PowerSavingLightControl(void)
 {
-  ilum_off();
   if(start_logo_blink && (blink_time > blink_interval))
     {
         if(logo_state) {
             setLogoPWM(0);
             logo_state = 0;
+            ilum_off();
         } else {
             setLogoPWM(25);
             logo_state = 1;
+            ilum_on();
         }
 
         blink_time = 0;
