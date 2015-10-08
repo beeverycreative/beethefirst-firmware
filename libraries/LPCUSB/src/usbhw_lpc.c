@@ -37,7 +37,7 @@
 #include "usbdebug.h"
 #include "usbhw_lpc.h"
 #include "usbapi.h"
-#include "MovementController.h"
+
 //  Configure LED pin functions
 //
 //  LED pin functions

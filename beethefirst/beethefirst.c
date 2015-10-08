@@ -325,7 +325,7 @@ void temperatureTimerCallback (tTimer *pTimer)
               }
           }
 
-        if(target_temp[EXTRUDER_0] == 0 || is_heating)
+        if(target_temp[EXTRUDER_0] == 0 || is_heating_Process || is_heating_MCode)
           {
             extruderFanSpeed = 0;
           }
@@ -427,6 +427,7 @@ int app_main (void){
 
   number_of_lines = 0;
   rest_time = 0;
+  lastCmd_time = 0;
   powerSavingDelay = 5000;
   last_target_e = 0;
   filament_coeff = 1;
@@ -489,13 +490,27 @@ int app_main (void){
        *
        ***********************************************************************/
       //Verify if printer should enter in power saving
-/*
-      if(!sd_printing && connectedUSB == 0)
+
+
+      //connectedUSB = digital_read(1,30);
+      if(
+          !sd_printing
+          && !sd_restartPrint
+          && !sd_pause
+          && lastCmd_time > (config.powerSavingWaitTime * 1000 - powerSavingDelay)
+          && !in_power_saving
+          && !is_heating_Process
+          && !is_heating_MCode
+          && !is_calibrating
+          && !enter_power_saving
+          && !debugMode
+          && !printerPause)
         {
+          temp_set(0, EXTRUDER_0);
           enter_power_saving = 1;
           rest_time = 0;
         }
-*/
+
       //Power saving check
       if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
         {
@@ -572,6 +587,7 @@ int app_main (void){
       if ((plan_queue_empty())
           && (sd_pause)) {
           pausePrint();
+          lastCmd_time = 0;
 
       }/*no need for else*/
 

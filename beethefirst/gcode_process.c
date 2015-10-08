@@ -104,7 +104,8 @@ bool charging = false;
 //Status Variables
 char statusStr[32];
 bool is_calibrating = false;
-bool is_heating = false;
+bool is_heating_Process = false;
+bool is_heating_MCode = false;
 
 //Calibrate Position
 int32_t calibratePos = 0;
@@ -456,17 +457,17 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
   }
 
-  if(leave_power_saving){
-      if(next_target.seen_M){
-          if((next_target.M == 625 || next_target.M == 637)){
-              //do nothing
-          }else{
-              reinit_system();
-          }
-      }else{
+  //Reset last comand timer and Leave Power Saving if needed
+  if(next_target.seen_G || next_target.M == 33 || next_target.M == 34 || next_target.M == 104
+      || next_target.M == 109 || next_target.M == 640 || next_target.M == 643 || next_target.M == 701
+      || next_target.M == 702 || next_target.M == 703 || next_target.M == 704)
+    {
+      if(leave_power_saving)
+        {
           reinit_system();
-      }
-  }/*No need for else*/
+        }
+      lastCmd_time = 0;
+    }
 
   if (next_target.seen_G){
 
@@ -548,9 +549,9 @@ eParseResult process_gcode_command(){
               calibratePos = 0;
               is_calibrating = false;
             }
-          if(is_heating && !sd_printing)
+          if(is_heating_Process && !sd_printing)
             {
-              is_heating = false;
+              is_heating_Process = false;
               temp_set(0, EXTRUDER_0);
             }
           memset(statusStr, '\0', sizeof(statusStr));
@@ -626,6 +627,11 @@ eParseResult process_gcode_command(){
             {
               zCal = next_targetd.z;
             }
+          if(!sd_printing){
+              config.status = 4;
+          }else{
+              config.status = 5;
+          }
           home();
           config.acceleration = 400;
           GoTo5D(0,67,zCal,startpoint.e,15000);
@@ -646,6 +652,12 @@ eParseResult process_gcode_command(){
               SetZPos(0);
               write_config();
 
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
+
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
               GoTo5D(-31,-65,10,startpoint.e,15000);
@@ -657,6 +669,12 @@ eParseResult process_gcode_command(){
             {
               strcpy(statusStr, "Calibration");
 
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
+
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
               GoTo5D(31,-65,10,startpoint.e,15000);
@@ -666,10 +684,15 @@ eParseResult process_gcode_command(){
             }
           else if(calibratePos == 3)
             {
-              disableSerialReply = true;
+
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
+
               memset(statusStr, '\0', sizeof(statusStr));
               home();
-              disableSerialReply = false;
               calibratePos = 0;
             }
         }
@@ -1075,7 +1098,7 @@ eParseResult process_gcode_command(){
               config.status = 5;
           }
           temp_set(next_target.S, EXTRUDER_0);
-          is_heating = true;
+          is_heating_MCode = true;
           enqueue_wait_temp();
           if(sd_printing){
               reply_sent = 1;
@@ -1473,6 +1496,10 @@ eParseResult process_gcode_command(){
         //calibrate
       case 603:
         {
+          if(in_power_saving)
+            {
+              break;
+            }
           tTarget new_pos;
 
           //recalculate distante from home
@@ -1561,6 +1588,10 @@ eParseResult process_gcode_command(){
       case 609:
         {
           if(!sd_printing){
+              if(is_heating_Process || is_calibrating)
+                {
+                  home_z();
+                }
               delay_ms(1000);
               USBHwConnect(FALSE);
               go_to_reset(); // reinicia o sistema
@@ -1730,6 +1761,11 @@ eParseResult process_gcode_command(){
         {
           if(!sd_printing)
             {
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
               buzzer_wait ();
               buzzer_play (3000);
               Extrude(100,300);
@@ -1746,6 +1782,11 @@ eParseResult process_gcode_command(){
         {
           if(!sd_printing)
             {
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
               buzzer_wait ();
               buzzer_play (3000);
               Extrude(50,300);
@@ -1766,9 +1807,15 @@ eParseResult process_gcode_command(){
         {
           if(!sd_printing)
             {
-              if(next_target.seen_S && !is_heating)
+              if(next_target.seen_S && !is_heating_Process)
                 {
+                  is_heating_Process = true;
                   temp_set(next_target.S,EXTRUDER_0);
+                  if(!sd_printing){
+                      config.status = 4;
+                  }else{
+                      config.status = 5;
+                  }
                   home();
                   if(printerPause || printerShutdown)
                     {
@@ -1782,10 +1829,14 @@ eParseResult process_gcode_command(){
                     }
 
                   strcpy(statusStr, "Heating");
-                  is_heating = true;
                 }
-              else if(is_heating && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
+              else if(is_heating_Process && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
+                  if(!sd_printing){
+                      config.status = 4;
+                  }else{
+                      config.status = 5;
+                  }
                   if(printerPause || printerShutdown)
                     {
 
@@ -1798,7 +1849,7 @@ eParseResult process_gcode_command(){
                       config.acceleration = 1000;
                     }
 
-                  is_heating = false;
+                  is_heating_Process = true;
                   strcpy(statusStr, "Load/Unload");
                 }
             }
@@ -1814,10 +1865,15 @@ eParseResult process_gcode_command(){
           if(!sd_printing)
             {
               memset(statusStr, '\0', sizeof(statusStr));
+              if(!sd_printing){
+                  config.status = 4;
+              }else{
+                  config.status = 5;
+              }
               home();
               temp_set(0,EXTRUDER_0);
               disableBlower();
-              is_heating = false;
+              is_heating_Process = false;
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1975,6 +2031,22 @@ eParseResult process_gcode_command(){
                   }
             }
 
+
+        }
+        break;
+        //M1111 - Define seconds to enter shutdown
+      case 1111:
+        {
+          if(next_target.seen_S)
+            {
+              config.powerSavingWaitTime = next_target.S;
+              write_config();
+            }
+          else
+            {
+              sersendf("Power saving time: %u seconds\n",config.powerSavingWaitTime);
+              sersendf("Time since last useful command: %u milliseconds\n",lastCmd_time);
+            }
 
         }
         break;

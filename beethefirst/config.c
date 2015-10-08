@@ -113,7 +113,10 @@ tConfigItem config_lookup [] =
         //Battery Variables
         {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=300}},
         {"standBy_Time",&config.standByTime , TYPE_INT, {.val_i=18000}},
-        {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}}
+        {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}},
+
+        //Power Saving
+        {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}}
 
     };
 

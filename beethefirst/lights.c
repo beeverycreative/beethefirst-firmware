@@ -79,6 +79,7 @@ void ShutdownLightControl(void)
       {
         setLogoPWM(0);
         shutDownLogoState ++;
+        ilum_off();
       }
   break;
   case(2):
@@ -86,6 +87,7 @@ void ShutdownLightControl(void)
       {
         setLogoPWM(50);
         shutDownLogoState ++;
+        ilum_on();
       }
   break;
   case(3):
@@ -93,6 +95,7 @@ void ShutdownLightControl(void)
       {
         setLogoPWM(0);
         shutDownLogoState ++;
+        ilum_off();
       }
   break;
   case(4):

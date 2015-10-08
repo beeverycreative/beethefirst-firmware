@@ -87,6 +87,9 @@ struct configuration
   uint32_t standByTime;
   uint32_t autoResume;
 
+  //Power Saving
+  uint32_t powerSavingWaitTime;
+
 };
 
 extern struct configuration config;

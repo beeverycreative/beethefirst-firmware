@@ -125,7 +125,7 @@ void verifyBatteryLevels(void)
               && in_power_saving && printerShutdown)
             {
               //If standby exceeded or Low Battery charge turn off pritner
-              if(batt_time > (config.standByTime * 1000) || batt_filtered < 2482){
+              if(batt_time > (config.standByTime * 1000) || batt_filtered < 2460){
                   BATT_uC_disable();
               }
             }

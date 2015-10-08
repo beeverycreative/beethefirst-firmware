@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 
+bool connectedUSB;
 
 // time-related constants
 //#define	US	(F_CPU / 1000000)

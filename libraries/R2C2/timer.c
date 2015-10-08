@@ -21,11 +21,14 @@
 #include "sd.h"
 #include "timer.h"
 #include "gcode_parse.h"
+#include "gcode_process.h"
+#include "temp.h"
 
 //unsigned char clock_counter_250ms = 0;
 //unsigned char clock_counter_1s = 0;
 //volatile unsigned char clock_flag = 0;
 
+bool connectedUSB = true;
 
 static volatile long millis_ticks;
 
@@ -35,22 +38,22 @@ static tTimer *SlowTimerTail;
 static tHwTimer HwTimer [NUM_HARDWARE_TIMERS];
 
 static LPC_TIM_TypeDef *pTimerRegs [NUM_HARDWARE_TIMERS] = 
-  {LPC_TIM0, LPC_TIM1, LPC_TIM2, LPC_TIM3 };
+    {LPC_TIM0, LPC_TIM1, LPC_TIM2, LPC_TIM3 };
 
 struct tTimerConfig 
-  {
-    uint32_t      ClkPwr_PClkSel;  
-    uint32_t      TimerIrq;  
-  };
+{
+  uint32_t      ClkPwr_PClkSel;
+  uint32_t      TimerIrq;
+};
 
 static const struct tTimerConfig 
-  TimerConfig [NUM_HARDWARE_TIMERS] =
-  {
-    { CLKPWR_PCLKSEL_TIMER0, TIMER0_IRQn},
-    { CLKPWR_PCLKSEL_TIMER1, TIMER1_IRQn},
-    { CLKPWR_PCLKSEL_TIMER2, TIMER2_IRQn},
-    { CLKPWR_PCLKSEL_TIMER3, TIMER3_IRQn},
-  };
+TimerConfig [NUM_HARDWARE_TIMERS] =
+    {
+        { CLKPWR_PCLKSEL_TIMER0, TIMER0_IRQn},
+        { CLKPWR_PCLKSEL_TIMER1, TIMER1_IRQn},
+        { CLKPWR_PCLKSEL_TIMER2, TIMER2_IRQn},
+        { CLKPWR_PCLKSEL_TIMER3, TIMER3_IRQn},
+    };
 
 static inline void TIMER_IRQHandlerGeneric (uint16_t timerNum)
 {
@@ -62,7 +65,7 @@ static inline void TIMER_IRQHandlerGeneric (uint16_t timerNum)
   pTimerRegs[timerNum]->IR = int_mask;
 
   if (HwTimer[timerNum].timerCallback)
-      HwTimer[timerNum].timerCallback (&HwTimer[timerNum], int_mask);
+    HwTimer[timerNum].timerCallback (&HwTimer[timerNum], int_mask);
 }
 
 // IRQ handlers referenced in startup.S
@@ -186,9 +189,9 @@ void SysTickTimer_Init(void)
   // Setup SysTick Timer to interrupt at 1 msec intervals
   // Lowest priority = 31
   if (SysTick_Config(SystemCoreClock / 1000))
-  {
-    while (1);  // Capture error
-  }
+    {
+      while (1);  // Capture error
+    }
 }
 
 //  SysTick_Handler happens every 1/1000 second
@@ -199,6 +202,12 @@ void SysTick_Handler(void)
   time_elapsed++;
   millis_ticks++;
   rest_time++;
+
+  if(!is_heating_Process && !is_calibrating && !sd_printing && !is_heating_MCode && !sd_pause && !debugMode && !printerPause)
+    {
+      lastCmd_time++;
+    }
+
 #ifdef EXP_Board
   blink_time++;
 #endif
@@ -223,37 +232,37 @@ void SysTick_Handler(void)
       disk_timerproc();
       counter = 0;
     }
-    */
+   */
   if (++counter >= 10) {
       counter = 0;
       disk_timerproc();               /* Disk timer function (100Hz) */
   }
   /***********************************************************************/
 
-  
+
   // process the slow timer list
   pTimer = SlowTimerHead;
   while (pTimer)
-  {
-    if (pTimer->Running)
     {
-      if (pTimer->Current > 0)
-        pTimer->Current--;
+      if (pTimer->Running)
+        {
+          if (pTimer->Current > 0)
+            pTimer->Current--;
 
-      if (pTimer->Current == 0)
-      {
-        if (pTimer->AutoReload)
-          pTimer->Current = pTimer->Reload;
-        else 
-          pTimer->Running = 0;
-        
-        pTimer->Expired = 1;
-        if (pTimer->timerCallback)
-          pTimer->timerCallback(pTimer);
-      }
+          if (pTimer->Current == 0)
+            {
+              if (pTimer->AutoReload)
+                pTimer->Current = pTimer->Reload;
+              else
+                pTimer->Running = 0;
+
+              pTimer->Expired = 1;
+              if (pTimer->timerCallback)
+                pTimer->timerCallback(pTimer);
+            }
+        }
+      pTimer = pTimer->pNext;
     }
-    pTimer = pTimer->pNext;
-  }
   /***********************************************************************/
 }
 
@@ -279,8 +288,8 @@ void delayMicrosecondsInterruptible(int us)
 // delay( microseconds )
 void delay(int d){
   while (d > 65535) {
-          delayMicrosecondsInterruptible(65534);
-          d -= 65535;
+      delayMicrosecondsInterruptible(65534);
+      d -= 65535;
   }
   delayMicrosecondsInterruptible(d & 0xFFFF);
 }
@@ -291,15 +300,15 @@ bool AddSlowTimer (tTimer *pTimer)
 {
   pTimer->pNext = NULL;
   if (SlowTimerHead == NULL)
-  {
-    SlowTimerHead = pTimer;
-    SlowTimerTail = pTimer;
-  }
+    {
+      SlowTimerHead = pTimer;
+      SlowTimerTail = pTimer;
+    }
   else
-  {
-    SlowTimerTail->pNext = pTimer;
-    SlowTimerTail = pTimer;
-  }
+    {
+      SlowTimerTail->pNext = pTimer;
+      SlowTimerTail = pTimer;
+    }
 
   return true;
 }

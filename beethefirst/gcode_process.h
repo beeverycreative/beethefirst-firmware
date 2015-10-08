@@ -63,7 +63,9 @@ extern bool      enter_power_saving;      // printing from SD file
 extern bool      leave_power_saving;
 extern bool      sd_active;       // SD card active
 extern bool      sd_writing_file; // writing to SD file
-extern bool      is_heating;
+extern bool      is_heating_Process;
+extern bool      is_calibrating;
+extern bool      is_heating_MCode;
 
 #ifdef EXP_Board
   extern bool      manualBlockFanControl;        //manual control of fan using M132 and M133 M-Codes
@@ -85,5 +87,7 @@ extern bool sd_read_file (tLineBuffer *pLine);
 
 // when we have a whole line, feed it to this
 eParseResult process_gcode_command(void);
+
+void reinit_system(void);
 
 #endif	/* _GCODE_PROCESS_H */
