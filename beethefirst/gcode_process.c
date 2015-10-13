@@ -1415,6 +1415,20 @@ eParseResult process_gcode_command(){
           }
         }
         break;
+        // M221 - Set flowrate factor override percentage
+      case 221:
+        {
+          if(next_target.seen_S)
+            {
+              double currentFlowrate = filament_coeff;
+              filament_coeff = (double) next_target.S / 100;
+              //startpoint.f = startpoint.feed_rate * feedrate_coeff/currentFeedrate;
+            }
+          else {
+              sersendf("flowrate coefficient: %g\n",(double)filament_coeff*100);
+          }
+        }
+        break;
 
         // M300 - beep
         // S: frequency
