@@ -154,6 +154,7 @@ APPSRC = \
 	$(APPDIR)/fans.c \
 	$(APPDIR)/MovementController.c \
 	$(APPDIR)/ExpBoard.c \
+	$(APPDIR)/i2c.c \
 	app/grbl/planner.c \
 	app/grbl/stepper.c
 
@@ -565,6 +566,11 @@ btfschool: CFLAGS += -DBTF_SCHOOL
 btfschool: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
+# BTF_SMOOTHIE
+btfsmoothie: CFLAGS += -DBTF_SMOOTHIE -DB_V='"$(B_Version)"'
+btfsmoothie: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfsmoothie: begin createdirs gccversion build sizeafter copyBtfsmoothie end
+
 #
 
 # Target for the build-sequence.
@@ -611,6 +617,11 @@ copyBinBTF_ME:
 copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
 	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
+
+copyBtfsmoothie:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF	
+	
 
 endif
 

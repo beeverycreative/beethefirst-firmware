@@ -55,6 +55,9 @@
 #ifdef BTF_PLUS_BATT
       #define SERIAL_ADD 126
 #endif
+#ifdef BTF_SMOOTHIE
+  #define SERIAL_ADD 130
+#endif
 #ifndef SERIAL_ADD
   #define SERIAL_ADD 112
 #endif
@@ -110,6 +113,9 @@ static U8 abDescriptors[] = {
 #endif
 #ifdef BTF_PLUS_BATT
       LE_WORD(0x0005),               // idProduct
+#endif
+#ifdef BTF_SMOOTHIE
+  LE_WORD(0x00FF),               // idProduct
 #endif
       LE_WORD(0x0100),            // bcdDevice
       0x01,                       // iManufacturer
@@ -189,6 +195,11 @@ static U8 abDescriptors[] = {
       38,
       DESC_STRING,
       'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T', 0, ' ', 0, 'P', 0, 'L', 0, 'U', 0, 'S', 0,' ',0,'A',0,
+#endif
+#ifdef BTF_SMOOTHIE
+  42,
+  DESC_STRING,
+  'B', 0, 'E', 0, 'E', 0, 'T', 0, 'H', 0, 'E', 0, 'F', 0, 'I', 0, 'R', 0, 'S', 0, 'T',0,' ',0,'S',0,'M',0,'O',0,'O',0,'T',0,'H',0,'I',0,'E',0,
 #endif
       24,
       DESC_STRING,

@@ -24,7 +24,12 @@
 //#include <avr/io.h>
 //#include <avr/sleep.h>
 
+#ifndef BTF_SMOOTHIE
 #include "pinout.h"
+#endif
+#ifdef BTF_SMOOTHIE
+#include "pinout_smoothie.h"
+#endif
 
 // from nuts_bolts.h:
 #define square(x) ((x)*(x))
@@ -46,17 +51,29 @@
 
 // From grbl/config.h
 
+#ifndef BTF_SMOOTHIE
+  #define X_STEP_BIT    20
+  #define Y_STEP_BIT    25
+  #define Z_STEP_BIT    29
+  #define E_STEP_BIT    10
 
-#define X_STEP_BIT    20           
-#define Y_STEP_BIT    25       
-#define Z_STEP_BIT    29       
-#define E_STEP_BIT    10       
+  #define X_DIRECTION_BIT   23
+  #define Y_DIRECTION_BIT   26
+  #define Z_DIRECTION_BIT   0
+  #define E_DIRECTION_BIT   11
+#endif
 
-#define X_DIRECTION_BIT   23     
-#define Y_DIRECTION_BIT   26   
-#define Z_DIRECTION_BIT   0   
-#define E_DIRECTION_BIT   11   
+#ifdef BTF_SMOOTHIE
+  #define X_STEP_BIT    X_STEP_PIN_Number
+  #define Y_STEP_BIT    Y_STEP_PIN_Number
+  #define Z_STEP_BIT    Z_STEP_PIN_Number
+  #define E_STEP_BIT    E_STEP_PIN_Number
 
+  #define X_DIRECTION_BIT   X_DIR_PIN_Number
+  #define Y_DIRECTION_BIT   Y_DIR_PIN_Number
+  #define Z_DIRECTION_BIT   Z_DIR_PIN_Number
+  #define E_DIRECTION_BIT   E_DIR_PIN_Number
+#endif
 // This parameter sets the delay time before disabling the steppers after the final block of movement.
 // A short delay ensures the steppers come to a complete stop and the residual inertial force in the 
 // CNC axes don't cause the axes to drift off position. This is particularly important when manually 

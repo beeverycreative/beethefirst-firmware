@@ -5,13 +5,13 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
      notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the
      distribution.
-   * Neither the name of the copyright holders nor the names of
+ * Neither the name of the copyright holders nor the names of
      contributors may be used to endorse or promote products derived
      from this software without specific prior written permission.
 
@@ -26,7 +26,7 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -39,7 +39,12 @@
 #include "machine.h"
 #include "gcode_parse.h"
 #include "gcode_process.h"
+#ifndef BTF_SMOOTHIE
 #include "pinout.h"
+#endif
+#ifdef BTF_SMOOTHIE
+#include "pinout_smoothie.h"
+#endif
 #include "debug.h"
 #include "config.h"
 #include "temp.h"
@@ -55,16 +60,16 @@
 
 tTimer temperatureTimer;
 #ifdef EXP_Board
-  int32_t i_sDownADC_raw;
-  int32_t sDownADC_raw[5];
-  tTimer sDownTimer;
-  int32_t sDown_filtered = 4095;
+int32_t i_sDownADC_raw;
+int32_t sDownADC_raw[5];
+tTimer sDownTimer;
+int32_t sDown_filtered = 4095;
 
-  tTimer blockFanTimer;
+tTimer blockFanTimer;
 #endif
 #ifdef USE_BATT
-  int32_t battADC_raw;
-  int32_t batt_filtered = 4095;
+int32_t battADC_raw;
+int32_t batt_filtered = 4095;
 #endif
 
 tLineBuffer serial_line_buf;
@@ -73,8 +78,15 @@ tLineBuffer sd_line_buf;
 /* initialize PWM */
 void pwm_init(void){
 
+#ifndef BTF_SMOOTHIE
   pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number);           //Buzzer pwm
+#endif
+
   pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number);
+#ifdef BTF_SMOOTHIE
+  pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number);           //Buzzer pwm
+#endif
+
 #ifdef EXP_Board
   pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
   pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
@@ -83,8 +95,13 @@ void pwm_init(void){
 
   init_pwm_peripheral();
 
+#ifndef BTF_SMOOTHIE
   init_global_match(BUZZER_PWM_CHANNEL);         //Buzzer
+#endif
   init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
+#ifdef BTF_SMOOTHIE
+  init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Buzzer
+#endif
 #ifdef EXP_Board
   init_global_match(FAN_EXT_PWM_CHANNEL);               //Extruder Block Fan
   init_global_match(LOGO_PWM_CHANNEL);                  //Logo
@@ -108,6 +125,7 @@ void adc_init(void)
 {
   PINSEL_CFG_Type PinCfg;
 
+#ifndef BTF_SMOOTHIE
   //Extruder 0 ADC Config
   PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -115,6 +133,25 @@ void adc_init(void)
   PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
   PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
+#endif
+
+#ifdef BTF_SMOOTHIE
+  //Extruder 0 ADC Config
+  PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
+  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+  //Heated Bed 0 ADC Config
+  PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
+  PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+#endif
 
 #ifdef EXP_Board
   //Extruder Block Temperature ADC Config
@@ -163,8 +200,10 @@ void io_init(void)
 {
   /* setup I/O pins */
 
+#ifndef BTF_SMOOTHIE
   pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
   digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
+#endif
 
   pin_mode(X_STEP_PORT, X_STEP_PIN, OUTPUT);
   pin_mode(X_DIR_PORT, X_DIR_PIN, OUTPUT);
@@ -232,117 +271,117 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifdef EXP_Board
 
 #ifndef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
-  {
-    int i, j;
-    int32_t a;
+void shutdownTimerCallBack (tTimer *pTimer)
+{
+  int i, j;
+  int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+  sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  i_sDownADC_raw ++;
+  if(i_sDownADC_raw >= 5)
+    {
+      i_sDownADC_raw = 0;
+    }
 
-    sDown_filtered = getMedianValue(sDownADC_raw);
+  sDown_filtered = getMedianValue(sDownADC_raw);
 
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
+  if(debugMode == false)
+    {
+      verifySDownConditions();
+    }
 
-  }
+}
 #endif
 
 #ifdef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
-  {
-    int i, j;
-    int32_t a;
+void shutdownTimerCallBack (tTimer *pTimer)
+{
+  int i, j;
+  int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+  sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+  i_sDownADC_raw ++;
+  if(i_sDownADC_raw >= 5)
+    {
+      i_sDownADC_raw = 0;
+    }
 
-    int32_t batt_buf[5];
-    for(int32_t j = 0; j < 5; j++)
-      {
-        batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-      }
+  int32_t batt_buf[5];
+  for(int32_t j = 0; j < 5; j++)
+    {
+      batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+    }
 
-    battADC_raw = getMedianValue(batt_buf);
+  battADC_raw = getMedianValue(batt_buf);
 
-    sDown_filtered = getMedianValue(sDownADC_raw);
-    batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
+  sDown_filtered = getMedianValue(sDownADC_raw);
+  batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
 
-    ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
+  ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
 
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
+  if(debugMode == false)
+    {
+      verifySDownConditions();
+    }
 
-    if(debugMode == false)
-      {
-        verifyBatteryLevels();
-      }
+  if(debugMode == false)
+    {
+      verifyBatteryLevels();
+    }
 
-  }
+}
 #endif
 
-  void blockFanTimerCallBack(tTimer *pTimer) {
+void blockFanTimerCallBack(tTimer *pTimer) {
 
-    if (manualBlockFanControl == false && debugMode == false)
-      {
-        double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
+  if (manualBlockFanControl == false && debugMode == false)
+    {
+      double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
 
-        if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
-          {
-            if(fSpeed > 100) fSpeed = 100;
-            extruderFanSpeed = fSpeed;
-          }
-        else if(extruderFanSpeed != 0)
-          {
-            if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
-              {
-                extruderFanSpeed = 0;
-              }
-            if(fSpeed < 0)
-              {
-                extruderFanSpeed = 0;
-              }
-            else if(fSpeed > 100)
-              {
-                extruderFanSpeed = 100;
-              }
-            else
-              {
-                extruderFanSpeed = fSpeed;
-              }
-          }
+      if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
+        {
+          if(fSpeed > 100) fSpeed = 100;
+          extruderFanSpeed = fSpeed;
+        }
+      else if(extruderFanSpeed != 0)
+        {
+          if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
+            {
+              extruderFanSpeed = 0;
+            }
+          if(fSpeed < 0)
+            {
+              extruderFanSpeed = 0;
+            }
+          else if(fSpeed > 100)
+            {
+              extruderFanSpeed = 100;
+            }
+          else
+            {
+              extruderFanSpeed = fSpeed;
+            }
+        }
 
-        if(target_temp[EXTRUDER_0] == 0 || is_heating_Process || is_heating_MCode)
-          {
-            extruderFanSpeed = 0;
-          }
+      if(target_temp[EXTRUDER_0] == 0 || is_heating_Process || is_heating_MCode)
+        {
+          extruderFanSpeed = 0;
+        }
 
-        extruder_block_fan_on();
-        pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
-        pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-      }
+      extruder_block_fan_on();
+      pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+      pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+    }
 
-    if(current_temp_r2c2 < 40 && in_power_saving)
-      {
-        r2c2_fan_off();
-      } else {
-          r2c2_fan_on();
-      }
+  if(current_temp_r2c2 < 40 && in_power_saving)
+    {
+      r2c2_fan_off();
+    } else {
+        r2c2_fan_on();
+    }
 
-  }
+}
 #endif
 
 void init(void)
@@ -353,6 +392,13 @@ void init(void)
   pwm_init();
   //temperature read
   adc_init();
+
+#ifndef BTF_SMOOTHIE
+  //Setup I2C
+  i2c_init();
+#endif
+
+
 #ifdef DEBUG_UART
   uart_init();
 #endif
@@ -549,7 +595,7 @@ int app_main (void){
           leave_power_saving = 1;
           enter_power_saving = 0;
           in_power_saving = true;
-      }/* No need for else */
+        }/* No need for else */
 
 
       /***********************************************************************

@@ -69,15 +69,15 @@ tConfigItem config_lookup [] =
         { "UID", &config.uid, TYPE_INT, {.val_i=CFG_UID}},
         //{ "machine_model", &config.machine_model, TYPE_INT, {.val_i=0}},
 
-        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=78.778}},
-        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=78.778}},
-        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=112.540}},
-        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=441.3897}},
+        { "steps_per_mm_x", &config.steps_per_mm_x, TYPE_DOUBLE, {.val_d=STEPS_MM_X}},
+        { "steps_per_mm_y", &config.steps_per_mm_y, TYPE_DOUBLE, {.val_d=STEPS_MM_Y}},
+        { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=STEPS_MM_Z}},
+        { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=STEPS_MM_E0}},
 
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
-        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=123.495}},
+        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=PRINT_VOL_Z}},
 
         { "status", &config.status, TYPE_INT, {.val_i=1}},
 

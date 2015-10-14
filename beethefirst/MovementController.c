@@ -207,7 +207,7 @@ void home_y(void)
 
   //R2C2: XICO B3.1 HOT FIX
   //new_pos.y = HOME_POS_Y;
-  new_pos.y = -74.5;
+  new_pos.y = HOME_POS_Y;
   plan_set_current_position (&new_pos);
 
   config.acceleration = aux ;

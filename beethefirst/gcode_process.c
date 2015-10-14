@@ -36,7 +36,12 @@
 #include "sersendf.h"
 #include "temp.h"
 #include "timer.h"
+#ifndef BTF_SMOOTHIE
 #include "pinout.h"
+#endif
+#ifdef BTF_SMOOTHIE
+#include "pinout_smoothie.h"
+#endif
 #include "config.h"
 #include "ff.h"
 #include "sd.h"
@@ -634,7 +639,13 @@ eParseResult process_gcode_command(){
           }
           home();
           config.acceleration = 400;
+#ifndef BTF_SMOOTHIE
           GoTo5D(0,67,zCal,startpoint.e,15000);
+#endif
+#ifdef BTF_SMOOTHIE
+          GoTo5D(-120,0,startpoint.z,startpoint.e,10000);
+          GoTo5D(-120,0,zCal,startpoint.e,1000);
+#endif
           config.acceleration = 1000;
           calibratePos = 1;
           strcpy(statusStr, "Calibration");
@@ -657,12 +668,18 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
-
+#ifndef BTF_SMOOTHIE
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
               GoTo5D(-31,-65,10,startpoint.e,15000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
-
+#endif
+#ifdef BTF_SMOOTHIE
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,1000);
+              GoTo5D(0,115,10,startpoint.e,10000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+#endif
               calibratePos = 2;
             }
           else if(calibratePos == 2)
@@ -674,11 +691,18 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
-
+#ifndef BTF_SMOOTHIE
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
               GoTo5D(31,-65,10,startpoint.e,15000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+#endif
+#ifdef BTF_SMOOTHIE
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,1000);
+              GoTo5D(0,-115,10,startpoint.e,10000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+#endif
 
               calibratePos = 3;
             }

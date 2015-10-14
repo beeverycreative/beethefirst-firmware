@@ -27,39 +27,73 @@
 #define BLOCK_BUFFER_SIZE 100
 
 //BEETHEFIRST SETTINGS
+#ifndef BTF_SMOOTHIE
+  #define STEPS_MM_X              78.74
+  #define STEPS_MM_Y              78.74
+  #define STEPS_MM_Z              112.49
+  #define STEPS_MM_E0             441.3897
 
-#define STEPS_MM_X              77.778
-#define STEPS_MM_Y              77.778
-#define STEPS_MM_Z              112.540
-#define STEPS_MM_E0             441.3897
+
+  #define MAX_FEED_X              60000
+  #define MAX_FEED_Y              60000
+  #define MAX_FEED_Z              60000
+  #define MAX_FEED_E0             60000
+
+  #define SEARCH_FEED_X           1000
+  #define SEARCH_FEED_Y           1000
+  #define SEARCH_FEED_Z           1000
+  #define SEARCH_FEED_E0          1000
+
+  #define HOME_FEED_X             2000
+  #define HOME_FEED_Y             2000
+  #define HOME_FEED_Z             2000
+  #define HOME_FEED_E0            2000
+
+  #define HOME_DIR_X              -1
+  #define HOME_DIR_Y              -1
+  #define HOME_DIR_Z              1
+
+  #define HOME_POS_X              -96
+  #define HOME_POS_Y              -65
+
+  #define PRINT_VOL_X             190
+  #define PRINT_VOL_Y             135
+  #define PRINT_VOL_Z             123.495
+#endif
+
+#ifdef BTF_SMOOTHIE
+  #define STEPS_MM_X              80
+  #define STEPS_MM_Y              80
+  #define STEPS_MM_Z              400
+  #define STEPS_MM_E0             441.3897
 
 
-#define MAX_FEED_X              60000
-#define MAX_FEED_Y              60000
-#define MAX_FEED_Z              60000
-#define MAX_FEED_E0             60000
+  #define MAX_FEED_X              60000
+  #define MAX_FEED_Y              10000
+  #define MAX_FEED_Z              2000
+  #define MAX_FEED_E0             60000
 
-#define SEARCH_FEED_X           1000
-#define SEARCH_FEED_Y           1000
-#define SEARCH_FEED_Z           1000
-#define SEARCH_FEED_E0          1000
+  #define SEARCH_FEED_X           2000
+  #define SEARCH_FEED_Y           2000
+  #define SEARCH_FEED_Z           500
+  #define SEARCH_FEED_E0          1000
 
-#define HOME_FEED_X             2000
-#define HOME_FEED_Y             2000
-#define HOME_FEED_Z             2000
-#define HOME_FEED_E0            2000
+  #define HOME_FEED_X             4000
+  #define HOME_FEED_Y             4000
+  #define HOME_FEED_Z             1000
+  #define HOME_FEED_E0            2000
 
-#define HOME_DIR_X              -1
-#define HOME_DIR_Y              -1
-#define HOME_DIR_Z              1
+  #define HOME_DIR_X              -1
+  #define HOME_DIR_Y              -1
+  #define HOME_DIR_Z              1
 
-#define HOME_POS_X              -96
-#define HOME_POS_Y              -65
+  #define HOME_POS_X              -122.5
+  #define HOME_POS_Y              -172.5
 
-#define PRINT_VOL_X             190
-#define PRINT_VOL_Y             135
-#define PRINT_VOL_Z             125
-
+  #define PRINT_VOL_X             245
+  #define PRINT_VOL_Y             345
+  #define PRINT_VOL_Z             148.5
+#endif
 /*
 double MAX_FEED_X;
 double MAX_FEED_Y;

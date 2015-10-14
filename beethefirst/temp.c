@@ -30,7 +30,12 @@
 
 #include "temp.h"
 #include "machine.h"
+#ifndef BTF_SMOOTHIE
 #include "pinout.h"
+#endif
+#ifdef BTF_SMOOTHIE
+#include "pinout_smoothie.h"
+#endif
 #include "sersendf.h"
 #include "stepper.h"
 #include "config.h"
@@ -133,6 +138,9 @@ void temp_tick(void)
 
   /* Read and average temperatures */
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
+#ifdef BTF_SMOOTHIE
+  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
+#endif
 #ifdef EXP_Board
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
 
@@ -182,6 +190,7 @@ void temp_tick(void)
 
 
 /* Read and average the ADC input signal */
+#ifndef BTF_SMOOTHIE
 static double read_temp(uint8_t sensor_number)
 {
   int32_t raw = 4095; // initialize raw with value equal to lowest temperature.
@@ -234,6 +243,36 @@ static double read_temp(uint8_t sensor_number)
 
   return celsius;
 }
+#endif
+#ifdef BTF_SMOOTHIE
+static double read_temp(uint8_t sensor_number)
+{
+  int32_t raw = 4095; // initialize raw with value equal to lowest temperature.
+    double celsius = 0;
+    uint8_t i;
+
+    if (sensor_number == EXTRUDER_0){
+      raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
+
+    }else if (sensor_number == HEATED_BED_0){
+
+      raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+    }
+
+    // filter the ADC values with simple IIR
+    adc_filtered[sensor_number] = ((adc_filtered[sensor_number] * 15) + raw) / 16;
+
+    raw = adc_filtered[sensor_number];
+
+    float r = 4700 / (((float)4096 / (float)raw) - (float)1);
+    float k = ((float) 1 / (float) 300.15);
+    float j = ((float) 1 / (float) 4066);
+
+    celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
+
+    return celsius;
+}
+#endif
 
 #ifdef EXP_Board
   /* Read and average the R2C2 ADC input signal */
