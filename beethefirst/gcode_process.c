@@ -350,9 +350,13 @@ bool print_file()
   config.last_print_time = 0;
   write_config();
 
+  if(is_heating_Process) is_heating_Process = false;
+
   config.status = 5;
+#ifdef EXP_Board
   extruderFanSpeed = 0;
   manualBlockFanControl = false;
+#endif
   debugMode = false;
   sd_printing = true;
   sd_pause = false;
@@ -642,6 +646,7 @@ eParseResult process_gcode_command(){
           calibratePos = 1;
           strcpy(statusStr, "Calibration");
           is_calibrating = true;
+          config.status = 3;
         }
         break;
         //Prceed to next Calibration Procedure step
@@ -667,6 +672,7 @@ eParseResult process_gcode_command(){
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
 
               calibratePos = 2;
+              config.status = 3;
             }
           else if(calibratePos == 2)
             {
@@ -684,6 +690,7 @@ eParseResult process_gcode_command(){
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
 
               calibratePos = 3;
+              config.status = 3;
             }
           else if(calibratePos == 3)
             {
@@ -697,6 +704,7 @@ eParseResult process_gcode_command(){
               memset(statusStr, '\0', sizeof(statusStr));
               home();
               calibratePos = 0;
+              config.status = 3;
             }
         }
         break;
@@ -1091,11 +1099,6 @@ eParseResult process_gcode_command(){
         // M109- set temp and wait
       case 109:
         {
-          if(!sd_printing){
-              config.status = 4;
-          }else{
-              config.status = 5;
-          }
           temp_set(next_target.S, EXTRUDER_0);
           is_heating_MCode = true;
           enqueue_wait_temp();
@@ -1125,6 +1128,7 @@ eParseResult process_gcode_command(){
           temp_set(0,EXTRUDER_0);
           disableBlower();
           enter_power_saving = 0;
+          config.status = 3;
 
         }
         break;
@@ -1783,6 +1787,7 @@ eParseResult process_gcode_command(){
               buzzer_play (3000);
               Extrude(100,300);
               SetEPos(0);
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1808,6 +1813,7 @@ eParseResult process_gcode_command(){
               Extrude(-30,2000);
               Extrude(-50,200);
               SetEPos(0);
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1824,11 +1830,7 @@ eParseResult process_gcode_command(){
                 {
                   is_heating_Process = true;
                   temp_set(next_target.S,EXTRUDER_0);
-                  if(!sd_printing){
-                      config.status = 4;
-                  }else{
-                      config.status = 5;
-                  }
+                  config.status = 4;
                   home();
                   if(printerPause || printerShutdown)
                     {
@@ -1842,14 +1844,11 @@ eParseResult process_gcode_command(){
                     }
 
                   strcpy(statusStr, "Heating");
+                  config.status = 3;
                 }
               else if(is_heating_Process && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
-                  if(!sd_printing){
-                      config.status = 4;
-                  }else{
-                      config.status = 5;
-                  }
+                  config.status = 4;
                   if(printerPause || printerShutdown)
                     {
 
@@ -1864,6 +1863,7 @@ eParseResult process_gcode_command(){
 
                   is_heating_Process = true;
                   strcpy(statusStr, "Load/Unload");
+                  config.status = 3;
                 }
             }
           if(sd_printing){
@@ -1878,15 +1878,12 @@ eParseResult process_gcode_command(){
           if(!sd_printing)
             {
               memset(statusStr, '\0', sizeof(statusStr));
-              if(!sd_printing){
-                  config.status = 4;
-              }else{
-                  config.status = 5;
-              }
+              config.status = 4;
               home();
               temp_set(0,EXTRUDER_0);
               disableBlower();
               is_heating_Process = false;
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
