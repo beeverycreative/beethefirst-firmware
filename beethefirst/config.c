@@ -4,13 +4,13 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
      notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the
      distribution.
-   * Neither the name of the copyright holders nor the names of
+ * Neither the name of the copyright holders nor the names of
      contributors may be used to endorse or promote products derived
      from this software without specific prior written permission.
 
@@ -25,7 +25,7 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #include <stdbool.h>
 #include <ctype.h>
@@ -74,10 +74,12 @@ tConfigItem config_lookup [] =
         { "steps_per_mm_z", &config.steps_per_mm_z, TYPE_DOUBLE, {.val_d=STEPS_MM_Z}},
         { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=STEPS_MM_E0}},
 
+        { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=HOME_POS_X}},
+        { "home_pos_x", &config.home_pos_y, TYPE_DOUBLE, {.val_d=HOME_POS_Y}},
+        { "home_pos_x", &config.home_pos_z, TYPE_DOUBLE, {.val_d=HOME_POS_Z}},
+
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
-
-        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=PRINT_VOL_Z}},
 
         { "status", &config.status, TYPE_INT, {.val_i=1}},
 
@@ -282,48 +284,48 @@ void print_config (void)
 
 void read_config (void)
 {
-    unsigned j;
-    char *pmem = SECTOR_29_START;
-    size_t bytes = (sizeof(config)/sizeof(char));
-    char* pConfig = &config;
-    char read_err = 0;
+  unsigned j;
+  char *pmem = SECTOR_29_START;
+  size_t bytes = (sizeof(config)/sizeof(char));
+  char* pConfig = &config;
+  char read_err = 0;
 
-    //copy from ram to config
-    memcpy(pConfig, pmem, bytes);
+  //copy from ram to config
+  memcpy(pConfig, pmem, bytes);
 
-    //compares to check if reading is ok
-    for (j=0; j < NUM_TOKENS; j++){
-        switch (config_lookup[j].type){
-            case TYPE_INT:
-            {
-                int32_t *pVal = config_lookup[j].pValue;
-                if(*pVal==BAD_INT && config_lookup[j].val_i != BAD_INT){
-                    read_err = 1;
-                }/*No need for else*/
-                break;
-            }
-            case TYPE_DOUBLE:
-            {
-                double *pVal = config_lookup[j].pValue;
-                if(*pVal==BAD_DOUBLE && config_lookup[j].val_d != BAD_DOUBLE){
-                    read_err = 1;
-                }/*No need for else*/
-                break;
-            }
-
-            // TODO
-            case TYPE_STRING:
-            {
-              char* pVal = config_lookup[j].pValue;
-              if(pVal[0]=='\0'){
-                  read_err = 1;
-              }
-              break;
-            }
+  //compares to check if reading is ok
+  for (j=0; j < NUM_TOKENS; j++){
+      switch (config_lookup[j].type){
+      case TYPE_INT:
+        {
+          int32_t *pVal = config_lookup[j].pValue;
+          if(*pVal==BAD_INT && config_lookup[j].val_i != BAD_INT){
+              read_err = 1;
+          }/*No need for else*/
+          break;
         }
-    }
+      case TYPE_DOUBLE:
+        {
+          double *pVal = config_lookup[j].pValue;
+          if(*pVal==BAD_DOUBLE && config_lookup[j].val_d != BAD_DOUBLE){
+              read_err = 1;
+          }/*No need for else*/
+          break;
+        }
 
-    /*
+        // TODO
+      case TYPE_STRING:
+        {
+          char* pVal = config_lookup[j].pValue;
+          if(pVal[0]=='\0'){
+              read_err = 1;
+          }
+          break;
+        }
+      }
+  }
+
+  /*
     if(config.kp < 0.0001
         && config.ki < 0.0001
         && config.kd < 0.0001){
@@ -334,87 +336,87 @@ void read_config (void)
 
     }*//*No need for else*/
 
-    if(read_err){
-        reset_config();
-    }/*No need for else*/
+  if(read_err){
+      reset_config();
+  }/*No need for else*/
 
-    /* Initialize using values read from "config.txt" file */
-    gcode_parse_init();
+  /* Initialize using values read from "config.txt" file */
+  gcode_parse_init();
 
 }
 void reset_config (void)
 {
-    unsigned j;
+  unsigned j;
 
-    // first set defaults
-    for (j=0; j < NUM_TOKENS; j++){
-        switch (config_lookup[j].type){
-            case TYPE_INT:
-            {
-                int32_t *pVal = config_lookup[j].pValue;
-                *pVal = config_lookup[j].val_i;
-                break;
-            }
-            case TYPE_DOUBLE:
-            {
-                double *pVal = config_lookup[j].pValue;
-                *pVal = config_lookup[j].val_d;
-                break;
-            }
-            case TYPE_STRING:
-            {
-              char* pVal = config_lookup[j].pValue;
-              strcpy(pVal, "_no_file");
-            }
+  // first set defaults
+  for (j=0; j < NUM_TOKENS; j++){
+      switch (config_lookup[j].type){
+      case TYPE_INT:
+        {
+          int32_t *pVal = config_lookup[j].pValue;
+          *pVal = config_lookup[j].val_i;
+          break;
         }
-    }
+      case TYPE_DOUBLE:
+        {
+          double *pVal = config_lookup[j].pValue;
+          *pVal = config_lookup[j].val_d;
+          break;
+        }
+      case TYPE_STRING:
+        {
+          char* pVal = config_lookup[j].pValue;
+          strcpy(pVal, "_no_file");
+        }
+      }
+  }
 
-    char *pmem = SECTOR_29_START;
-    uint32_t bytes = (sizeof(config)/sizeof(char));
-    char sector[bytes];
-    char* pConfig = &config;
+  char *pmem = SECTOR_29_START;
+  uint32_t bytes = (sizeof(config)/sizeof(char));
+  char sector[bytes];
+  char* pConfig = &config;
 
-    memcpy(&sector, pConfig, bytes);
+  memcpy(&sector, pConfig, bytes);
 
-    prepare_sector(29, 29, SystemCoreClock);
-    erase_sector(29, 29, SystemCoreClock);
+  prepare_sector(29, 29, SystemCoreClock);
+  erase_sector(29, 29, SystemCoreClock);
 
-    prepare_sector(29, 29, SystemCoreClock);
-    write_data(   (unsigned)(SystemCoreClock/1000),
-                            (unsigned)(SECTOR_29_START),
-                            (unsigned)sector,
-                            (unsigned)FLASH_BUF_SIZE);
+  prepare_sector(29, 29, SystemCoreClock);
+  write_data(   (unsigned)(SystemCoreClock/1000),
+      (unsigned)(SECTOR_29_START),
+      (unsigned)sector,
+      (unsigned)FLASH_BUF_SIZE);
 
-    compare_data((unsigned)(SystemCoreClock/1000),
-                            (unsigned)(SECTOR_29_START),
-                            (unsigned)sector,
-                            (unsigned)FLASH_BUF_SIZE);
+  compare_data((unsigned)(SystemCoreClock/1000),
+      (unsigned)(SECTOR_29_START),
+      (unsigned)sector,
+      (unsigned)FLASH_BUF_SIZE);
 
-    /* Initialize using values read from "config.txt" file */
-    gcode_parse_init();
+  /* Initialize using values read from "config.txt" file */
+      gcode_parse_init();
 
 }
 
 void write_config (void)
 {
-    size_t bytes = sizeof(config)/sizeof(char);
-    char sector[bytes];
-    char* pConfig = &config;
+  size_t bytes = sizeof(config)/sizeof(char);
+  char sector[bytes];
+  char* pConfig = &config;
 
-    memcpy(&sector, pConfig, bytes);
+  memcpy(&sector, pConfig, bytes);
 
-    prepare_sector(29, 29, SystemCoreClock);
-    erase_sector(29, 29, SystemCoreClock);
+  prepare_sector(29, 29, SystemCoreClock);
+  erase_sector(29, 29, SystemCoreClock);
 
-    prepare_sector(29, 29, SystemCoreClock);
-    write_data(  (unsigned)(SystemCoreClock/1000),
-                           (unsigned)(SECTOR_29_START),
-                           (unsigned)sector,
-                           (unsigned)FLASH_BUF_SIZE);
+  prepare_sector(29, 29, SystemCoreClock);
+  write_data(  (unsigned)(SystemCoreClock/1000),
+      (unsigned)(SECTOR_29_START),
+      (unsigned)sector,
+      (unsigned)FLASH_BUF_SIZE);
 
-    compare_data((unsigned)(SystemCoreClock/1000),
-                           (unsigned)(SECTOR_29_START),
-                           (unsigned)sector,
-                           (unsigned)FLASH_BUF_SIZE);
+  compare_data((unsigned)(SystemCoreClock/1000),
+      (unsigned)(SECTOR_29_START),
+      (unsigned)sector,
+      (unsigned)FLASH_BUF_SIZE);
 
 }

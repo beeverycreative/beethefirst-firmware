@@ -25,7 +25,7 @@ void pwm_set_enable(int pwm_channel);
 void pwm_set_disable(int pwm_channel);
 void init_global_match(int pwm_channel);
 void init_pwm_peripheral(void);
-void pwm_pins_init(int port,int pin);
+void pwm_pins_init(int port,int pin, int pinsel_func);
 
 #endif  /* _PWM_H */
 

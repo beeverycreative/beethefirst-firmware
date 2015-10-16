@@ -7,11 +7,13 @@ uint32_t  currenBWSpeed = 0;
 void enableBlower(void)
 {
   currenBWSpeed = 100;
-#ifndef EXP_Board
+#if !defined(EXP_Board) && !defined(BTF_SMOOTHIE)
   extruder_fan_on();
 #endif
-#ifdef EXP_Board
+#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#ifndef BTF_SMOOTHIE
   blower_on();
+#endif
   pwm_set_duty_cycle(BW_PWM_CHANNEL,100);
   pwm_set_enable(BW_PWM_CHANNEL);
 #endif
@@ -20,20 +22,24 @@ void enableBlower(void)
 void disableBlower(void)
 {
   currenBWSpeed = 0;
-#ifndef EXP_Board
+#if !defined(EXP_Board) && !defined(BTF_SMOOTHIE)
   extruder_fan_off();
 #endif
-#ifdef EXP_Board
+#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#ifndef BTF_SMOOTHIE
   blower_off();
+#endif
   pwm_set_duty_cycle(BW_PWM_CHANNEL,0);
-  pwm_set_disable(BW_PWM_CHANNEL);
+  pwm_set_enable(BW_PWM_CHANNEL);
 #endif
 }
 
 void setBlowerSpeed(int16_t speed)
 {
-#ifdef EXP_Board
+#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#ifndef BTF_SMOOTHIE
   blower_on();
+#endif
 
   uint16_t s_val = speed;
   uint16_t duty = 0;

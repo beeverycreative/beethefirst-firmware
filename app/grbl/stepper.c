@@ -530,7 +530,7 @@ void st_interrupt (void)
       else if (current_block->action_type == AT_WAIT_TEMPS)
         {
           step_bits_xyz = step_bits_e = 0;
-          if (temp_achieved(EXTRUDER_0))
+          if (temp_achieved(EXTRUDER_0) && temp_achieved(HEATED_BED_0))
             {
               current_block = NULL;
               plan_discard_current_block();

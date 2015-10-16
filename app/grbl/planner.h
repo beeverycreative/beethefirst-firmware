@@ -89,6 +89,7 @@
 
   #define HOME_POS_X              -122.5
   #define HOME_POS_Y              -172.5
+  #define HOME_POS_Z              148.5
 
   #define PRINT_VOL_X             245
   #define PRINT_VOL_Y             345

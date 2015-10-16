@@ -124,6 +124,10 @@ double kp = 6.0;
 double ki = 0.0013;
 double kd = 80.0;
 
+double kp_bed = 6.0;
+double ki_bed = 0.0013;
+double kd_bed = 80.0;
+
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -1087,10 +1091,10 @@ eParseResult process_gcode_command(){
         // M106- fan on
       case 106:
         {
-#ifndef EXP_Board
+#if !defined(EXP_Board) && !defined(BTF_SMOOTHIE)
           enableBlower();
 #endif
-#ifdef EXP_Board
+#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
           if(next_target.seen_S){
               setBlowerSpeed((int16_t) next_target.S);
           } else {
@@ -1367,6 +1371,40 @@ eParseResult process_gcode_command(){
         break;
 #endif
 
+        // M140- set bed temperature
+      case 140:
+        {
+          double maxTemp = 250;
+#ifdef EXP_Board
+          maxTemp = 250;
+#endif
+          if(next_target.S > maxTemp){
+              temp_set(maxTemp, HEATED_BED_0);
+          }else{
+              temp_set(next_target.S, HEATED_BED_0);
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+        // M190- set temp and wait
+      case 190:
+        {
+          if(!sd_printing){
+              config.status = 4;
+          }else{
+              config.status = 5;
+          }
+          temp_set(next_target.S, HEATED_BED_0);
+          is_heating_MCode = true;
+          enqueue_wait_temp();
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
         // M200 - set steps per mm
       case 200:
         {
@@ -1399,11 +1437,11 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        // M206 - set accel in mm/sec^2
-      case 206:
+        // M201 - set accel in mm/sec^2
+      case 201:
         {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
-              if(!next_target.seen_B && !sd_printing){
+              if(!next_target.seen_B){
                   sersendf (" X%g ",
                       config.acceleration);
               }/*No need for else*/
@@ -1420,6 +1458,36 @@ eParseResult process_gcode_command(){
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
+        }
+        break;
+        //M206 - Set home offset
+      case 206:
+        {
+          if(next_target.seen_X)
+            {
+              config.home_pos_x = next_target.target.x;
+              axisSelected = 1;
+            }
+          if(next_target.seen_Y)
+            {
+              config.home_pos_y = next_target.target.y;
+              axisSelected = 1;
+            }
+          if(next_target.seen_Z)
+            {
+              config.home_pos_z = next_target.target.z;
+              axisSelected = 1;
+            }
+
+          if(axisSelected == 1)
+            {
+              write_config();
+            }
+          else
+            {
+              sersendf("Home Pos X:%g Y%g Z%g \n",config.home_pos_x,config.home_pos_y,config.home_pos_z);
+            }
+
         }
         break;
 
@@ -2124,6 +2192,15 @@ eParseResult process_gcode_command(){
             }
         }
         break;
+
+#ifdef BTF_SMOOTHIE
+        //M1300 - Get Door Status
+      case 1300:
+        {
+          sersendf("Door state: %u\n",door());
+        }
+        break;
+#endif
         // unknown mcode: spit an error
       default:
         {

@@ -31,9 +31,10 @@
 #ifndef	_TEMP_H
 #define	_TEMP_H
 
-#define NUMBER_OF_SENSORS               2
+#define NUMBER_OF_SENSORS               3
 #define EXTRUDER_0                      0
 #define HEATED_BED_0                    1
+#define CHAMBER                         2
 
 #ifdef EXP_Board
   extern double extruderBlockTemp;
@@ -79,14 +80,22 @@ void print_pwm(void);
 extern double target_temp  [NUMBER_OF_SENSORS];
 extern double current_temp [NUMBER_OF_SENSORS];
 double last_error;
+double last_error_bed;
 
 double pterm;
 double iterm;
 double dterm;
 double dterm_temp;
+
+double pterm_bed;
+double iterm_bed;
+double dterm_bed;
+double dterm_temp_bed;
+
 int protection_temperature;
 int PID_FUNTIONAL_RANGE;
 double output;
+double output_bed;
 extern double temptable[NUMTEMPS][3];
 void max_set(int range);
 bool      temp_set_table_entry (uint8_t sensor_number, double temp, double adc_val);

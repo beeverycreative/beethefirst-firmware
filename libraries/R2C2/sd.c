@@ -132,10 +132,11 @@ SD_BOOL SD_Init (void)
 
     /* Before reset, Send at least 74 clocks at low frequency 
     (between 100kHz and 400kHz) with CS high and DI (MISO) high. */
-    SD_DeSelect();
+    //SD_DeSelect();
+    SPI_CS_High();
     SPI_ConfigClockRate (SPI_CLOCKRATE_LOW);
     //setSSPclock(LPC_SSP0, 400000);
-    for (i = 0; i < 10; i++)    SPI_SendByte (0xFF);
+    for (i = 0; i < 16; i++)    SPI_SendByte (0xFF);
 
     /* Send CMD0 with CS low to enter SPI mode and reset the card.
     The card will enter SPI mode if CS is low during the reception of CMD0. 

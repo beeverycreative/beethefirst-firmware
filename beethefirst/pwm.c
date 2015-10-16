@@ -30,7 +30,7 @@ int pwm_set_duty_cycle(int channel, int32_t duty){
 
 /* set and enable*/
 void pwm_set_enable(int pwm_channel){
-  if(pwm_channel<1||pwm_channel>5){
+  if(pwm_channel<1||pwm_channel>6){
       return;
   }
   /* Reset and Start counter */
@@ -48,7 +48,7 @@ void pwm_set_enable(int pwm_channel){
 void pwm_set_disable(int pwm_channel){
   PWM_MATCHCFG_Type PWMMatchCfgDat;
 
-  if(pwm_channel<1||pwm_channel>5){
+  if(pwm_channel<1||pwm_channel>6){
       return;
   }
 
@@ -109,11 +109,11 @@ void init_pwm_peripheral(void){
 }
 
 /* Initialize the pin*/
-void pwm_pins_init(int port,int pin){
+void pwm_pins_init(int port,int pin, int pinsel_func){
   PINSEL_CFG_Type PinCfg;
 
   /*Initialize PWM pin connect*/
-  PinCfg.Funcnum = PINSEL_FUNC_1;
+  PinCfg.Funcnum = pinsel_func;
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_PULLDOWN;
   PinCfg.Portnum = port;

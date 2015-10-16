@@ -57,35 +57,33 @@ void spi_init (void)
 
   PINSEL_CFG_Type PinCfg;
 
-  //SSEL1 CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3;
+  //SSEL1
+  PinCfg.Funcnum = PINSEL_FUNC_2;
   PinCfg.Portnum = 0;
   PinCfg.Pinnum = 6;
   PINSEL_ConfigPin(&PinCfg);
-  LPC_GPIO0->FIODIR |= (1 << 6);            /* set P0.6 as output */
-
-  //MOSI1 CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3;
+  pin_mode(0,(1 << 6),OUTPUT);
+  SPI_CS_High();
+  //MOSI
+  PinCfg.Funcnum = PINSEL_FUNC_2;
   PinCfg.Portnum = 0;
   PinCfg.Pinnum = 9;
   PINSEL_ConfigPin(&PinCfg);
-  LPC_GPIO0->FIODIR |= (1 << 9);            /* set P0.9 as output */
-  //MISO1 CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3;
+  pin_mode(0,(1 << 9),OUTPUT);
+  //MISO
+  PinCfg.Funcnum = PINSEL_FUNC_2;
   PinCfg.Portnum = 0;
   PinCfg.Pinnum = 8;
   PINSEL_ConfigPin(&PinCfg);
-  LPC_GPIO0->FIODIR &= ~(1 << 8);            /* set P0.8 as INPUT */
-  //SCK1 CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3;
+  pin_mode(0,(1 << 8),INPUT);
+  //SCK
+  PinCfg.Funcnum = PINSEL_FUNC_2;
   PinCfg.Portnum = 0;
   PinCfg.Pinnum = 7;
   PINSEL_ConfigPin(&PinCfg);
-  LPC_GPIO0->FIODIR |= (1 << 7);            /* set P0.7 as output */
+  pin_mode(0,(1 << 7),OUTPUT);
 
-  /* Configure SSP1_PCLK to CCLK(100MHz), default value is CCLK/4 */
-  LPC_SC->PCLKSEL0 &= ~(3 << 20);
-  LPC_SC->PCLKSEL0 |=  (1 << 20);  /* SSP1_PCLK=CCLK */
+
 
   /* 8bit, SPI frame format, CPOL=0, CPHA=0, SCR=0 */
   LPC_SSP1->CR0 = (0x07 << 0) |     /* data width: 8bit*/
@@ -128,7 +126,25 @@ void SPI_ConfigClockRate (uint32_t SPI_CLOCKRATE)
   LPC_SSP0->CPSR = (SPI_CLOCKRATE & 0xFF);
 #endif
 #ifdef BTF_SMOOTHIE
-  LPC_SSP1->CPSR = (SPI_CLOCKRATE & 0xFF);
+  //LPC_SSP1->CPSR = (SPI_CLOCKRATE & 0xFF);
+  uint32_t delay = 25000000 / SPI_CLOCKRATE;
+  if (SPI_CLOCKRATE < 385) {
+      LPC_SSP1->CPSR = 254;
+      LPC_SSP1->CR0 &= 0x00FF;
+      LPC_SSP1->CR0 |= 255 << 8;
+  }// max freq is 25MHz / (2 * 1)
+  else if (SPI_CLOCKRATE > 12500000) {
+      LPC_SSP1->CPSR = 2;
+      LPC_SSP1->CR0 &= 0x00FF;
+  }else {
+      LPC_SSP1->CPSR = delay & 0xFE;
+      // CPSR . (SCR + 1) = f;
+      // (SCR + 1) = f / CPSR;
+      // SCR = (f / CPSR) - 1
+      LPC_SSP1->CR0 &= 0x00FF;
+      LPC_SSP1->CR0 |= (((delay / LPC_SSP1->CPSR) - 1) & 0xFF) << 8;
+  }
+
 #endif
 }
 

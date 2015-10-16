@@ -54,7 +54,7 @@
 #define X_ENABLE_PORT           0               /* P0.4 */
 #define X_ENABLE_PIN            (1 << 4)        /* P0.4 */
 
-#define X_MIN_PORT              1.24            /* P1.24 */
+#define X_MIN_PORT              1               /* P1.24 */
 #define X_MIN_PIN               (1 <<  24)      /* P1.24 */
 
 //y axis pins
@@ -104,8 +104,10 @@
 #define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
 #define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
 
-#define EXTRUDER_0_FAN_PORT             2               /* P2.6 */
-#define EXTRUDER_0_FAN_PIN              (1 << 6)        /* P2.6 */
+#define EXTRUDER_0_FAN_PORT             1               /* P1.23 */
+#define EXTRUDER_0_FAN_PIN              (1 << 23)       /* P1.23 */
+#define EXTRUDER_0_FAN_PIN_Number       23              /* P1.23 */
+#define BW_PWM_CHANNEL                  4               /* P1.23 */
 
 #define HEATED_BED_0_HEATER_PORT        2               /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5)        /* P2.5 */
@@ -114,6 +116,14 @@
 #define HEATED_BED_0_ADC_PORT           0               /* P0.24 */
 #define HEATED_BED_0_ADC_PIN            24              /* P0.24 */
 #define HEATED_BED_0_SENSOR_ADC_CHANNEL 1               /* P0.24 */
+
+#define CHAMBER_ADC_PORT                0               /* P0.25 */
+#define CHAMBER_ADC_PIN                 25              /* P0.25 */
+#define CHAMBER_ADC_CHANNEL             2               /* P0.25 */
+
+#define DOOR_PORT                       1.25            /* P1.25 */
+#define DOOR_PIN                        (1 <<  25)      /* P1.25 */
+#define door() ((digital_read(DOOR_PORT, DOOR_PIN))?0:1)
 
 //#define BUZZER_PORT     2         /* P2.2 PWM1[3] */
 //#define BUZZER_PIN      (1 << 22) /* P2.2 PWM1[3] */

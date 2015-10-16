@@ -13,9 +13,10 @@
 SSP0_CLK = SystemCoreClock / divider,
 The divider must be a even value between 2 and 254!
 In SPI mode, max clock speed is 20MHz for MMC and 25MHz for SD */
-#define SPI_CLOCKRATE_LOW   (uint32_t) (250)   /* 100MHz / 250 = 400kHz */
-#define SPI_CLOCKRATE_HIGH  (uint32_t) (4)     /* 100MHz / 4 = 25MHz */
-
+//#define SPI_CLOCKRATE_LOW   (uint32_t) (250)   /* 100MHz / 250 = 400kHz */
+//#define SPI_CLOCKRATE_HIGH  (uint32_t) (4)     /* 100MHz / 4 = 25MHz */
+#define SPI_CLOCKRATE_LOW   (uint32_t) 25000
+#define SPI_CLOCKRATE_HIGH  (uint32_t) 4000000
 /* SPI Init/DeInit functions ---------*/
 void 	spi_init();
 void    SPI_ConfigClockRate (uint32_t SPI_CLOCKRATE);

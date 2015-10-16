@@ -79,18 +79,19 @@ tLineBuffer sd_line_buf;
 void pwm_init(void){
 
 #ifndef BTF_SMOOTHIE
-  pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number);           //Buzzer pwm
+  pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number,PINSEL_FUNC_1);           //Buzzer pwm
 #endif
 
-  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number);
+  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number,PINSEL_FUNC_1);
 #ifdef BTF_SMOOTHIE
-  pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number);           //Buzzer pwm
+  pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number,PINSEL_FUNC_1);
+  pwm_pins_init(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN_Number,PINSEL_FUNC_2);
 #endif
 
 #ifdef EXP_Board
-  pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN);
-  pwm_pins_init(BW_V1_PORT,BW_V1_PIN);
-  pwm_pins_init(LOGO_ON_PORT,LOGO_ON_PIN);
+  pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN,PINSEL_FUNC_1);
+  pwm_pins_init(BW_V1_PORT,BW_V1_PIN,PINSEL_FUNC_1);
+  pwm_pins_init(LOGO_ON_PORT,LOGO_ON_PIN,PINSEL_FUNC_1);
 #endif
 
   init_pwm_peripheral();
@@ -100,7 +101,8 @@ void pwm_init(void){
 #endif
   init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
 #ifdef BTF_SMOOTHIE
-  init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Buzzer
+  init_global_match(HEATED_BED_0_PWM_CHANNEL);
+  init_global_match(BW_PWM_CHANNEL);
 #endif
 #ifdef EXP_Board
   init_global_match(FAN_EXT_PWM_CHANNEL);               //Extruder Block Fan
@@ -150,6 +152,14 @@ void adc_init(void)
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
   PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
   PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
+  PINSEL_ConfigPin(&PinCfg);
+
+  //Heated Bed 0 ADC Config
+  PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  PinCfg.Portnum = CHAMBER_ADC_PORT;
+  PinCfg.Pinnum = CHAMBER_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 #endif
 
@@ -228,13 +238,21 @@ void io_init(void)
   pin_mode(E_ENABLE_PORT, E_ENABLE_PIN, OUTPUT);
   e_enable();
 
+#ifndef BTF_SMOOTHIE
   /* Heated Bed 0 Heater pin */
   pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
   heated_bed_off();
+#endif
+
+#ifdef BTF_SMOOTHIE
+  pin_mode(DOOR_PORT, DOOR_PIN, INPUT);
+#endif
 
 #ifndef EXP_Board
+#ifndef BTF_SMOOTHIE
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
   extruder_fan_off();
+#endif
 #endif
 
 #ifdef EXP_Board
@@ -393,7 +411,7 @@ void init(void)
   //temperature read
   adc_init();
 
-#ifndef BTF_SMOOTHIE
+#ifdef BTF_SMOOTHIE
   //Setup I2C
   i2c_init();
 #endif

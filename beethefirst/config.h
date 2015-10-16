@@ -4,13 +4,13 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
      notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the
      distribution.
-   * Neither the name of the copyright holders nor the names of
+ * Neither the name of the copyright holders nor the names of
      contributors may be used to endorse or promote products derived
      from this software without specific prior written permission.
 
@@ -25,7 +25,7 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #ifndef CONFIG_H
 #define CONFIG_H
@@ -39,17 +39,19 @@
 struct configuration
 {
   int32_t uid;
-  
+
   double steps_per_mm_x;
   double steps_per_mm_y;
   double steps_per_mm_z;
   double steps_per_mm_e;
 
+  double home_pos_x;
+  double home_pos_y;
+  double home_pos_z;
+
   double  acceleration;
   double  junction_deviation;
 
-  double home_pos_z;
-  
   // options
 
   int32_t status;
@@ -97,6 +99,10 @@ extern struct configuration config;
 extern double kp;
 extern double ki;
 extern double kd;
+
+extern double kp_bed;
+extern double ki_bed;
+extern double kd_bed;
 
 void read_config (void);
 void reset_config (void);
