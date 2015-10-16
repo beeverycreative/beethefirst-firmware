@@ -351,6 +351,9 @@ bool print_file()
   write_config();
 
   config.status = 5;
+  extruderFanSpeed = 0;
+  manualBlockFanControl = false;
+  debugMode = false;
   sd_printing = true;
   sd_pause = false;
   sd_resume = false;
@@ -943,44 +946,40 @@ eParseResult process_gcode_command(){
               __enable_irq();
 
           }else{
-              if(!next_target.seen_B){
+              if(!next_target.seen_B)
+                {
+                  serial_writestr("A");
+                  serwrite_uint32(estimated_time);
+                  serial_writestr(" B");
+                  __disable_irq();
+                  serwrite_uint32(time_elapsed);
+                  __enable_irq();
 
-                  if(estimated_time == 0 && number_of_lines == 0)
+                  if(number_of_lines == 0)
                     {
-                      serial_writestr("A");
-                      serwrite_uint32(estimated_time);
-                      serial_writestr(" B");
-                      __disable_irq();
-                      serwrite_uint32(time_elapsed);
-                      __enable_irq();
-
                       serial_writestr(" C");
                       serwrite_uint32(file.fsize);
                       serial_writestr(" D");
                       serwrite_uint32(sd_pos);
                       serial_writestr(" ");
 
-                    } else {
-
-                        serial_writestr("A");
-                        serwrite_uint32(estimated_time);
-                        serial_writestr(" B");
-
-                        __disable_irq();
-                        serwrite_uint32(time_elapsed);
-                        __enable_irq();
-
-                        serial_writestr(" C");
-                        serwrite_uint32(number_of_lines);
-                        serial_writestr(" D");
-                        serwrite_uint32(executed_lines);
-                        serial_writestr(" ");
-
-                        if(number_of_lines == executed_lines){
-                            serial_writestr("Done printing file\n");
-                        }/*No need for else*/
+                      if(file.fsize == sd_pos){
+                          serial_writestr("Done printing file\n");
+                      }/*No need for else*/
                     }
-              }/*No need for else*/
+                  else
+                    {
+                      serial_writestr(" C");
+                      serwrite_uint32(number_of_lines);
+                      serial_writestr(" D");
+                      serwrite_uint32(executed_lines);
+                      serial_writestr(" ");
+
+                      if(number_of_lines == executed_lines){
+                          serial_writestr("Done printing file\n");
+                      }/*No need for else*/
+                    }
+                }/*No need for else*/
           }
         }
         break;
@@ -1355,7 +1354,7 @@ eParseResult process_gcode_command(){
               } else if(next_target.seen_Z) {
                   config.steps_per_mm_z = next_targetd.z;
               } else if(next_target.seen_E) {
-                  config.steps_per_mm_e = next_targetd.e;
+                  config.steps_per_mm_e0 = next_targetd.e;
               }
 
               write_config();
@@ -1365,7 +1364,7 @@ eParseResult process_gcode_command(){
                       config.steps_per_mm_x,
                       config.steps_per_mm_y,
                       config.steps_per_mm_z,
-                      config.steps_per_mm_e);
+                      config.steps_per_mm_e0);
               }/*No need for else*/
           }
 
