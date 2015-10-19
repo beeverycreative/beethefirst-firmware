@@ -1032,6 +1032,7 @@ eParseResult process_gcode_command(){
       case 36: //M36
         {
           enterShutDown();
+          temp_set(0, EXTRUDER_0);
         }break;
 
         // M104- set temperature
