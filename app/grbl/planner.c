@@ -455,7 +455,7 @@ void plan_buffer_line (tActionRequest *pAction)
   target[X_AXIS] = lround(x*(double)config.steps_per_mm_x);
   target[Y_AXIS] = lround(y*(double)config.steps_per_mm_y);
   target[Z_AXIS] = lround(z*(double)config.steps_per_mm_z);
-  target[E_AXIS] = lround(pAction->target.e*(double)config.steps_per_mm_e);
+  target[E_AXIS] = lround(pAction->target.e*(double)config.steps_per_mm_e0);
 
   // Calculate the buffer tail after we push this block
   next_buffer_tail = next_block_index( block_buffer_tail );	
@@ -530,7 +530,7 @@ void plan_buffer_line (tActionRequest *pAction)
   delta_mm[X_AXIS] = (target[X_AXIS]-position[X_AXIS])/(double)config.steps_per_mm_x;
   delta_mm[Y_AXIS] = (target[Y_AXIS]-position[Y_AXIS])/(double)config.steps_per_mm_y;
   delta_mm[Z_AXIS] = (target[Z_AXIS]-position[Z_AXIS])/(double)config.steps_per_mm_z;
-  delta_mm[E_AXIS] = (target[E_AXIS]-position[E_AXIS])/(double)config.steps_per_mm_e;
+  delta_mm[E_AXIS] = (target[E_AXIS]-position[E_AXIS])/(double)config.steps_per_mm_e0;
 
   block->millimeters = sqrt(square(delta_mm[X_AXIS]) + square(delta_mm[Y_AXIS]) + 
       square(delta_mm[Z_AXIS]));
@@ -829,7 +829,7 @@ void plan_set_current_position(tTarget *new_position)
   position[X_AXIS] = lround(new_position->x*(double)config.steps_per_mm_x);
   position[Y_AXIS] = lround(new_position->y*(double)config.steps_per_mm_y);
   position[Z_AXIS] = lround(new_position->z*(double)config.steps_per_mm_z);    
-  position[E_AXIS] = lround(new_position->e*(double)config.steps_per_mm_e);    
+  position[E_AXIS] = lround(new_position->e*(double)config.steps_per_mm_e0);
 
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
   clear_vector_double(previous_unit_vec);

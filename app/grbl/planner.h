@@ -28,8 +28,8 @@
 
 //BEETHEFIRST SETTINGS
 
-#define STEPS_MM_X              77.778
-#define STEPS_MM_Y              77.778
+#define STEPS_MM_X              78.778
+#define STEPS_MM_Y              78.778
 #define STEPS_MM_Z              112.540
 #define STEPS_MM_E0             441.3897
 
@@ -55,6 +55,7 @@
 
 #define HOME_POS_X              -96
 #define HOME_POS_Y              -65
+#define HOME_POS_Z              123.495
 
 #define PRINT_VOL_X             190
 #define PRINT_VOL_Y             135

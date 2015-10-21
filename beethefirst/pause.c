@@ -138,6 +138,7 @@ void resumePrint(void)
        */
       GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,config.startpoint_feed_rate);
 
+      estimated_time = config.estimated_time;
       time_elapsed = config.time_elapsed;
       executed_lines = config.executed_lines;
 

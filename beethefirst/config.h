@@ -43,12 +43,14 @@ struct configuration
   double steps_per_mm_x;
   double steps_per_mm_y;
   double steps_per_mm_z;
-  double steps_per_mm_e;
+  double steps_per_mm_e0;
+
+  double home_pos_x;
+  double home_pos_y;
+  double home_pos_z;
 
   double  acceleration;
   double  junction_deviation;
-
-  double home_pos_z;
   
   // options
 

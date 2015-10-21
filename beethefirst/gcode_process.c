@@ -350,7 +350,14 @@ bool print_file()
   config.last_print_time = 0;
   write_config();
 
+  if(is_heating_Process) is_heating_Process = false;
+
   config.status = 5;
+#ifdef EXP_Board
+  extruderFanSpeed = 0;
+  manualBlockFanControl = false;
+#endif
+  debugMode = false;
   sd_printing = true;
   sd_pause = false;
   sd_resume = false;
@@ -639,6 +646,7 @@ eParseResult process_gcode_command(){
           calibratePos = 1;
           strcpy(statusStr, "Calibration");
           is_calibrating = true;
+          config.status = 3;
         }
         break;
         //Prceed to next Calibration Procedure step
@@ -664,6 +672,7 @@ eParseResult process_gcode_command(){
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
 
               calibratePos = 2;
+              config.status = 3;
             }
           else if(calibratePos == 2)
             {
@@ -681,6 +690,7 @@ eParseResult process_gcode_command(){
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
 
               calibratePos = 3;
+              config.status = 3;
             }
           else if(calibratePos == 3)
             {
@@ -694,6 +704,7 @@ eParseResult process_gcode_command(){
               memset(statusStr, '\0', sizeof(statusStr));
               home();
               calibratePos = 0;
+              config.status = 3;
             }
         }
         break;
@@ -943,44 +954,40 @@ eParseResult process_gcode_command(){
               __enable_irq();
 
           }else{
-              if(!next_target.seen_B){
+              if(!next_target.seen_B)
+                {
+                  serial_writestr("A");
+                  serwrite_uint32(estimated_time);
+                  serial_writestr(" B");
+                  __disable_irq();
+                  serwrite_uint32(time_elapsed);
+                  __enable_irq();
 
-                  if(estimated_time == 0 && number_of_lines == 0)
+                  if(number_of_lines == 0)
                     {
-                      serial_writestr("A");
-                      serwrite_uint32(estimated_time);
-                      serial_writestr(" B");
-                      __disable_irq();
-                      serwrite_uint32(time_elapsed);
-                      __enable_irq();
-
                       serial_writestr(" C");
                       serwrite_uint32(file.fsize);
                       serial_writestr(" D");
                       serwrite_uint32(sd_pos);
                       serial_writestr(" ");
 
-                    } else {
-
-                        serial_writestr("A");
-                        serwrite_uint32(estimated_time);
-                        serial_writestr(" B");
-
-                        __disable_irq();
-                        serwrite_uint32(time_elapsed);
-                        __enable_irq();
-
-                        serial_writestr(" C");
-                        serwrite_uint32(number_of_lines);
-                        serial_writestr(" D");
-                        serwrite_uint32(executed_lines);
-                        serial_writestr(" ");
-
-                        if(number_of_lines == executed_lines){
-                            serial_writestr("Done printing file\n");
-                        }/*No need for else*/
+                      if(file.fsize == sd_pos){
+                          serial_writestr("Done printing file\n");
+                      }/*No need for else*/
                     }
-              }/*No need for else*/
+                  else
+                    {
+                      serial_writestr(" C");
+                      serwrite_uint32(number_of_lines);
+                      serial_writestr(" D");
+                      serwrite_uint32(executed_lines);
+                      serial_writestr(" ");
+
+                      if(number_of_lines == executed_lines){
+                          serial_writestr("Done printing file\n");
+                      }/*No need for else*/
+                    }
+                }/*No need for else*/
           }
         }
         break;
@@ -1025,6 +1032,7 @@ eParseResult process_gcode_command(){
       case 36: //M36
         {
           enterShutDown();
+          temp_set(0, EXTRUDER_0);
         }break;
 
         // M104- set temperature
@@ -1092,11 +1100,6 @@ eParseResult process_gcode_command(){
         // M109- set temp and wait
       case 109:
         {
-          if(!sd_printing){
-              config.status = 4;
-          }else{
-              config.status = 5;
-          }
           temp_set(next_target.S, EXTRUDER_0);
           is_heating_MCode = true;
           enqueue_wait_temp();
@@ -1126,6 +1129,7 @@ eParseResult process_gcode_command(){
           temp_set(0,EXTRUDER_0);
           disableBlower();
           enter_power_saving = 0;
+          config.status = 3;
 
         }
         break;
@@ -1355,7 +1359,7 @@ eParseResult process_gcode_command(){
               } else if(next_target.seen_Z) {
                   config.steps_per_mm_z = next_targetd.z;
               } else if(next_target.seen_E) {
-                  config.steps_per_mm_e = next_targetd.e;
+                  config.steps_per_mm_e0 = next_targetd.e;
               }
 
               write_config();
@@ -1365,7 +1369,7 @@ eParseResult process_gcode_command(){
                       config.steps_per_mm_x,
                       config.steps_per_mm_y,
                       config.steps_per_mm_z,
-                      config.steps_per_mm_e);
+                      config.steps_per_mm_e0);
               }/*No need for else*/
           }
 
@@ -1784,6 +1788,7 @@ eParseResult process_gcode_command(){
               buzzer_play (3000);
               Extrude(100,300);
               SetEPos(0);
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1809,6 +1814,7 @@ eParseResult process_gcode_command(){
               Extrude(-30,2000);
               Extrude(-50,200);
               SetEPos(0);
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1825,11 +1831,7 @@ eParseResult process_gcode_command(){
                 {
                   is_heating_Process = true;
                   temp_set(next_target.S,EXTRUDER_0);
-                  if(!sd_printing){
-                      config.status = 4;
-                  }else{
-                      config.status = 5;
-                  }
+                  config.status = 4;
                   home();
                   if(printerPause || printerShutdown)
                     {
@@ -1843,14 +1845,11 @@ eParseResult process_gcode_command(){
                     }
 
                   strcpy(statusStr, "Heating");
+                  config.status = 3;
                 }
               else if(is_heating_Process && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
-                  if(!sd_printing){
-                      config.status = 4;
-                  }else{
-                      config.status = 5;
-                  }
+                  config.status = 4;
                   if(printerPause || printerShutdown)
                     {
 
@@ -1865,6 +1864,7 @@ eParseResult process_gcode_command(){
 
                   is_heating_Process = true;
                   strcpy(statusStr, "Load/Unload");
+                  config.status = 3;
                 }
             }
           if(sd_printing){
@@ -1879,15 +1879,12 @@ eParseResult process_gcode_command(){
           if(!sd_printing)
             {
               memset(statusStr, '\0', sizeof(statusStr));
-              if(!sd_printing){
-                  config.status = 4;
-              }else{
-                  config.status = 5;
-              }
+              config.status = 4;
               home();
               temp_set(0,EXTRUDER_0);
               disableBlower();
               is_heating_Process = false;
+              config.status = 3;
             }
           if(sd_printing){
               reply_sent = 1;
