@@ -65,6 +65,11 @@ char Lfname[_MAX_LFN+1];
 //Relative Coordinates Option
 bool relativeCoordinates = false;
 
+//Retract vars
+double retractFeedrate = 6000;
+double retractAmmount = 1.5;
+double retractHop = 0.0;
+
 //For Pause Functions
 double currentE;
 double currentF;
@@ -515,6 +520,19 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //G10: Retract
+      case 10:
+        {
+          GoTo5D(startpoint.x,startpoint.y,startpoint.z+retractHop,startpoint.e-retractAmmount,retractFeedrate);
+        }
+        break;
+        //G11: Unretract
+      case 11:
+        {
+          GoTo5D(startpoint.x,startpoint.y,startpoint.z-retractHop,startpoint.e+retractAmmount,retractFeedrate);
+        }
+        break;
+
         //G28 - go home
       case 28:
         {
@@ -729,39 +747,12 @@ eParseResult process_gcode_command(){
 
       switch (next_target.M)
       {
-#ifdef EXP_Board
-      // M5 Turn THE LIGHTS ON
-      case 5:
-        {
-          ilum_on();
-        }
-        break;
-        // M6 Turn THE LIGHTS OFF
-      case 6:
-        {
-          ilum_off();
-        }
-        break;
-#endif
-        // SD File functions
+      // SD File functions
       case 20: // M20 - list SD Card files
         {
           sersendf("Begin file list\n");
-
-          // list files in root folder
-          //sd_list_dir();
           scan_files("");
           sersendf("End file list\r\n");
-          /*
-          if(!next_target.seen_B){
-              serial_writestr("Begin file list\n");
-
-              // list files in root folder
-              //sd_list_dir();
-              scan_files("");
-              serial_writestr("End file list\r\n");
-          }*/
-          /*No need for else*/
         }
         break;
 
@@ -798,14 +789,45 @@ eParseResult process_gcode_command(){
           }
         }
         break;
+        //Resume SD Print from pause
+      case 24:
+        {
+          if(pauseAtZ)
+            {
+              pauseAtZ = false;
+            }
+
+          if(next_target.seen_W) {
+              config.startpoint_filament_coeff= next_target.W;
+          }
+          if(next_target.seen_S) {
+              config.startpoint_feedrate_coeff= next_target.S;
+          }
+          if(next_target.seen_T) {
+              temp_set(next_target.T, EXTRUDER_0);
+          } else {
+              temp_set(config.startpoint_temperature, EXTRUDER_0);
+          }
+          enqueue_wait_temp();
+
+          sd_resume = true;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
 
       case 25: //M25 - Pause SD print
         {
           if(sd_printing)
             {
+              initPause();
+              write_config();
+
               sd_printing = false;
-              config.status = 3;
-            }/*No need for else*/
+              sd_pause = true;
+              sd_resume = false;
+            }/* No need for else */
         }
         break;
 
@@ -818,135 +840,8 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //M28 - transfer size and begin if valid
-      case 28:
-        {
-          if(!next_target.seen_A){
-              if(!next_target.seen_B){
-                  serial_writestr("error - not seen A\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }/*No need for else*/
-
-          if(!next_target.seen_D){
-              if(!next_target.seen_B){
-                  serial_writestr("error - not seen D\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }/*No need for else*/
-
-          bytes_to_transfer = next_target.D - next_target.A + 1;
-
-          if ((bytes_to_transfer < 1) || (next_target.A > next_target.D)){
-              if(!next_target.seen_B){
-                  serial_writestr("error - invalid number of bytes to transfer\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }/*No need for else*/
-
-          if (bytes_to_transfer > 0){
-              if(!next_target.seen_B){
-                  serial_writestr("will write ");
-                  serwrite_uint32((bytes_to_transfer));
-                  serial_writestr(" bytes ");
-              }/*No need for else*/
-          }/*No need for else*/
-
-          FRESULT res;
-          res = f_lseek(&file, next_target.A);
-
-          if(res != FR_OK){
-              if(!next_target.seen_B){
-                  serial_writestr("error seeking position on file\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }/*No need for else*/
-
-          number_of_bytes = 0;
-          transfer_mode = 1;
-
-          //status = transfering
-          config.status = 6;
-        }
-        break;
-
-        //M29 Delete SD File
-      case 29:
-        {
-          FRESULT res;
-          //f_open(&file,next_target.filename,FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
-          res = f_unlink(next_target.filename);
-          sersendf("Deleted File: %s - Res: %d\n",next_target.filename,res);
-
-        }
-        break;
-
-        //M30 <filename>
-      case 30:
-        {
-          char fName[120];
-          //closes file
-          sd_close(&file);
-          sd_init();
-
-          memset(fName, '\0', sizeof(fName));
-
-          if(strlen(next_target.filename) > 0)
-            {
-              strcpy(fName, next_target.filename);
-            }
-          else
-            {
-              strcpy(fName, "ABCDE");
-            }
-
-          //opens as empty file
-          if (sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
-              if(!next_target.seen_B) {
-                  sersendf("File created: %s\n",fName);
-              }/*No need for else*/
-              sd_pos = 0;
-              //save current filename to config
-              strcpy(config.filename, next_target.filename);
-              strcpy(statusStr, "Waiting4File");
-          }else{
-              if(!next_target.seen_B){
-                  sersendf("error creating file: %s\n",fName);
-              }/*No need for else*/
-          }
-          executed_lines = 0;
-        }
-        break;
-
-      case 31: //M31 -variables from software
-        {
-          if(next_target.seen_A){
-              estimated_time = next_target.A;
-          }else{
-              if(!next_target.seen_B){
-                  serial_writestr("error - not seen A\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }
-
-          if(next_target.seen_L){
-              number_of_lines = next_target.L;
-          }else{
-              if(!next_target.seen_B){
-                  serial_writestr("error - not seen L\n");
-                  reply_sent = 1;
-              }/*No need for else*/
-              break;
-          }
-        }
-        break;
-
-      case 32: //M32 - variables to software
+        // Report SD print status
+      case 27:
         {
           if(next_target.seen_A){
               __disable_irq();
@@ -992,6 +887,19 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //M30 Delete SD File
+      case 30:
+        {
+          FRESULT res;
+          //f_open(&file,next_target.filename,FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+          res = f_unlink(next_target.filename);
+          sersendf("Deleted File: %s - Res: %d\n",next_target.filename,res);
+
+        }
+        break;
+
+
+
       case 33: //M33 - Start SD print
         {
           char fName[120];
@@ -1018,22 +926,38 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      case 34: //M34 - Print file to USB
+
+        // M92 - set steps per mm
+      case 92:
         {
+          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
 
-          sd_printing = true;
-          print2USB = true;
+              if(next_target.seen_X) {
+                  config.steps_per_mm_x = next_targetd.x;
+              } else if(next_target.seen_Y) {
+                  config.steps_per_mm_y = next_targetd.y;
+              } else if(next_target.seen_Z) {
+                  config.steps_per_mm_z = next_targetd.z;
+              } else if(next_target.seen_E) {
+                  config.steps_per_mm_e0 = next_targetd.e;
+              }
 
+              write_config();
+          } else {
+              if(!next_target.seen_B && !sd_printing){
+                  sersendf ("X%g Y%g Z%g E%g ",
+                      config.steps_per_mm_x,
+                      config.steps_per_mm_y,
+                      config.steps_per_mm_z,
+                      config.steps_per_mm_e0);
+              }/*No need for else*/
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
-
-        //Prepare to shutdown save vars to config
-        //Only use during prints, after M640 - which prepares the config
-      case 36: //M36
-        {
-          enterShutDown();
-          temp_set(0, EXTRUDER_0);
-        }break;
 
         // M104- set temperature
       case 104:
@@ -1133,46 +1057,8 @@ eParseResult process_gcode_command(){
 
         }
         break;
-
-        // M115 - report firmware version
-      case 115:
-        {
-          if(!next_target.seen_B && !sd_printing){
-              //serial_writestr(" 0.0.0");
-              serial_writestr(FW_V);
-              serial_writestr(" ");
-          }
-        }
-        break;
-
-      case 117:
-        {
-          //try to read the unique ID - not working in this LPC Revision
-          /*
-             serial_writestr(" ");
-             read_device_serial_number();
-             serial_writestr("\r\n");
-           */
-
-          char serialnumber[10] = {0};
-          char *pmem117;
-
-          pmem117 = SECTOR_14_START;
-
-          for (int i = 0; i < 10; i++) {
-              serialnumber[9 - i] = *pmem117;
-              pmem117++;
-          }
-
-          if(!next_target.seen_B){
-              serial_writeblock(serialnumber, 10);
-              serial_writestr(" ");
-          }/*No need for else*/
-        }
-        break;
-
-        /*M121- report XYZE to host */
-      case 121:
+        /*M114- report XYZE to host */
+      case 114:
         {
           if (next_target.option_inches){
               config.status = 0;
@@ -1185,202 +1071,43 @@ eParseResult process_gcode_command(){
         }
         break;
 
-#ifdef EXP_Board
-        // M126- Control Extruder fan on
-      case 126:
+        // M115 - report firmware version
+      case 115:
         {
-          //Control extruder fan
-          if(next_target.seen_S){
-              manualBlockFanControl = true;
-              extruder_block_fan_on();
-
-              uint16_t s_val = next_target.S;
-              if(s_val >= 255)
-                {
-                  extruderFanSpeed = 100;
-                } else {
-                    extruderFanSpeed = (uint16_t) s_val*0.4;
-                }
-
-              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
-              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          } else {
-              manualBlockFanControl = false;
-              extruder_block_fan_on();
-              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
-              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          }/*No need for else*/
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
+          if(!next_target.seen_B && !sd_printing){
+              //serial_writestr(" 0.0.0");
+              serial_writestr(FW_V);
+              serial_writestr(" ");
+          }
         }
         break;
 
-        // M127- Extruder block fan off
-      case 127:
-        {
-          manualBlockFanControl = true;
-          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
-          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
-          extruder_block_fan_off();
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
-
-        //M128 - Excruder block regression adjust
-      case 128:
-        {
-
-          if(next_target.seen_A) {
-              config.blockTemperatureFanStart = next_target.A;
-          }
-          if(next_target.seen_D) {
-              config.blockTemperatureFanMax = next_target.D;
-          }
-          if(next_target.seen_L) {
-              config.blockFanMinSpeed = next_target.L;
-          }
-          if(next_target.seen_P) {
-              config.blockFanMaxSpeed = next_target.P;
-          }
-
-          if(next_target.seen_A || next_target.seen_D || next_target.seen_L || next_target.seen_P)
-            {
-              //Extruder block fan regression
-              config.blockControlM = (config.blockFanMaxSpeed - config.blockFanMinSpeed)/(config.blockTemperatureFanMax - config.blockTemperatureFanStart);
-              config.blockControlB = config.blockFanMaxSpeed - config.blockControlM*config.blockTemperatureFanMax;
-            }
-
-          sersendf(" S: %u M: %g B: %g state: %u ", extruderFanSpeed, config.blockControlM, config.blockControlB, manualBlockFanControl);
-        }
-        break;
-
-#endif
-        // M130 temperature PID
-      case 130:
+        //echo
+      case 117:
         {
           if(!next_target.seen_B ){
-              if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
-                  serial_writestr("kp: ");
-                  //serwrite_double(config.kp);
-                  serwrite_double(kp);
-                  serial_writestr(" ki:");
-                  //serwrite_double(config.ki);
-                  serwrite_double(ki);
-                  serial_writestr(" kd:");
-                  //serwrite_double(config.kd);
-                  serwrite_double(kd);
-                  serial_writestr(" ");
-              }/*No need for else*/
-          }/*No need for else*/
-        }
-        break;
-
-      case 131:
-        {
-          print_pwm();
-        }
-        break;
-
-#ifdef EXP_Board
-        // M134 Turn R2C2 fAN ON
-      case 134:
-        {
-          r2c2_fan_on();
-        }
-        break;
-        // M135 Turn R2C2 fAN ON
-      case 135:
-        {
-          r2c2_fan_off();
-        }
-        break;
-        // M136 - start logo blink
-      case 136:
-        {
-          blink_time = 0;
-          start_logo_blink = 1;
-          stop_logo_blink = 0;
-          logo_state = 0;
-
-          if(next_target.seen_S) {
-              blink_interval = next_target.S;
-          } else {
-              blink_interval = 5000;
-          }
-
-          /* PWM Control*/
-          /*if(next_target.seen_S ){
-                              //logo_on();
-                              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
-                              pwm_set_enable(LOGO_PWM_CHANNEL);
-                          } else {
-                              //logo_on();
-                              pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
-                              pwm_set_enable(LOGO_PWM_CHANNEL);
-                          }
-           */
-        }
-        break;
-
-        // M137 - turn logo off
-      case 137:
-        {
-          blink_time = 0;
-          start_logo_blink = 0;
-          stop_logo_blink = 1;
-          logo_state = 1;
-          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
-          pwm_set_enable(LOGO_PWM_CHANNEL);
-          ilum_on();
-          /*
-                          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
-                          pwm_set_enable(LOGO_PWM_CHANNEL);
-                          //pwm_set_disable(LOGO_PWM_CHANNEL);
-           */
-
-        }
-        break;
-#endif
-
-        // M200 - set steps per mm
-      case 200:
-        {
-          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
-
-              if(next_target.seen_X) {
-                  config.steps_per_mm_x = next_targetd.x;
-              } else if(next_target.seen_Y) {
-                  config.steps_per_mm_y = next_targetd.y;
-              } else if(next_target.seen_Z) {
-                  config.steps_per_mm_z = next_targetd.z;
-              } else if(next_target.seen_E) {
-                  config.steps_per_mm_e0 = next_targetd.e;
+              for(int i=0;i<120;i++){
+                  if(next_target.filename[i]){
+                      serial_writechar(next_target.filename[i]);
+                  }else{
+                      break;
+                  }
               }
-
-              write_config();
-          } else {
-              if(!next_target.seen_B && !sd_printing){
-                  sersendf ("X%g Y%g Z%g E%g ",
-                      config.steps_per_mm_x,
-                      config.steps_per_mm_y,
-                      config.steps_per_mm_z,
-                      config.steps_per_mm_e0);
-              }/*No need for else*/
-          }
-
-          if(sd_printing){
-              reply_sent = 1;
+              serial_writestr(" ");
+              memset(next_target.filename, '\0', sizeof(next_target.filename));
           }/*No need for else*/
         }
         break;
 
-        // M206 - set accel in mm/sec^2
-      case 206:
+        //M119: Get Endstop Status
+      case 119:
+        {
+          sersendf("X_min:%u Y_min:%u Z_min:%u",x_min(),y_min(),z_min());
+        }
+        break;
+
+        // M201 - set accel in mm/sec^2
+      case 201:
         {
           if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E) == 0){
               if(!next_target.seen_B && !sd_printing){
@@ -1403,6 +1130,61 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //M206 - Set home offset
+      case 206:
+        {
+          if(next_target.seen_X)
+            {
+              config.home_pos_x = next_target.target.x;
+              axisSelected = 1;
+            }
+          if(next_target.seen_Y)
+            {
+              config.home_pos_y = next_target.target.y;
+              axisSelected = 1;
+            }
+          if(next_target.seen_Z)
+            {
+              config.home_pos_z = next_target.target.z;
+              axisSelected = 1;
+            }
+
+          if(axisSelected == 1)
+            {
+              write_config();
+            }
+          else
+            {
+              sersendf("Home Pos X:%g Y%g Z%g \n",config.home_pos_x,config.home_pos_y,config.home_pos_z);
+            }
+
+        }
+        break;
+
+      case 207:
+        {
+          if(next_target.seen_S || next_target.seen_F || next_target.seen_Z)
+            {
+              if(next_target.seen_S)
+                {
+                  retractAmmount = next_target.S;
+                }
+              if(next_target.seen_F)
+                {
+                  retractFeedrate = next_target.target.feed_rate;
+                }
+              if(next_target.seen_Z)
+                {
+                  retractHop = next_target.target.z;
+                }
+            }
+          else
+            {
+              sersendf("S:%g F:%g Z:%g");
+            }
+        }
+        break;
+
         // M220 - Set speed factor override percentage
       case 220:
         {
@@ -1422,14 +1204,18 @@ eParseResult process_gcode_command(){
         // M221 - Set flowrate factor override percentage
       case 221:
         {
-          if(next_target.seen_S)
+          if(next_target.seen_S && !next_target.seen_W)
             {
               double currentFlowrate = filament_coeff;
               filament_coeff = (double) next_target.S / 100;
               //startpoint.f = startpoint.feed_rate * feedrate_coeff/currentFeedrate;
             }
+          else if(next_target.seen_W && !next_target.seen_S)
+            {
+              filament_coeff = next_target.W;
+            }
           else {
-              sersendf("flowrate coefficient: %g\n",(double)filament_coeff*100);
+              sersendf("flowrate coefficient: W%g , S%g\n",(double)filament_coeff, (double)filament_coeff*100);
           }
         }
         break;
@@ -1454,6 +1240,26 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M301 temperature PID
+      case 301:
+        {
+          if(!next_target.seen_B ){
+              if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+                  serial_writestr("kp: ");
+                  //serwrite_double(config.kp);
+                  serwrite_double(kp);
+                  serial_writestr(" ki:");
+                  //serwrite_double(config.ki);
+                  serwrite_double(ki);
+                  serial_writestr(" kd:");
+                  //serwrite_double(config.kd);
+                  serwrite_double(kd);
+                  serial_writestr(" ");
+              }/*No need for else*/
+          }/*No need for else*/
+        }
+        break;
+
         // M302 set safe temp
       case 302:
         {
@@ -1465,39 +1271,56 @@ eParseResult process_gcode_command(){
         }
         break;
 
-#ifdef EXP_Board
-        //M504 - Report Power input voltage
-      case 504:
+        //set home offset calculated from toolhead position
+      case 306:
         {
-          double voltsInput;
+          if(in_power_saving)
+            {
+              break;
+            }
+          tTarget new_pos;
+          double zPos = 0.0;
 
-          voltsInput = (double) sDown_filtered/108.3;
+          if(next_target.seen_Z)
+            {
+              zPos = next_target.target.z;
+              axisSelected = 1;
+            }
 
-          sersendf("Raw input: %u Volts: %g\n", sDown_filtered,voltsInput);
+          //recalculate distante from home
+          config.home_pos_z -= startpoint.z + zPos;
+
+          //my position is zero
+          new_pos = startpoint;
+          new_pos.z = zPos;
+          plan_set_current_position (&new_pos);
+
         }
         break;
 
-#endif
-
-        //M505 - Clear Shutdown flag
-      case 505:
+      case 500:
         {
-          config.status = 3;
-          printerShutdown = false;
           write_config();
         }
         break;
 
-        //M506 - Load config
-      case 506:
+        //M501 - Load config
+      case 501:
         {
           read_config();
         }
         break;
 
 
-        // M600 print the values read from the config file
-      case 600:
+        /* RESET CONFIG*/
+      case 502:
+        {
+          reset_config();
+        }
+        break;
+
+        // M503 print the values read from the config file
+      case 503:
         {
           if(!next_target.seen_B){
               print_config();
@@ -1505,105 +1328,255 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      case 601:
+        //M573 Report heater PWM
+      case 573:
         {
-          write_config();
+          print_pwm();
         }
         break;
 
-        //calibrate
-      case 603:
+        //Set Filament String
+      case 1000:
         {
-          if(in_power_saving)
+
+          if(strlen(next_target.filename) > 0)
             {
-              break;
+              strcpy(config.bcodeStr,next_target.filename);
+              memset(next_target.filename, '\0', sizeof(next_target.filename));
+              write_config();
+            } else {
+                sersendf("Error, Please Specify Filament String");
             }
-          tTarget new_pos;
-
-          //recalculate distante from home
-          config.home_pos_z -= startpoint.z;
-
-          //my position is zero
-          new_pos = startpoint;
-          new_pos.z = 0;
-          plan_set_current_position (&new_pos);
 
         }
         break;
 
-        //set home position absolute
-      case 604:
+        //Read Filament String
+      case 1001:
         {
-          /*
-          if (next_target.seen_X){
-              HOME_POS_X = next_target.target.x;
-              axisSelected = 1;
-          }//no need for else
+          sersendf("'%s'\n",config.bcodeStr);
+        }
+        break;
 
-          if (next_target.seen_Y){
-              HOME_POS_Y = next_target.target.y;
-              axisSelected = 1;
-          }//no need for else
-           */
-          if (next_target.seen_Z){
-              config.home_pos_z = next_target.target.z;
-              axisSelected = 1;
-          }//no need for else
-          /*
-          if(!axisSelected) {
-              HOME_POS_X = 0.0;
-              HOME_POS_Y = 0.0;
-              HOME_POS_Z = 0.0;
-          }//no need for else
-           */
-          if(sd_printing){
-              reply_sent = 1;
+        //Read Last Print Time
+      case 1002:
+        {
+          sersendf("Last Print Time: %u\n",config.last_print_time);
+        }
+        break;
+        //Print Last file
+      case 1003:
+        {
+          synch_queue();
+          print_file();
+        }
+        break;
+        //M1004 <filename> - Create SD file
+      case 1004:
+        {
+          char fName[120];
+          //closes file
+          sd_close(&file);
+          sd_init();
+
+          memset(fName, '\0', sizeof(fName));
+
+          if(strlen(next_target.filename) > 0)
+            {
+              strcpy(fName, next_target.filename);
+            }
+          else
+            {
+              strcpy(fName, "ABCDE");
+            }
+
+          //opens as empty file
+          if (sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
+              if(!next_target.seen_B) {
+                  sersendf("File created: %s\n",fName);
+              }/*No need for else*/
+              sd_pos = 0;
+              //save current filename to config
+              strcpy(config.filename, next_target.filename);
+              strcpy(statusStr, "Waiting4File");
+          }else{
+              if(!next_target.seen_B){
+                  sersendf("error creating file: %s\n",fName);
+              }/*No need for else*/
+          }
+          executed_lines = 0;
+        }
+        break;
+
+      case 1005: //M1005 -variables from software
+        {
+          if(next_target.seen_A){
+              estimated_time = next_target.A;
+          }else{
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen A\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }
+
+          if(next_target.seen_L){
+              number_of_lines = next_target.L;
+          }else{
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen L\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
           }
         }
         break;
 
-        //set home position
-      case 605:
+        //Prepare to shutdown save vars to config
+        //Only use during prints, after M25 - which prepares the config
+      case 1006: //M1006 - Enter Shutdown
         {
-          /*
-          if (next_target.seen_X){
-              HOME_POS_X -= next_target.target.x;
-              axisSelected = 1;
-          }//no need for else
+          enterShutDown();
+          temp_set(0, EXTRUDER_0);
+        }break;
 
-          if (next_target.seen_Y){
-              HOME_POS_Y -= next_target.target.y;
-              axisSelected = 1;
-          }//no need for else
-           */
-          if (next_target.seen_Z){
-              config.home_pos_z -= next_target.target.z;
-              axisSelected = 1;
-          }//no need for else
-          /*
-          if(!axisSelected){
-              HOME_POS_X = 0.0;
-              HOME_POS_Y = 0.0;
-              HOME_POS_Z = 0.0;
-          }//no need for else
-           */
-          sersendf("Option Disabled");
+        //M1007- Pause ate Z
+      case 1007:
+        {
+          if(next_target.seen_Z)
+            {
+              if(pauseAtZ == true)
+                {
+                  sersendf("Can't set pause at Z, waiting for pending pause\n");
+                }
+              else {
+                  if(next_targetd.z <= startpoint.z)
+                    {
+                      pauseAtZ = false;
+                      pauseAtZVal = 0;
+                    }
+                  else
+                    {
+                      pauseAtZ = true;
+                      pauseAtZVal = next_targetd.z;
+                    }
+              }
+            }
+          else
+            {
+              if(pauseAtZ == true)
+                {
+                  sersendf("Pausing at Z: %g\n",pauseAtZVal);
+                }
+              else {
+                  sersendf("No pause pending\n");
+              }
+            }
+        }
+        break;
 
-          if(sd_printing){
-              reply_sent = 1;
+        //M1008 - Clear Shutdown flag
+      case 1008:
+        {
+          config.status = 3;
+          printerShutdown = false;
+          write_config();
+        }
+        break;
+
+        //M1009 - transfer size and begin if valid
+      case 1009:
+        {
+          if(!next_target.seen_A){
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen A\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          if(!next_target.seen_D){
+              if(!next_target.seen_B){
+                  serial_writestr("error - not seen D\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          bytes_to_transfer = next_target.D - next_target.A + 1;
+
+          if ((bytes_to_transfer < 1) || (next_target.A > next_target.D)){
+              if(!next_target.seen_B){
+                  serial_writestr("error - invalid number of bytes to transfer\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          if (bytes_to_transfer > 0){
+              if(!next_target.seen_B){
+                  serial_writestr("will write ");
+                  serwrite_uint32((bytes_to_transfer));
+                  serial_writestr(" bytes ");
+              }/*No need for else*/
+          }/*No need for else*/
+
+          FRESULT res;
+          res = f_lseek(&file, next_target.A);
+
+          if(res != FR_OK){
+              if(!next_target.seen_B){
+                  serial_writestr("error seeking position on file\n");
+                  reply_sent = 1;
+              }/*No need for else*/
+              break;
+          }/*No need for else*/
+
+          number_of_bytes = 0;
+          transfer_mode = 1;
+
+          //status = transfering
+          config.status = 6;
+        }
+        break;
+
+      case 1010: //M1010 - Print file to USB
+        {
+
+          sd_printing = true;
+          print2USB = true;
+
+        }
+        break;
+
+      case 1011:
+        {
+          //try to read the unique ID - not working in this LPC Revision
+          /*
+                   serial_writestr(" ");
+                   read_device_serial_number();
+                   serial_writestr("\r\n");
+           */
+
+          char serialnumber[10] = {0};
+          char *pmem117;
+
+          pmem117 = SECTOR_14_START;
+
+          for (int i = 0; i < 10; i++) {
+              serialnumber[9 - i] = *pmem117;
+              pmem117++;
+          }
+
+          if(!next_target.seen_B){
+              serial_writeblock(serialnumber, 10);
+              serial_writestr(" ");
           }/*No need for else*/
         }
         break;
 
-        /* RESET CONFIG*/
-      case 607:
-        {
-          reset_config();
-        }
-        break;
-
-        /* M609 - RESTART IN BOOTLOADER MODE*/
-      case 609:
+        /* M1013 - RESTART IN BOOTLOADER MODE*/
+      case 1013:
         {
           if(!sd_printing){
               if(is_heating_Process || is_calibrating)
@@ -1619,7 +1592,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
-      case 625:
+      case 1014:
         {
           if(!next_target.seen_B){
               serial_writestr(" S:");
@@ -1658,124 +1631,14 @@ eParseResult process_gcode_command(){
         break;
 
         //Alive Command
-      case 637:
+      case 1015:
         {
           reply_sent = 1;
         }
         break;
 
-      case 638:
-        {
-          if(!next_target.seen_B){
-              serial_writestr("last N:");
-              serwrite_uint32(next_target.N);
-              serial_writestr(" sdpos:");
-              serwrite_uint32(executed_lines);
-              serial_writestr(" ");
-          }/*No need for else*/
-        }
-        break;
-
-        //echo
-      case 639:
-        {
-          if(!next_target.seen_B ){
-              for(int i=0;i<120;i++){
-                  if(next_target.filename[i]){
-                      serial_writechar(next_target.filename[i]);
-                  }else{
-                      break;
-                  }
-              }
-              serial_writestr(" ");
-              memset(next_target.filename, '\0', sizeof(next_target.filename));
-          }/*No need for else*/
-        }
-        break;
-
-
-        //stop sd_printing and copy state to config
-      case 640:
-        {
-          if(sd_printing)
-            {
-              initPause();
-              write_config();
-
-              sd_printing = false;
-              sd_pause = true;
-              sd_resume = false;
-            }/* No need for else */
-        }
-        break;
-
-      case 641:
-        {
-          if(next_target.seen_S)
-            {
-              powerSavingDelay = (uint32_t) next_target.S;
-            }
-          if(next_target.seen_A){
-
-              if (next_target.A == 1){
-                  enter_power_saving = 1;
-                  rest_time = 0;
-              }
-              if (next_target.A == 0){
-                  enter_power_saving = 0;
-              }
-          } else {
-              enter_power_saving = 0;
-          }
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
-
-      case 642:
-        {
-          if(next_target.seen_W){
-              filament_coeff = next_target.W;
-          }else{
-              serial_writestr("filament coefficient:");
-              serwrite_double(filament_coeff);
-              serial_writestr(" ");
-
-          }
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
-        //Resume SD Print from pause
-      case 643:
-        {
-          if(pauseAtZ)
-            {
-              pauseAtZ = false;
-            }
-
-          if(next_target.seen_W) {
-              config.startpoint_filament_coeff= next_target.W;
-          }
-          if(next_target.seen_S) {
-              temp_set(next_target.S, EXTRUDER_0);
-          } else {
-              temp_set(config.startpoint_temperature, EXTRUDER_0);
-          }
-          enqueue_wait_temp();
-
-          sd_resume = true;
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
-        break;
-
         //Load Filament
-      case 701:
+      case 1017:
         {
           if(!sd_printing)
             {
@@ -1797,7 +1660,7 @@ eParseResult process_gcode_command(){
         break;
 
         //Unload Filament
-      case 702:
+      case 1018:
         {
           if(!sd_printing)
             {
@@ -1823,7 +1686,7 @@ eParseResult process_gcode_command(){
         break;
 
         //Start Heating and got to heat position
-      case 703:
+      case 1019:
         {
           if(!sd_printing)
             {
@@ -1874,7 +1737,7 @@ eParseResult process_gcode_command(){
         break;
 
         //Cancel Heating
-      case 704:
+      case 1020:
         {
           if(!sd_printing)
             {
@@ -1892,132 +1755,8 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //Set Filament String
-      case 1000:
-        {
-
-          if(strlen(next_target.filename) > 0)
-            {
-              strcpy(config.bcodeStr,next_target.filename);
-              memset(next_target.filename, '\0', sizeof(next_target.filename));
-              write_config();
-            } else {
-                sersendf("Error, Please Specify Filament String");
-            }
-
-        }
-        break;
-
-        //Read Filament String
-      case 1001:
-        {
-          sersendf("'%s'\n",config.bcodeStr);
-        }
-        break;
-
-        //Read Last Print Time
-      case 1002:
-        {
-          sersendf("Last Print Time: %u\n",config.last_print_time);
-        }
-        break;
-        //Print Last file
-      case 1003:
-        {
-          synch_queue();
-          print_file();
-        }
-        break;
-
-#ifdef USE_BATT
-        //Read PS Ext Input
-      case 1100:
-        {
-          //ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
-
-          sersendf("Power Supply State: %u\n", ps_ext_state);
-
-        }
-        break;
-
-        //Enable Battery Charge
-      case 1101:
-        {
-          STEP_uC_enable();
-        }
-        break;
-
-        //Disable Battery Charge
-      case 1102:
-        {
-          STEP_uC_disable();
-        }
-        break;
-
-        //Enable Battery
-      case 1103:
-        {
-          BATT_uC_enable();
-        }
-        break;
-
-        //Disable Battery
-      case 1104:
-        {
-          BATT_uC_disable();
-        }
-        break;
-
-        //M1105 - Report Battery input voltage
-      case 1105:
-        {
-          double voltsInput;
-
-          voltsInput = (double) batt_filtered * (3.3 / (double) 4096) * 11;
-
-          sersendf("Raw input: %u Volts: %g\n", batt_filtered,voltsInput);
-        }
-        break;
-        //M1106 - Change Battery Print Time
-      case 1106:
-        {
-          if(next_target.seen_S){
-              config.batteryPrintTime = (uint32_t) next_target.S;
-              write_config();
-          }
-        }
-        break;
-        //M1107 - Change Battery Stand By Time
-      case 1107:
-        {
-          if(next_target.seen_S){
-              config.standByTime = (uint32_t) next_target.S;
-              write_config();
-          }
-        }
-        break;
-        //M1108 - Change Auto Resume Mode
-      case 1108:
-        {
-          if(next_target.seen_S){
-              config.autoResume = (uint32_t) next_target.S;
-              write_config();
-          }
-        }
-        break;
-
-#endif
-#ifdef EXP_Board
-        //M1109 - Report r2c2 raw adc temperature
-      case 1109:
-        {
-          sersendf("Raw input: %u\n", adc_filtered_r2c2);
-        }
-        break;
-
-#endif
-        //M1110 - Toggle Debug Mode
-      case 1110:
+        //M1021 - Toggle Debug Mode
+      case 1021:
         {
           if(next_target.seen_S)
             {
@@ -2045,8 +1784,8 @@ eParseResult process_gcode_command(){
 
         }
         break;
-        //M1111 - Define seconds to enter shutdown
-      case 1111:
+        //M1022 - Define seconds to enter power saving
+      case 1022:
         {
           if(next_target.seen_S)
             {
@@ -2061,42 +1800,278 @@ eParseResult process_gcode_command(){
 
         }
         break;
-        //TODO M1200 - Replacement for M640 Command - Pause
-        //TODO M1201 - Replacement for M643 Command - Resume
-        //M1202- Pause ate Z
-      case 1202:
+
+      case 1023:
         {
-          if(next_target.seen_Z)
+          if(next_target.seen_S)
             {
-              if(pauseAtZ == true)
-                {
-                  sersendf("Can't set pause at Z, waiting for pending pause\n");
-                }
-              else {
-                  if(next_targetd.z <= startpoint.z)
-                    {
-                      pauseAtZ = false;
-                      pauseAtZVal = 0;
-                    }
-                  else
-                    {
-                      pauseAtZ = true;
-                      pauseAtZVal = next_targetd.z;
-                    }
-              }
+              powerSavingDelay = (uint32_t) next_target.S;
             }
-          else
-            {
-              if(pauseAtZ == true)
-                {
-                  sersendf("Pausing at Z: %g\n",pauseAtZVal);
-                }
-              else {
-                  sersendf("No pause pending\n");
+          if(next_target.seen_A){
+
+              if (next_target.A == 1){
+                  enter_power_saving = 1;
+                  rest_time = 0;
               }
-            }
+              if (next_target.A == 0){
+                  enter_power_saving = 0;
+              }
+          } else {
+              enter_power_saving = 0;
+          }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
+
+#ifdef EXP_Board
+        // 1100- Control Extruder fan on
+      case 1100:
+        {
+          //Control extruder fan
+          if(next_target.seen_S){
+              manualBlockFanControl = true;
+              extruder_block_fan_on();
+
+              uint16_t s_val = next_target.S;
+              if(s_val >= 255)
+                {
+                  extruderFanSpeed = 100;
+                } else {
+                    extruderFanSpeed = (uint16_t) s_val*0.4;
+                }
+
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          } else {
+              manualBlockFanControl = false;
+              extruder_block_fan_on();
+              pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+              pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+          }/*No need for else*/
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M1101- Extruder block fan off
+      case 1101:
+        {
+          manualBlockFanControl = true;
+          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+          pwm_set_disable(FAN_EXT_PWM_CHANNEL);
+          extruder_block_fan_off();
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        //M1102 - Excruder block regression adjust
+      case 1102:
+        {
+
+          if(next_target.seen_A) {
+              config.blockTemperatureFanStart = next_target.A;
+          }
+          if(next_target.seen_D) {
+              config.blockTemperatureFanMax = next_target.D;
+          }
+          if(next_target.seen_L) {
+              config.blockFanMinSpeed = next_target.L;
+          }
+          if(next_target.seen_P) {
+              config.blockFanMaxSpeed = next_target.P;
+          }
+
+          if(next_target.seen_A || next_target.seen_D || next_target.seen_L || next_target.seen_P)
+            {
+              //Extruder block fan regression
+              config.blockControlM = (config.blockFanMaxSpeed - config.blockFanMinSpeed)/(config.blockTemperatureFanMax - config.blockTemperatureFanStart);
+              config.blockControlB = config.blockFanMaxSpeed - config.blockControlM*config.blockTemperatureFanMax;
+            }
+
+          sersendf(" S: %u M: %g B: %g state: %u ", extruderFanSpeed, config.blockControlM, config.blockControlB, manualBlockFanControl);
+        }
+        break;
+
+        // M1103 Turn R2C2 fAN ON
+      case 1103:
+        {
+          r2c2_fan_on();
+        }
+        break;
+        // M1104 Turn R2C2 fAN ON
+      case 1104:
+        {
+          r2c2_fan_off();
+        }
+        break;
+        // M1105 - start logo blink
+      case 1105:
+        {
+          blink_time = 0;
+          start_logo_blink = 1;
+          stop_logo_blink = 0;
+          logo_state = 0;
+
+          if(next_target.seen_S) {
+              blink_interval = next_target.S;
+          } else {
+              blink_interval = 5000;
+          }
+
+          /* PWM Control*/
+          /*if(next_target.seen_S ){
+                                      //logo_on();
+                                      pwm_set_duty_cycle(LOGO_PWM_CHANNEL,next_target.S);
+                                      pwm_set_enable(LOGO_PWM_CHANNEL);
+                                  } else {
+                                      //logo_on();
+                                      pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+                                      pwm_set_enable(LOGO_PWM_CHANNEL);
+                                  }
+           */
+        }
+        break;
+
+        // M1106 - turn logo off
+      case 1106:
+        {
+          blink_time = 0;
+          start_logo_blink = 0;
+          stop_logo_blink = 1;
+          logo_state = 1;
+          pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
+          pwm_set_enable(LOGO_PWM_CHANNEL);
+          ilum_on();
+          /*
+                                  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,0);
+                                  pwm_set_enable(LOGO_PWM_CHANNEL);
+                                  //pwm_set_disable(LOGO_PWM_CHANNEL);
+           */
+
+        }
+        break;
+
+        //M1107 - Report Power input voltage
+      case 1107:
+        {
+          double voltsInput;
+
+          voltsInput = (double) sDown_filtered/108.3;
+
+          sersendf("Raw input: %u Volts: %g\n", sDown_filtered,voltsInput);
+        }
+        break;
+
+        // M1108 Turn THE LIGHTS ON
+      case 1108:
+        {
+          ilum_on();
+        }
+        break;
+        // M1109 Turn THE LIGHTS OFF
+      case 1109:
+        {
+          ilum_off();
+        }
+        break;
+
+        //M1110 - Report r2c2 raw adc temperature
+      case 1110:
+        {
+          sersendf("Raw input: %u\n", adc_filtered_r2c2);
+        }
+        break;
+
+#endif
+
+#ifdef USE_BATT
+        //Read PS Ext Input
+      case 1200:
+        {
+          //ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
+
+          sersendf("Power Supply State: %u\n", ps_ext_state);
+
+        }
+        break;
+
+        //Enable Battery Charge
+      case 1201:
+        {
+          STEP_uC_enable();
+        }
+        break;
+
+        //Disable Battery Charge
+      case 1202:
+        {
+          STEP_uC_disable();
+        }
+        break;
+
+        //Enable Battery
+      case 1203:
+        {
+          BATT_uC_enable();
+        }
+        break;
+
+        //Disable Battery
+      case 1204:
+        {
+          BATT_uC_disable();
+        }
+        break;
+
+        //M1205 - Report Battery input voltage
+      case 1205:
+        {
+          double voltsInput;
+
+          voltsInput = (double) batt_filtered * (3.3 / (double) 4096) * 11;
+
+          sersendf("Raw input: %u Volts: %g\n", batt_filtered,voltsInput);
+        }
+        break;
+        //M1206 - Change Battery Print Time
+      case 1206:
+        {
+          if(next_target.seen_S){
+              config.batteryPrintTime = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+        //M1207 - Change Battery Stand By Time
+      case 1207:
+        {
+          if(next_target.seen_S){
+              config.standByTime = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+        //M1208 - Change Auto Resume Mode
+      case 1208:
+        {
+          if(next_target.seen_S){
+              config.autoResume = (uint32_t) next_target.S;
+              write_config();
+          }
+        }
+        break;
+
+#endif
+
+
         // unknown mcode: spit an error
       default:
         {
