@@ -530,6 +530,10 @@ void st_interrupt (void)
         current_block = NULL;
         plan_discard_current_block();
         is_heating_MCode = false;
+        if(sd_printing)
+          {
+            time_elapsed = 0;
+          }
       }
     }
     else if (current_block->action_type == AT_WAIT)
