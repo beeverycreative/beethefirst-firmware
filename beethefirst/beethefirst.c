@@ -337,9 +337,15 @@ void temperatureTimerCallback (tTimer *pTimer)
 
     if(current_temp_r2c2 < 40 && in_power_saving)
       {
-        r2c2_fan_off();
+        if(!debugMode)
+        {
+            r2c2_fan_off();
+        }
       } else {
-          r2c2_fan_on();
+          if(!debugMode)
+            {
+              r2c2_fan_on();
+            }
       }
 
   }

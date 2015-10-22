@@ -900,7 +900,7 @@ eParseResult process_gcode_command(){
 
 
 
-      case 33: //M33 - Start SD print
+      case 32: //M32 - Start SD print
         {
           char fName[120];
           FRESULT res;
