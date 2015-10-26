@@ -1829,6 +1829,10 @@ eParseResult process_gcode_command(){
             {
               if(next_target.seen_S && !is_heating_Process)
                 {
+                  pterm = 0;
+                  iterm = 0;
+                  dterm = 0;
+                  dterm_temp = 0;
                   is_heating_Process = true;
                   temp_set(next_target.S,EXTRUDER_0);
                   config.status = 4;
