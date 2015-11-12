@@ -203,10 +203,11 @@ void SysTick_Handler(void)
   millis_ticks++;
   rest_time++;
 
-  if(!is_heating_Process && !is_calibrating && !sd_printing && !is_heating_MCode && !sd_pause && !debugMode && !printerPause)
-    {
-      lastCmd_time++;
-    }
+  if(!transfer_mode
+     && !is_heating_Process && !is_calibrating && !sd_printing && !is_heating_MCode && !sd_pause && !debugMode && !printerPause)
+  {
+    lastCmd_time++;
+  }
 
 #ifdef EXP_Board
   blink_time++;

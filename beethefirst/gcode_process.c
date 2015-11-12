@@ -465,14 +465,17 @@ eParseResult process_gcode_command(){
   }
 
   //Reset last comand timer and Leave Power Saving if needed
-  if(next_target.seen_G || next_target.M == 33 || next_target.M == 34 || next_target.M == 104
+  if(next_target.seen_G
+      || next_target.M == 28 // start transfer file
+      || next_target.M == 33 || next_target.M == 34 || next_target.M == 104
       || next_target.M == 109 || next_target.M == 640 || next_target.M == 643 || next_target.M == 701
       || next_target.M == 702 || next_target.M == 703 || next_target.M == 704)
     {
       if(leave_power_saving)
-        {
-          reinit_system();
-        }
+      {
+        reinit_system();
+      }
+
       lastCmd_time = 0;
     }
 
@@ -1715,17 +1718,21 @@ eParseResult process_gcode_command(){
             {
               powerSavingDelay = (uint32_t) next_target.S;
             }
-          if(next_target.seen_A){
 
+          else if(next_target.seen_A){
+
+              //enter power saving
               if (next_target.A == 1){
                   enter_power_saving = 1;
                   rest_time = 0;
               }
+              //leave power saving
               if (next_target.A == 0){
                   enter_power_saving = 0;
+                  reinit_system();
               }
           } else {
-              enter_power_saving = 0;
+              sersendf("Invalid arguments");
           }
 
           if(sd_printing){

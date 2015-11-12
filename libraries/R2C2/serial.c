@@ -33,7 +33,7 @@
 
 void serial_init()
 {
-    USBSerial_Init();        
+    USBSerial_Init();
 }
 
 /*

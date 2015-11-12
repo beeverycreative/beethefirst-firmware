@@ -493,6 +493,7 @@ int app_main (void){
 
 
       //connectedUSB = digital_read(1,30);
+
       if(
           !sd_printing
           && !sd_restartPrint
@@ -504,15 +505,15 @@ int app_main (void){
           && !is_calibrating
           && !enter_power_saving
           && !debugMode
-          && !printerPause)
+          && !printerPause
+          && !transfer_mode)
         {
           temp_set(0, EXTRUDER_0);
           enter_power_saving = 1;
           rest_time = 0;
         }
 
-      //Power saving check
-      if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
+      if(enter_power_saving && (rest_time > powerSavingDelay))
         {
 
           synch_queue();
