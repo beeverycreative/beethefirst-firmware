@@ -568,7 +568,8 @@ int app_main (void){
           && !is_calibrating
           && !enter_power_saving
           && !debugMode
-          && !printerPause)
+          && !printerPause
+          && !transfer_mode)
         {
           temp_set(0, EXTRUDER_0);
           enter_power_saving = 1;
@@ -576,7 +577,7 @@ int app_main (void){
         }
 
       //Power saving check
-      if(enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
+      if(!transfer_mode && enter_power_saving && (rest_time > powerSavingDelay) && !sd_printing)
         {
 
           synch_queue();

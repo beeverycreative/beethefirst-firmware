@@ -467,7 +467,7 @@ eParseResult process_gcode_command(){
   }
 
   //Reset last comand timer and Leave Power Saving if needed
-  if(next_target.seen_G || next_target.M == 33 || next_target.M == 34 || next_target.M == 104
+  if(next_target.seen_G || next_target.M == 28 || next_target.M == 33 || next_target.M == 34 || next_target.M == 104
       || next_target.M == 109 || next_target.M == 640 || next_target.M == 643 || next_target.M == 701
       || next_target.M == 702 || next_target.M == 703 || next_target.M == 704)
     {
