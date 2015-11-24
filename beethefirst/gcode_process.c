@@ -312,6 +312,26 @@ FRESULT sd_init()
       //sersendf("Disk mounted\n");
   } else {
       sersendf("Error Mounting FatFs - %d\n", ds);
+      sersendf("Formating Card...\n");
+      FATFS fs;      /* File system object (volume work area) */
+      FIL fil;       /* File object */
+      FRESULT res;   /* API result code */
+      UINT bw;       /* Bytes written */
+
+
+      /* Register work area (do not care about error) */
+      f_mount(&fs, "", 0);
+
+      /* Create FAT volume with default cluster size */
+      res = f_mkfs("", 0, 0);
+      if (res)
+        {
+          sersendf("Error Formating Card...\n");
+        }
+
+      /* Unregister work area */
+      f_mount(0, "", 0);
+
   }
 
   return fsRes;
