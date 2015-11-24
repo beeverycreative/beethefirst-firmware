@@ -99,18 +99,20 @@ tConfigItem config_lookup [] =
         {"startpoint_feedrate_coeff", &config.startpoint_feedrate_coeff, TYPE_DOUBLE, {.val_d=1}},
         {"Blower_Speed",&config.blowerSpeed , TYPE_INT, {.val_i=0}},
         {"Last_Print_Time",&config.last_print_time , TYPE_INT, {.val_i=0}},
+        {"Last_Print_Filament",&config.last_print_filament , TYPE_DOUBLE, {.val_i=0.0}},
         {"Battery_Shutdown",&config.battery_ShutDown , TYPE_INT, {.val_i=0}},
 
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=8.75}},
         { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=-276.25}},
-        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=35}},
-        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=43}},
-        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
-        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=35.0}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=43.0}},
+        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30.0}},
+        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100.0}},
 
         //bcode string
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
+        {"Filament_in_Spool", &config.filament_in_spool, TYPE_DOUBLE, {.val_d=0.0}},
 
         //Battery Variables
         {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=300}},

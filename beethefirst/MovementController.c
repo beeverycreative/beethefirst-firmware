@@ -257,7 +257,7 @@ void home_z(void)
   /*
    * end
    */
-   // move forward a bit
+  // move forward a bit
   //SpecialMoveZ(startpoint.z - dir * 1, config.search_feedrate_z);
   //synch_queue();
 
@@ -326,6 +326,7 @@ void GoTo5D(double x, double y, double z, double e, double f)
   request.target.feed_rate = f;
   request.target.invert_feed_rate =  false;
   plan_buffer_action (&request);
+
 }
 
 /******************************************************************************
@@ -337,14 +338,14 @@ void Extrude(double e, double f)
 {
   tActionRequest request;
 
-    request.ActionType = AT_MOVE;
-    request.target.x = startpoint.x;
-    request.target.y = startpoint.y;
-    request.target.z = startpoint.z;
-    request.target.e = startpoint.e + e;
-    request.target.feed_rate = f;
-    request.target.invert_feed_rate =  false;
-    plan_buffer_action (&request);
+  request.ActionType = AT_MOVE;
+  request.target.x = startpoint.x;
+  request.target.y = startpoint.y;
+  request.target.z = startpoint.z;
+  request.target.e = startpoint.e + e;
+  request.target.feed_rate = f;
+  request.target.invert_feed_rate =  false;
+  plan_buffer_action (&request);
 }
 /******************************************************************************
  *

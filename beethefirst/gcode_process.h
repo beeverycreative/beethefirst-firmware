@@ -74,11 +74,14 @@ extern bool      is_heating_MCode;
 
 extern bool     debugMode;              //Enable debug functions
 
+double printed_filament;
+
 void enqueue_wait_temp (void);
 
+
 FRESULT scan_files (char* path);
-extern void sd_close (FIL *pFile);
-extern FRESULT sd_init(void);
+void sd_close (FIL *pFile);
+FRESULT sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
 
 extern bool print_file();
