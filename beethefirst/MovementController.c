@@ -222,7 +222,12 @@ void home_y(void)
 void home_z(void)
 {
   double aux = config.acceleration;
-  config.acceleration = 1000;
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V2)
+  config.acceleration = 6000;
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V2)
+  config.acceleration = 500;
+#endif
 
   int dir;
   int max_travel;
@@ -246,10 +251,11 @@ void home_z(void)
    * Normal move Z
    **/
 
+  config.acceleration = 500;
   tTarget next_targetd = startpoint;
   next_targetd.x = startpoint.x;
   next_targetd.y = startpoint.y;
-  next_targetd.z = startpoint.z - dir * 10;
+  next_targetd.z = startpoint.z - dir * 5;
   next_targetd.e = startpoint.e;
   next_targetd.feed_rate =  HOME_FEED_Z;
   enqueue_moved(&next_targetd);
@@ -263,7 +269,8 @@ void home_z(void)
 
   // move back in to endstop slowly
   //SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
-  SpecialMoveZ(startpoint.z + dir *15 , SEARCH_FEED_Z);
+  //SpecialMoveZ(startpoint.z + dir *5 , SEARCH_FEED_Z);
+  SpecialMoveZ(startpoint.z + dir * 15, SEARCH_FEED_Z);
   synch_queue();
 
   // this is our home point
