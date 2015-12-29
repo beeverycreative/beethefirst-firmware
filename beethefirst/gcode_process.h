@@ -37,6 +37,7 @@
 #include "lights.h"
 #include "fans.h"
 #include "MovementController.h"
+#include "spi.h"
 
 //Relative Coordinates Option
 bool relativeCoordinates;
@@ -55,6 +56,8 @@ extern bool      sd_pause;             // printing paused
 extern bool      sd_resume;             // resume from sd pause
 extern bool      printerShutdown;             // printer in shutdown
 extern bool      printerPause;             // printer in pause
+extern bool      filamentErrorPause;             // printer in pause due to filament failure
+extern bool      doorPause;             // printer in pause due to door open
 extern bool      sDownAfterPause;              // wait for printer to pause and enter shutdown
 extern bool      sd_restartPrint;
 extern bool      disableSerialReply;
@@ -75,6 +78,13 @@ extern bool      is_heating_MCode;
 extern bool     debugMode;              //Enable debug functions
 
 double printed_filament;
+double encoderSegment;
+double extrusionError;
+bool enableEncoderPause;
+uint32_t plannedLineNumber;
+int32_t lineStop;
+double plannedSegment;
+bool enableDoorPause;
 
 void enqueue_wait_temp (void);
 

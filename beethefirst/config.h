@@ -96,6 +96,10 @@ struct configuration
   //Power Saving
   uint32_t powerSavingWaitTime;
 
+  //encoder vars
+  double encStepsMM;
+  uint32_t maxDelta_mm;
+
 };
 
 extern struct configuration config;

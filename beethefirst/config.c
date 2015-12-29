@@ -120,7 +120,11 @@ tConfigItem config_lookup [] =
         {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}},
 
         //Power Saving
-        {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}}
+        {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}},
+
+        //Encoder
+        {"Encoder_steps_mm", &config.encStepsMM, TYPE_DOUBLE, {.val_d=0.1121}},
+        {"Maximum_Encoder_Delta",&config.maxDelta_mm , TYPE_INT, {.val_i=5}}
 
     };
 

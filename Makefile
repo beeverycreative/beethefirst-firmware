@@ -85,10 +85,10 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 11.0.0
+FW_VERSION = 11.0.1
 
 #Define Config UID
-CFG_UID = 18
+CFG_UID = 19
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -567,9 +567,14 @@ btfschool: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
 # BTF_SMOOTHIE
-btfsmoothie: CFLAGS += -DBTF_SMOOTHIE -DB_V='"$(B_Version)"'
-btfsmoothie: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-btfsmoothie: begin createdirs gccversion build sizeafter copyBtfsmoothie end
+btfsmoothieV1: CFLAGS += -DBTF_SMOOTHIE -DBTF_SMOOTHIE_V1 -DB_V='"$(B_Version)"'
+btfsmoothieV1: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-V1-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfsmoothieV1: begin createdirs gccversion build sizeafter copyBtfsmoothieV1 end
+
+# BTF_SMOOTHIE
+btfsmoothieV2: CFLAGS += -DBTF_SMOOTHIE -DBTF_SMOOTHIE_V2 -DB_V='"$(B_Version)"'
+btfsmoothieV2: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-V2-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfsmoothieV2: begin createdirs gccversion build sizeafter copyBtfsmoothieV2 end
 
 #
 
@@ -618,10 +623,13 @@ copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
 	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 
-copyBtfsmoothie:
-	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-$(FW_VERSION).BIN
+copyBtfsmoothieV1:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-V1-$(FW_VERSION).BIN
 	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF	
-	
+
+copyBtfsmoothieV2:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-V2-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF		
 
 endif
 

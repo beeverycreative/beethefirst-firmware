@@ -96,18 +96,32 @@
 //#define STEPPERS_RESET_PORT     0     /* P0.22 */
 //#define STEPPERS_RESET_PIN      (1 << 22) /* P0.22 */
 
-#define EXTRUDER_0_HEATER_PORT          2               /* P2.4 */
-#define EXTRUDER_0_HEATER_PIN           (1 << 4)        /* P2.4 */
-#define EXTRUDER_0_HEATER_PIN_Number    4               /* P2.4 */
-#define EXTRUDER_0_PWM_CHANNEL          5               /* P2.4 */
+#define EXTRUDER_0_HEATER_PORT          1               /* P1.23 */
+#define EXTRUDER_0_HEATER_PIN           (1 << 23)        /* P1.23 */
+#define EXTRUDER_0_HEATER_PIN_Number    23               /* P1.23 */
+#define EXTRUDER_0_PWM_CHANNEL          4               /* P1.23 */
 #define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
 #define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
 #define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
 
-#define EXTRUDER_0_FAN_PORT             1               /* P1.23 */
-#define EXTRUDER_0_FAN_PIN              (1 << 23)       /* P1.23 */
-#define EXTRUDER_0_FAN_PIN_Number       23              /* P1.23 */
-#define BW_PWM_CHANNEL                  4               /* P1.23 */
+#define EXTRUDER_0_FAN_PORT             2               /* P2.4 */
+#define EXTRUDER_0_FAN_PIN              (1 << 4)       /* P2.4 */
+#define EXTRUDER_0_FAN_PIN_Number       4              /* P2.4 */
+#define BW_PWM_CHANNEL                  5               /* P2.4 */
+
+
+//#define EXTRUDER_0_HEATER_PORT          2               /* P2.4 */
+//#define EXTRUDER_0_HEATER_PIN           (1 << 4)        /* P2.4 */
+//#define EXTRUDER_0_HEATER_PIN_Number    4               /* P2.4 */
+//#define EXTRUDER_0_PWM_CHANNEL          5               /* P2.4 */
+//#define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
+//
+//#define EXTRUDER_0_FAN_PORT             1               /* P1.23 */
+//#define EXTRUDER_0_FAN_PIN              (1 << 23)       /* P1.23 */
+//#define EXTRUDER_0_FAN_PIN_Number       23              /* P1.23 */
+//#define BW_PWM_CHANNEL                  4               /* P1.23 */
 
 #define HEATED_BED_0_HEATER_PORT        2               /* P2.5 */
 #define HEATED_BED_0_HEATER_PIN         (1 << 5)        /* P2.5 */
@@ -121,9 +135,16 @@
 #define CHAMBER_ADC_PIN                 25              /* P0.25 */
 #define CHAMBER_ADC_CHANNEL             2               /* P0.25 */
 
-#define DOOR_PORT                       1.25            /* P1.25 */
+#define DOOR_PORT                       1               /* P1.25 */
 #define DOOR_PIN                        (1 <<  25)      /* P1.25 */
 #define door() ((digital_read(DOOR_PORT, DOOR_PIN))?0:1)
+
+#define EncA_PORT                       0               /* P0.3 */
+#define EncA_PIN                        (1 <<  3)       /* P0.3 */
+#define EncA() ((digital_read(EncA_PORT, EncA_PIN))?0:1)
+#define EncB_PORT                       0               /* P0.2 */
+#define EncB_PIN                        (1 <<  2)       /* P0.2 */
+#define EncB() ((digital_read(EncB_PORT, EncB_PIN))?0:1)
 
 //#define BUZZER_PORT     2         /* P2.2 PWM1[3] */
 //#define BUZZER_PIN      (1 << 22) /* P2.2 PWM1[3] */

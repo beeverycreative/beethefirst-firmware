@@ -86,6 +86,8 @@ bool      sd_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
 bool      printerShutdown = false;             // printer in shutdown
 bool      printerPause = false;             // printer in pause
+bool      filamentErrorPause = false;             // printer in pause due to filament failure
+bool      doorPause = false;             // printer in pause due to door open
 bool      sDownAfterPause = false;              // wait for printer to pause and enter shutdown
 bool      sd_restartPrint = false;
 bool      disableSerialReply = false;
@@ -98,6 +100,13 @@ bool      sd_writing_file = false;  // writing to SD file
 extern bool     debugMode = false;              //Enable debug functions
 
 double printed_filament = 0;
+double encoderSegment = 0;
+double extrusionError = 0;
+bool enableEncoderPause = false;
+bool enableDoorPause = false;
+uint32_t plannedLineNumber = 0;
+int32_t lineStop = -1;
+double plannedSegment = 0;
 
 //Pause at Z Vars
 bool pauseAtZ = false;
@@ -339,13 +348,19 @@ FRESULT sd_init()
 
 bool print_file()
 {
+  if(enableDoorPause && !door())
+    {
+      sersendf("Door Open. Close it and start again.\n");
+      return false;
+    }
+
   FRESULT res;
 
   //Init SD Card
   res = sd_init();
   if(res != FR_OK)
     {
-      sersendf("error mouting file system");
+      sersendf("error mouting file system\n");
       return false;
     }
 
@@ -377,6 +392,11 @@ bool print_file()
   number_of_lines = 0;
   executed_lines = 0;
   printed_filament = 0;
+  encoderSegment = 0;
+  encoderPos = 0;
+  lineNumber = 0;
+  plannedLineNumber = 0;
+  lineStop = -1;
 
   config.last_print_time = 0;
   write_config();
@@ -387,6 +407,8 @@ bool print_file()
   sd_resume = false;
   printerPause = false;
   printerShutdown = false;
+  filamentErrorPause = false;
+  doorPause = false;
 
   return true;
 }
@@ -463,7 +485,7 @@ eParseResult process_gcode_command(){
       }/*No need for else*/
 
       if (next_target.seen_E){
-          if(get_temp(EXTRUDER_0) < protection_temperature){
+          if((get_temp(EXTRUDER_0) < protection_temperature) && !debugMode){
               if(!next_target.seen_B && !sd_printing){
                   serial_writestr("temperature too low ");
               }/* No need for else */
@@ -508,7 +530,7 @@ eParseResult process_gcode_command(){
       case 0:
       case 1:
         {
-          if(!position_ok && !next_target.seen_B && !sd_printing){
+          if((!position_ok && !next_target.seen_B && !sd_printing) && !debugMode){
               serial_writestr("position not ok ");
               break;
           }
@@ -518,12 +540,37 @@ eParseResult process_gcode_command(){
               config.status = 5;
           }
 
+          plannedLineNumber ++;
           double e_move_mm = next_target.target.e - startpoint.e;
           if(e_move_mm != 0)
             {
               if(sd_printing)
                 {
                   printed_filament += e_move_mm;
+                  if(enableEncoderPause)
+                    {
+                      encoderSegment += e_move_mm;
+
+                      if(encoderSegment >= config.maxDelta_mm)
+                        {
+                          lineStop = plannedLineNumber;
+                          plannedSegment = encoderSegment;
+                          encoderSegment = 0;
+                          /*
+                          if(encoderPos != 0)
+                            {
+                              extrusionError = 1 - (encoderSegment - encoderPos*config.encStepsMM)/encoderSegment;
+                              if(extrusionError > 0.1 || extrusionError < -0.1)
+                                {
+                                  //initPause();
+                                }
+                              encoderSegment = 0;
+                              encoderPos = 0;
+                            }
+                           */
+                        }
+                    }
+
                 }
               config.filament_in_spool -= e_move_mm;
             }
@@ -1087,6 +1134,73 @@ eParseResult process_gcode_command(){
           enterShutDown();
         }break;
 
+      case 84: //Disable Steppers
+        {
+          if(!sd_printing)
+            {
+              if (next_target.seen_X){
+                  if(next_target.seen_S)
+                    {
+                      x_enable();
+                    }
+                  else {
+                      x_disable();
+                  }
+                  axisSelected = 1;
+              }/*No need for else*/
+
+              if (next_target.seen_Y){
+                  if(next_target.seen_S)
+                    {
+                      y_enable();
+                    }
+                  else {
+                      y_disable();
+                  }
+                  axisSelected = 1;
+              }/*No need for else*/
+
+              if (next_target.seen_Z){
+                  if(next_target.seen_S)
+                    {
+                      z_enable();
+                    }
+                  else {
+                      z_disable();
+                  }
+                  axisSelected = 1;
+              }/*No need for else*/
+
+              if (next_target.seen_E){
+                  if(next_target.seen_S)
+                    {
+                      e_enable();
+                    }
+                  else {
+                      e_disable();
+                  }
+                  axisSelected = 1;
+              }/*No need for else*/
+
+              if(!axisSelected){
+                  if(next_target.seen_S)
+                    {
+                      x_enable();
+                      y_enable();
+                      z_enable();
+                      e_enable();
+                    }
+                  else {
+                      x_disable();
+                      y_disable();
+                      z_disable();
+                      e_disable();
+                  }
+
+              }/*No need for else*/
+            }
+        }break;
+
         // M104- set temperature
       case 104:
         {
@@ -1112,6 +1226,64 @@ eParseResult process_gcode_command(){
           if(!next_target.seen_B && !sd_printing){
               temp_print();
           }/*No need for else*/
+
+          if(debugMode)
+            {
+              uint16_t i = 0;
+              SPI_MAX_CS_Low();
+              delay(1);
+              uint16_t data = SPI_MAX_RecvByte();
+              uint16_t data2 = SPI_MAX_RecvByte();
+              SPI_MAX_CS_High();
+              sersendf("\n \nD31-D16: %u\n",data);
+              sersendf("D15-D0: %u\n",data2);
+
+              if(data & 0x0001)
+                {
+                  serial_writestr("Can't read thermocouple. D16 Fault\n");
+                }
+              else
+                {
+                  data = data >> 2;
+                  double temp = ((double) (data & 0x1FFF)) / (double) 4.0;
+
+                  if(data & 0x2000)
+                    {
+                      data = ~data;
+                      temp = ((double) (data & 0x1FFF) + 1) / (double) -4.0;
+                    }
+
+                  sersendf("Thermocouple reading: %g\n",temp);
+                }
+
+              if(data2 & 0x0001)
+                {
+                  serial_writestr("OC Fault\n");
+                }
+              if(data2 & 0x0002)
+                {
+                  serial_writestr("SCG Fault\n");
+                }
+              if(data2 & 0x0004)
+                {
+                  serial_writestr("SCV Fault\n");
+                }
+
+              data2 = data2 >> 4;
+              double temp2 = ((double) (data2 & 0xFFF)) / (double) 16.0;
+
+              if(data2 & 0x800)
+                {
+                  data2 = ~data2;
+                  temp2 = ((double) (data2 & 0xFFF) + 1) / (double) -16.0;
+                }
+
+              sersendf("Junction reading: %g\n",temp2);
+
+
+            }
+
+
 
           if(sd_printing){
               temp_print();
@@ -1753,6 +1925,14 @@ eParseResult process_gcode_command(){
                 {
                   serial_writestr("Shutdown ");
                 }
+              if(filamentErrorPause)
+                {
+                  serial_writestr("Filament_Failure ");
+                }
+              if(doorPause)
+                {
+                  serial_writestr("Door_Opened ");
+                }
               if(in_power_saving)
                 {
                   serial_writestr("Power_Saving ");
@@ -1872,6 +2052,12 @@ eParseResult process_gcode_command(){
         //Resume SD Print from pause
       case 643:
         {
+          if(enableDoorPause && !door())
+            {
+              sersendf("Door Open. Close it and start again.\n");
+              return false;
+            }
+
           if(pauseAtZ)
             {
               pauseAtZ = false;
@@ -1888,6 +2074,9 @@ eParseResult process_gcode_command(){
           enqueue_wait_temp();
 
           sd_resume = true;
+          filamentErrorPause = false;
+          doorPause = false;
+
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
@@ -2257,6 +2446,110 @@ eParseResult process_gcode_command(){
           sersendf("Door state: %u\n",door());
         }
         break;
+
+        //M1302 - Get/Set Encoder Position
+      case 1302:
+        {
+          if(next_target.seen_S)
+            {
+              encoderPos = next_target.S;
+              axisSelected = 1;
+            }
+
+          if(next_target.seen_X)
+            {
+              config.encStepsMM = next_targetd.x;
+              write_config();
+              axisSelected = 1;
+            }
+
+          if(next_target.seen_L)
+            {
+              config.maxDelta_mm = next_target.L;
+              write_config();
+              axisSelected = 1;
+            }
+
+          if(!axisSelected)
+            {
+              GetEncoderPos();
+              sersendf("Extruder Segment Position: %g\n",plannedSegment);
+              sersendf("Encoder Segment Position: %g mm\n",encoderMM);
+            }
+        }
+        break;
+        //M1302 - Get Encoder Error
+      case 1303:
+        {
+          sersendf("Encoder Error: %g\n",extrusionError);
+        }
+        break;
+        //M1304 - Enable/Disable Encoder errbool enableEncoderPause;or pause
+      case 1304:
+        {
+          if(next_target.seen_S)
+            {
+              if(next_target.S == 1)
+                {
+                  enableEncoderPause = true;
+                  sersendf("Encoder Error Pause Mode Enabled\n");
+                }
+              else if(next_target.S == 0)
+                {
+                  enableEncoderPause = false;
+                  sersendf("Encoder Error Pause Mode Disabled\n");
+                }
+            } else {
+                if(enableEncoderPause == false)
+                  {
+                    sersendf("Encoder Error Pause Mode Disabled\n");
+                  }
+                else
+                  {
+                    sersendf("Encoder Error Pause Mode Enabled\n");
+                  }
+            }
+
+
+        }
+        break;
+
+        //M1305 - Get Encoder Error
+      case 1305:
+        {
+          sersendf("executed lines: %u\n",lineNumber);
+        }
+        break;
+
+        //M1306 - Enable/Disable Encoder errbool enableEncoderPause;or pause
+      case 1306:
+        {
+          if(next_target.seen_S)
+            {
+              if(next_target.S == 1)
+                {
+                  enableDoorPause = true;
+                  sersendf("Door Pause Mode Enabled\n");
+                }
+              else if(next_target.S == 0)
+                {
+                  enableDoorPause = false;
+                  sersendf("Door Pause Mode Disabled\n");
+                }
+            } else {
+                if(enableDoorPause == false)
+                  {
+                    sersendf("Door Pause Mode Disabled\n");
+                  }
+                else
+                  {
+                    sersendf("Door Pause Mode Enabled\n");
+                  }
+            }
+        }
+        break;
+
+
 #endif
         // unknown mcode: spit an error
       default:

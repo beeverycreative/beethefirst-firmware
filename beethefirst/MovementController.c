@@ -1,5 +1,9 @@
 #include "MovementController.h"
 
+//Filament encoder
+int32_t encoderPos = 0;
+double encoderMM = 0.0;
+double encoderOffset = 0.0;
 
 /******************************************************************************
  *
@@ -418,3 +422,24 @@ void SetEPos(double e)
 
   plan_set_current_position (&new_pos);
 }
+
+/******************************************************************************
+ *
+ *                      getEncoderPos
+ *
+ ******************************************************************************/
+void GetEncoderPos(void)
+{
+  encoderMM = encoderOffset + encoderPos*config.encStepsMM;
+}
+
+/******************************************************************************
+ *
+ *                      increaseLineNumber
+ *
+ ******************************************************************************/
+void increaseLineNumber(void)
+{
+  encoderMM = encoderOffset + encoderPos*config.encStepsMM;
+}
+

@@ -8,6 +8,11 @@
 
 char position_ok;
 
+//Filament encoder
+int32_t encoderPos;
+double encoderMM;
+double encoderOffset;
+
 void enqueue_moved (tTarget *pTarget);
 void enqueue_wait (void);
 void synch_queue (void);
@@ -30,5 +35,9 @@ void SetXPos(double x);
 void SetYPos(double y);
 void SetZPos(double z);
 void SetEPos(double e);
+
+void GetEncoderPos(void);
+
+void increaseLineNumber(void);
 
 #endif /* _CONTROLLER_H */

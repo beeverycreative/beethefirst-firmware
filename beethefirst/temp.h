@@ -52,6 +52,7 @@
 #include "adc.h"
 #include "gcode_parse.h"
 #include "ExpBoard.h"
+#include "spi.h"
 
 // set target temperature
 void temp_set(double t, uint8_t sensor_number);

@@ -67,6 +67,10 @@ int32_t adc_r2c2_raw;
 static double read_R2C2_temp(void);
 #endif
 
+#ifdef BTF_SMOOTHIE
+static double read_spi_temp(void);
+#endif
+
 double current_temp [NUMBER_OF_SENSORS] = {0};
 double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
@@ -140,8 +144,12 @@ void temp_tick(void)
   double pid_error_bed = 0;
 
   /* Read and average temperatures */
+#ifndef BTF_SMOOTHIE
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
+#endif
 #ifdef BTF_SMOOTHIE
+  current_temp[EXTRUDER_0] = read_spi_temp();
+  //current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
   current_temp[CHAMBER] = read_temp(CHAMBER);
 #endif
@@ -219,6 +227,11 @@ void temp_tick(void)
       dterm_temp_bed = 0;
   }
 
+  if(current_temp[EXTRUDER_0] < -50)
+    {
+      output = 0;
+    }
+
   pwm_set_duty_cycle(EXTRUDER_0_PWM_CHANNEL, output);
   pwm_set_enable(EXTRUDER_0_PWM_CHANNEL);
 
@@ -283,6 +296,35 @@ static double read_temp(uint8_t sensor_number)
 }
 #endif
 #ifdef BTF_SMOOTHIE
+static double read_spi_temp(void)
+{
+  uint16_t i = 0;
+  SPI_MAX_CS_Low();
+  delay(1);
+  uint16_t data = SPI_MAX_RecvByte();
+  uint16_t data2 = SPI_MAX_RecvByte();
+  SPI_MAX_CS_High();
+
+  double temp;
+  if(data & 0x0001)
+    {
+      temp = -9999.0;
+    }
+  else
+    {
+      data = data >> 2;
+      temp = ((double) (data & 0x1FFF)) / (double) 4.0;
+
+      if(data & 0x2000)
+        {
+          data = ~data;
+          temp = ((double) (data & 0x1FFF) + 1) / (double) -4.0;
+        }
+    }
+
+  return temp;
+}
+
 static double read_temp(uint8_t sensor_number)
 {
   int32_t raw = 4095; // initialize raw with value equal to lowest temperature.

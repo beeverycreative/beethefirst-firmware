@@ -109,6 +109,8 @@ static uint32_t min_safe_rate;  // Minimum safe rate for full deceleration rate 
 
 static volatile uint8_t    accel_flag;
 
+uint32_t lineNumber = 0;
+
 //         __________________________
 //        /|                        |\     _________________         ^
 //       / |                        | \   /|               |\        |
@@ -523,6 +525,9 @@ void st_interrupt (void)
 
           } else {
               // If current block is finished, reset pointer
+
+              lineNumber ++;
+
               current_block = NULL;
               plan_discard_current_block();
           }

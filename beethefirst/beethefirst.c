@@ -45,7 +45,7 @@
 #ifdef BTF_SMOOTHIE
 #include "pinout_smoothie.h"
 #endif
-#include "debug.h"
+//#include "debug.h"
 #include "config.h"
 #include "temp.h"
 #include "pause.h"
@@ -82,10 +82,10 @@ void pwm_init(void){
   pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number,PINSEL_FUNC_1);           //Buzzer pwm
 #endif
 
-  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number,PINSEL_FUNC_1);
+  pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number,PINSEL_FUNC_2);
 #ifdef BTF_SMOOTHIE
   pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number,PINSEL_FUNC_1);
-  pwm_pins_init(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN_Number,PINSEL_FUNC_2);
+  pwm_pins_init(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN_Number,PINSEL_FUNC_1);
 #endif
 
 #ifdef EXP_Board
@@ -246,6 +246,8 @@ void io_init(void)
 
 #ifdef BTF_SMOOTHIE
   pin_mode(DOOR_PORT, DOOR_PIN, INPUT);
+  pin_mode(EncA_PORT, EncA_PIN, INPUT);
+  pin_mode(EncB_PORT, EncB_PIN, INPUT);
 #endif
 
 #ifndef EXP_Board
@@ -402,6 +404,41 @@ void blockFanTimerCallBack(tTimer *pTimer) {
 }
 #endif
 
+/*
+ * In bigger NXP chips (such as LPC17xx) there are a couple of dedicated interrupt pins (EINTn) which have their own interrupt handler.
+ * The rest of GPIOs have to use one common interrupt (EINT3). You can then poll the interrupt status register to see which pins have triggered the interrupt.
+ */
+void EINT3_IRQHandler(void)
+{
+  if ((LPC_GPIOINT->IO0IntStatR & (1 << 3)) == (1 << 3))
+    {
+      if(EncB())
+        {
+          encoderPos += 1;
+        }
+      else
+        {
+          encoderPos -= 1;
+        }
+      //raising edge interrupt on pin 0.3 was fired
+      LPC_GPIOINT->IO0IntClr |= (1 << 3); // clear the status
+      //do your task
+
+      return;
+    }
+
+  if ((LPC_GPIOINT->IO0IntStatR & (1 << 5)) == (1 << 5))
+    {
+      //raising edge interrupt on pin 0.5 was fired
+      LPC_GPIOINT->IO0IntClr |= (1 << 5); // clear the status
+      //do your task
+
+      return;
+    }
+
+  return;
+}
+
 void init(void)
 {
   // set up inputs and outputs
@@ -414,10 +451,21 @@ void init(void)
 #ifdef BTF_SMOOTHIE
   //Setup I2C
   i2c_init();
+
+  //setup spi max31855
+  SPI_MAX_init();
+
+  //Setup TX0 and RX0 as inputs and its interrupts
+  //GPIO_IntCmd(0,1 << 2,0);      //enable P0.2 interrupt on rising edge
+  //GPIO_ClearInt(0,1 << 2);
+  GPIO_IntCmd(0,1 << 3,0);      //enable P0.3 interrupt on rising edge
+  GPIO_ClearInt(0,1 << 3);
+
+  NVIC_EnableIRQ(EINT3_IRQn);
 #endif
 
 
-#ifdef DEBUG_UART
+#if defined(DEBUG_UART) && !defined(BTF_SMOOTHIE)
   uart_init();
 #endif
 
@@ -531,6 +579,9 @@ int app_main (void){
   buzzer_init();
   buzzer_play(1000); /* low beep */
   buzzer_wait();
+
+  temp_set(0.0,EXTRUDER_0);
+  temp_set(0.0,HEATED_BED_0);
 
   //print_infi();
 
@@ -845,6 +896,52 @@ int app_main (void){
           }/*no need for else*/
 
       }/*no need for else*/
+
+      /***********************************************************************
+       *
+       *                Check Encoder Position
+       *
+       ***********************************************************************/
+      if(sd_printing && (lineStop > 0) && (lineNumber >= lineStop) && enableEncoderPause)
+        {
+          if(plannedSegment != 0)
+            {
+              GetEncoderPos();
+              //sersendf("Segment: %g Encoder: %g\n",plannedSegment,encoderMM);
+              extrusionError = (plannedSegment - encoderMM)/plannedSegment;
+              if(extrusionError > 0.1 || extrusionError < -0.1)
+                {
+                  initPause();
+                  write_config();
+
+                  sd_printing = false;
+                  sd_pause = true;
+                  sd_resume = false;
+                  filamentErrorPause = true;
+                }
+              plannedSegment = 0;
+              encoderPos = 0;
+            }
+          lineStop = -1;
+        }
+
+      /***********************************************************************
+       *
+       *                Check Door
+       *
+       ***********************************************************************/
+      /*
+      if(sd_printing && enableDoorPause && !door())
+        {
+          initPause();
+          write_config();
+
+          sd_printing = false;
+          sd_pause = true;
+          sd_resume = false;
+          doorPause = true;
+        }
+        */
 
   }
 }

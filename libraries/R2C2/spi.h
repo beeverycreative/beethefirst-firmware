@@ -25,5 +25,10 @@ void    SPI_CS_High (void);
 uint8_t SPI_SendByte (uint8_t data);
 uint8_t SPI_RecvByte (void);
 
+void SPI_MAX_init(void);
+void SPI_MAX_CS_Low (void);
+void SPI_MAX_CS_High (void);
+uint16_t SPI_MAX_SendByte (uint16_t data);
+uint16_t SPI_MAX_RecvByte (void);
 
 #endif /* SPI_H_ */

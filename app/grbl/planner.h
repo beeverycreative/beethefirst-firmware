@@ -61,7 +61,7 @@
   #define PRINT_VOL_Z             123.495
 #endif
 
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
   #define STEPS_MM_X              80
   #define STEPS_MM_Y              80
   #define STEPS_MM_Z              400
@@ -94,6 +94,41 @@
   #define PRINT_VOL_X             245
   #define PRINT_VOL_Y             345
   #define PRINT_VOL_Z             148.5
+#endif
+
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V2) && !defined(BTF_SMOOTHIE_V1)
+  #define STEPS_MM_X              80
+  #define STEPS_MM_Y              80
+  #define STEPS_MM_Z              2133.33
+  #define STEPS_MM_E0             441.3897
+
+
+  #define MAX_FEED_X              60000
+  #define MAX_FEED_Y              60000
+  #define MAX_FEED_Z              500
+  #define MAX_FEED_E0             60000
+
+  #define SEARCH_FEED_X           2000
+  #define SEARCH_FEED_Y           2000
+  #define SEARCH_FEED_Z           100
+  #define SEARCH_FEED_E0          1000
+
+  #define HOME_FEED_X             4000
+  #define HOME_FEED_Y             4000
+  #define HOME_FEED_Z             500
+  #define HOME_FEED_E0            2000
+
+  #define HOME_DIR_X              -1
+  #define HOME_DIR_Y              -1
+  #define HOME_DIR_Z              1
+
+  #define HOME_POS_X              -45
+  #define HOME_POS_Y              -52.5
+  #define HOME_POS_Z              80
+
+  #define PRINT_VOL_X             90
+  #define PRINT_VOL_Y             105
+  #define PRINT_VOL_Z             80
 #endif
 /*
 double MAX_FEED_X;
