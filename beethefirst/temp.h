@@ -93,6 +93,9 @@ double iterm_bed;
 double dterm_bed;
 double dterm_temp_bed;
 
+uint16_t thermocoupleErrorCount;
+uint16_t thermocoupleErrorTimer;
+
 int protection_temperature;
 int PID_FUNTIONAL_RANGE;
 double output;

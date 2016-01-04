@@ -67,7 +67,7 @@ int32_t adc_r2c2_raw;
 static double read_R2C2_temp(void);
 #endif
 
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
 static double read_spi_temp(void);
 #endif
 
@@ -78,6 +78,9 @@ static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable mus
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
+
+uint16_t thermocoupleErrorCount = 0;
+uint16_t thermocoupleErrorTimer = 0;
 
 static double read_temp(uint8_t sensor_number);
 
@@ -147,7 +150,12 @@ void temp_tick(void)
 #ifndef BTF_SMOOTHIE
   current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
 #endif
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
+  current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
+  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
+  current_temp[CHAMBER] = read_temp(CHAMBER);
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
   current_temp[EXTRUDER_0] = read_spi_temp();
   //current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
@@ -227,13 +235,22 @@ void temp_tick(void)
       dterm_temp_bed = 0;
   }
 
-  if(current_temp[EXTRUDER_0] < -50)
+  thermocoupleErrorTimer ++;
+  if(thermocoupleErrorTimer > 20)
     {
-      output = 0;
+      if(thermocoupleErrorCount > 10)
+        {
+          output = 0;
+        }
+      thermocoupleErrorTimer = 0;
     }
 
-  pwm_set_duty_cycle(EXTRUDER_0_PWM_CHANNEL, output);
-  pwm_set_enable(EXTRUDER_0_PWM_CHANNEL);
+
+  if(current_temp[EXTRUDER_0] > -50)
+    {
+      pwm_set_duty_cycle(EXTRUDER_0_PWM_CHANNEL, output);
+      pwm_set_enable(EXTRUDER_0_PWM_CHANNEL);
+    }
 
   pwm_set_duty_cycle(HEATED_BED_0_PWM_CHANNEL, output_bed);
   pwm_set_enable(HEATED_BED_0_PWM_CHANNEL);
@@ -309,6 +326,7 @@ static double read_spi_temp(void)
   if(data & 0x0001)
     {
       temp = -9999.0;
+      thermocoupleErrorCount += 1;
     }
   else
     {

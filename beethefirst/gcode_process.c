@@ -131,9 +131,21 @@ bool      manualBlockFanControl = false;        //manual control of fan using M1
 int32_t   extruderFanSpeed = 0;
 #endif
 
+#ifndef BTF_SMOOTHIE
 double kp = 6.0;
 double ki = 0.0013;
 double kd = 80.0;
+#endif
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
+double kp = 6.0;
+double ki = 0.0013;
+double kd = 80.0;
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+double kp = 22.2;
+double ki = 0.00108;
+double kd = 114;
+#endif
 
 double kp_bed = 6.0;
 double ki_bed = 0.0013;
@@ -724,12 +736,21 @@ eParseResult process_gcode_command(){
           config.acceleration = 400;
 #ifndef BTF_SMOOTHIE
           GoTo5D(0,67,zCal,startpoint.e,15000);
+          synch_queue();
+          config.acceleration = 500;
 #endif
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
           GoTo5D(-120,0,startpoint.z,startpoint.e,10000);
-          GoTo5D(-120,0,zCal,startpoint.e,1000);
+          GoTo5D(-120,0,zCal,startpoint.e,500);
+          synch_queue();
+          config.acceleration = 500;
 #endif
-          config.acceleration = 1000;
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+          GoTo5D(10,-50,startpoint.z,startpoint.e,10000);
+          GoTo5D(10,-50,zCal,startpoint.e,500);
+          synch_queue();
+          config.acceleration = 6000;
+#endif
           calibratePos = 1;
           strcpy(statusStr, "Calibration");
           is_calibrating = true;
@@ -756,12 +777,24 @@ eParseResult process_gcode_command(){
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,15000);
               GoTo5D(-31,-65,10,startpoint.e,15000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+              synch_queue();
+              config.acceleration = 500;
 #endif
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,1000);
               GoTo5D(0,115,10,startpoint.e,10000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+              synch_queue();
+              config.acceleration = 500;
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,500);
+              GoTo5D(60,50,10,startpoint.e,10000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,500);
+              synch_queue();
+              config.acceleration = 6000;
 #endif
               calibratePos = 2;
             }
@@ -780,11 +813,21 @@ eParseResult process_gcode_command(){
               GoTo5D(31,-65,10,startpoint.e,15000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
 #endif
-#ifdef BTF_SMOOTHIE
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
               config.acceleration = 400;
               GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,1000);
               GoTo5D(0,-115,10,startpoint.e,10000);
               GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,1000);
+              synch_queue();
+              config.acceleration = 500;
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+              config.acceleration = 400;
+              GoTo5D(startpoint.x,startpoint.y,10,startpoint.e,500);
+              GoTo5D(-45,50,10,startpoint.e,10000);
+              GoTo5D(startpoint.x,startpoint.y,0,startpoint.e,500);
+              synch_queue();
+              config.acceleration = 6000;
 #endif
 
               calibratePos = 3;
@@ -1207,6 +1250,12 @@ eParseResult process_gcode_command(){
           double maxTemp = 250;
 #ifdef EXP_Board
           maxTemp = 300;
+#endif
+#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
+          maxTemp = 300;
+#endif
+#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+          maxTemp = 425;
 #endif
           if(next_target.S > maxTemp){
               temp_set(maxTemp, EXTRUDER_0);
@@ -2252,7 +2301,10 @@ eParseResult process_gcode_command(){
         //Set ammount of filament in spool (mm)
       case 1024:
         {
-          config.filament_in_spool = next_target.S;
+          if(next_target.seen_T)
+            {
+              config.filament_in_spool = next_target.T;
+            }
         }
         break;
 

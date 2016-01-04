@@ -25,6 +25,9 @@ void i2c_init(void)
 
 void i2c_setup_Pot(void)
 {
+  //pot_val = 114 * Amps
+  //0x72 - 1A
+  //0xAA - 1.5A
   i2c_pot_set_current(0x2c,0x00,0xAA);  //X AXIS 1.5A
   i2c_pot_set_current(0x2c,0x10,0xAA);  //Y AXIS 1.5A
   i2c_pot_set_current(0x2c,0x60,0x72);  //Z AXIS 1A

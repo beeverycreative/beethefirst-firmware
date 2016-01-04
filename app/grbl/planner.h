@@ -68,19 +68,19 @@
   #define STEPS_MM_E0             441.3897
 
 
-  #define MAX_FEED_X              60000
-  #define MAX_FEED_Y              10000
-  #define MAX_FEED_Z              2000
-  #define MAX_FEED_E0             60000
+  #define MAX_FEED_X              8000
+  #define MAX_FEED_Y              8000
+  #define MAX_FEED_Z              500
+  #define MAX_FEED_E0             10000
 
   #define SEARCH_FEED_X           2000
   #define SEARCH_FEED_Y           2000
-  #define SEARCH_FEED_Z           500
+  #define SEARCH_FEED_Z           100
   #define SEARCH_FEED_E0          1000
 
   #define HOME_FEED_X             4000
   #define HOME_FEED_Y             4000
-  #define HOME_FEED_Z             1000
+  #define HOME_FEED_Z             500
   #define HOME_FEED_E0            2000
 
   #define HOME_DIR_X              -1
