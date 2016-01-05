@@ -139,6 +139,9 @@
 #define DOOR_PIN                        (1 <<  25)      /* P1.25 */
 #define door() ((digital_read(DOOR_PORT, DOOR_PIN))?0:1)
 
+#define DOOR_LATCH_PORT                 1               /* P1.22 */
+#define DOOR_LATCH_PIN                  (1 <<  22)      /* P1.22 */
+
 #define EncA_PORT                       0               /* P0.3 */
 #define EncA_PIN                        (1 <<  3)       /* P0.3 */
 #define EncA() ((digital_read(EncA_PORT, EncA_PIN))?0:1)

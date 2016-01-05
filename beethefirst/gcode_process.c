@@ -2301,9 +2301,9 @@ eParseResult process_gcode_command(){
         //Set ammount of filament in spool (mm)
       case 1024:
         {
-          if(next_target.seen_T)
+          if(next_target.seen_X)
             {
-              config.filament_in_spool = next_target.T;
+              config.filament_in_spool = next_target.target.x;
             }
         }
         break;
@@ -2499,6 +2499,23 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //M1301 - Open/close Door
+      case 1301:
+        {
+          if(next_target.seen_S)
+            {
+              if(next_target.S == 1)
+                {
+                  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1);
+                }
+              else if(next_target.S == 0)
+                {
+                  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 0);
+                }
+            }
+        }
+        break;
+
         //M1302 - Get/Set Encoder Position
       case 1302:
         {
@@ -2527,6 +2544,7 @@ eParseResult process_gcode_command(){
               GetEncoderPos();
               sersendf("Extruder Segment Position: %g\n",plannedSegment);
               sersendf("Encoder Segment Position: %g mm\n",encoderMM);
+              sersendf("Encoder Segment Position: %u pulses\n",encoderPos);
             }
         }
         break;

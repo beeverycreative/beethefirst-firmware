@@ -213,6 +213,9 @@ void io_init(void)
 #ifndef BTF_SMOOTHIE
   pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
   digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
+
+  pin_mode(DOOR_LATCH_PORT, DOOR_LATCH_PIN, OUTPUT);
+  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1); /* Disable reset for all stepper motors */
 #endif
 
   pin_mode(X_STEP_PORT, X_STEP_PIN, OUTPUT);
