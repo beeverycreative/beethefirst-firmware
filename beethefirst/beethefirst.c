@@ -214,8 +214,9 @@ void io_init(void)
   pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
   digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
 
-  pin_mode(DOOR_LATCH_PORT, DOOR_LATCH_PIN, OUTPUT);
-  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1); /* Disable reset for all stepper motors */
+  /* Heated Bed 0 Heater pin */
+  pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
+  heated_bed_off();
 #endif
 
   pin_mode(X_STEP_PORT, X_STEP_PIN, OUTPUT);
@@ -241,16 +242,13 @@ void io_init(void)
   pin_mode(E_ENABLE_PORT, E_ENABLE_PIN, OUTPUT);
   e_enable();
 
-#ifndef BTF_SMOOTHIE
-  /* Heated Bed 0 Heater pin */
-  pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
-  heated_bed_off();
-#endif
-
 #ifdef BTF_SMOOTHIE
   pin_mode(DOOR_PORT, DOOR_PIN, INPUT);
   pin_mode(EncA_PORT, EncA_PIN, INPUT);
   pin_mode(EncB_PORT, EncB_PIN, INPUT);
+
+  pin_mode(DOOR_LATCH_PORT,DOOR_LATCH_PIN, OUTPUT);
+  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1); /* Disable reset for all stepper motors */
 #endif
 
 #ifndef EXP_Board
