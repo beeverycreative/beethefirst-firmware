@@ -2591,7 +2591,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //M1306 - Enable/Disable Encoder errbool enableEncoderPause;or pause
+        //M1306 - Enable/Disable Door protection
       case 1306:
         {
           if(next_target.seen_S)

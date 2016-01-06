@@ -411,30 +411,24 @@ void blockFanTimerCallBack(tTimer *pTimer) {
  */
 void EINT3_IRQHandler(void)
 {
-  if ((LPC_GPIOINT->IO0IntStatR & (1 << 3)) == (1 << 3))
+  //Test if a rising edge interrupt happened in the Encoder A channel
+  if ((LPC_GPIOINT->IO0IntStatR & (1 << 3)) & (1 << 3))
     {
-      if(EncB())
-        {
-          encoderPos += 1;
-        }
-      else
-        {
-          encoderPos -= 1;
-        }
       //raising edge interrupt on pin 0.3 was fired
       LPC_GPIOINT->IO0IntClr |= (1 << 3); // clear the status
       //do your task
+      if(EncA())        //read pin state to eliminate spike reads
+        {
+          if(EncB())
+            {
+              encoderPos += 1;
+            }
+          else
+            {
+              encoderPos -= 1;
+            }
 
-      return;
-    }
-
-  if ((LPC_GPIOINT->IO0IntStatR & (1 << 5)) == (1 << 5))
-    {
-      //raising edge interrupt on pin 0.5 was fired
-      LPC_GPIOINT->IO0IntClr |= (1 << 5); // clear the status
-      //do your task
-
-      return;
+        }
     }
 
   return;
@@ -457,7 +451,8 @@ void init(void)
   SPI_MAX_init();
 
   //Setup TX0 and RX0 as inputs and its interrupts
-  //GPIO_IntCmd(0,1 << 2,0);      //enable P0.2 interrupt on rising edge
+  GPIO_IntCmd(0,1 << 2,0);      //enable P0.2 interrupt on rising edge
+  //GPIO_IntCmd(0,1 << 2,1);      //enable P0.2 interrupt on falling edge
   //GPIO_ClearInt(0,1 << 2);
   GPIO_IntCmd(0,1 << 3,0);      //enable P0.3 interrupt on rising edge
   GPIO_ClearInt(0,1 << 3);
@@ -942,7 +937,7 @@ int app_main (void){
           sd_resume = false;
           doorPause = true;
         }
-        */
+       */
 
   }
 }

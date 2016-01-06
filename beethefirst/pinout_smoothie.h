@@ -144,10 +144,10 @@
 
 #define EncA_PORT                       0               /* P0.3 */
 #define EncA_PIN                        (1 <<  3)       /* P0.3 */
-#define EncA() ((digital_read(EncA_PORT, EncA_PIN))?0:1)
+#define EncA() ((digital_read(EncA_PORT, EncA_PIN))?1:0)
 #define EncB_PORT                       0               /* P0.2 */
 #define EncB_PIN                        (1 <<  2)       /* P0.2 */
-#define EncB() ((digital_read(EncB_PORT, EncB_PIN))?0:1)
+#define EncB() ((digital_read(EncB_PORT, EncB_PIN))?1:0)
 
 //#define BUZZER_PORT     2         /* P2.2 PWM1[3] */
 //#define BUZZER_PIN      (1 << 22) /* P2.2 PWM1[3] */
