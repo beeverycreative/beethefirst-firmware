@@ -568,23 +568,15 @@ eParseResult process_gcode_command(){
                           lineStop = plannedLineNumber;
                           plannedSegment = encoderSegment;
                           encoderSegment = 0;
-                          /*
-                          if(encoderPos != 0)
-                            {
-                              extrusionError = 1 - (encoderSegment - encoderPos*config.encStepsMM)/encoderSegment;
-                              if(extrusionError > 0.1 || extrusionError < -0.1)
-                                {
-                                  //initPause();
-                                }
-                              encoderSegment = 0;
-                              encoderPos = 0;
-                            }
-                           */
                         }
                     }
 
                 }
-              config.filament_in_spool -= e_move_mm;
+              //If not printing increase filament based on GCode
+              if(!sd_printing)
+                {
+                  config.filament_in_spool -= e_move_mm;
+                }
             }
 
           enqueue_moved(&next_targetd);
@@ -1331,9 +1323,6 @@ eParseResult process_gcode_command(){
 
 
             }
-
-
-
           if(sd_printing){
               temp_print();
               reply_sent = 1;
@@ -1636,6 +1625,20 @@ eParseResult process_gcode_command(){
           }else{
               temp_set(next_target.S, HEATED_BED_0);
           }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
+
+        // M141- set chamber temperature
+      case 141:
+        {
+          if(next_target.seen_S)
+            {
+              temp_set(next_target.S, CHAMBER);
+            }
 
           if(sd_printing){
               reply_sent = 1;

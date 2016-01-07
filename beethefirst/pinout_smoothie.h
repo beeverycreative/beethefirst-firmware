@@ -131,6 +131,8 @@
 #define HEATED_BED_0_ADC_PIN            24              /* P0.24 */
 #define HEATED_BED_0_SENSOR_ADC_CHANNEL 1               /* P0.24 */
 
+#define CHAMBER_HEATER_PORT             2               /* P2.7 */
+#define CHAMBER_HEATER_PIN              (1 << 7)        /* P2.7 */
 #define CHAMBER_ADC_PORT                0               /* P0.25 */
 #define CHAMBER_ADC_PIN                 25              /* P0.25 */
 #define CHAMBER_ADC_CHANNEL             2               /* P0.25 */

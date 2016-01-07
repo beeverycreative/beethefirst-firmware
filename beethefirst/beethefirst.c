@@ -248,7 +248,10 @@ void io_init(void)
   pin_mode(EncB_PORT, EncB_PIN, INPUT);
 
   pin_mode(DOOR_LATCH_PORT,DOOR_LATCH_PIN, OUTPUT);
-  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1); /* Disable reset for all stepper motors */
+  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 0); /* Disable reset for all stepper motors */
+
+  pin_mode(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, OUTPUT);
+  digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
 #endif
 
 #ifndef EXP_Board
@@ -915,6 +918,10 @@ int app_main (void){
                   sd_resume = false;
                   filamentErrorPause = true;
                 }
+
+              config.filament_in_spool -= encoderMM;
+              write_config();
+
               plannedSegment = 0;
               encoderPos = 0;
             }
