@@ -1264,8 +1264,11 @@ eParseResult process_gcode_command(){
         // M105- get temperature
       case 105:
         {
-          if(!next_target.seen_B && !sd_printing){
+          if(!next_target.seen_B){
               temp_print();
+              if(sd_printing){
+                  reply_sent = 1;
+              }/*No need for else*/
           }/*No need for else*/
 
           if(debugMode)
@@ -1323,10 +1326,6 @@ eParseResult process_gcode_command(){
 
 
             }
-          if(sd_printing){
-              temp_print();
-              reply_sent = 1;
-          }/*No need for else*/
         }
         break;
 
