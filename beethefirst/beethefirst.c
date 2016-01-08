@@ -424,11 +424,11 @@ void EINT3_IRQHandler(void)
         {
           if(EncB())
             {
-              encoderPos += 1;
+              encoderPos -= 1;
             }
           else
             {
-              encoderPos -= 1;
+              encoderPos += 1;
             }
 
         }
