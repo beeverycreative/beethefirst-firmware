@@ -244,6 +244,10 @@ void temp_tick(void)
     {
       digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 1);
     }
+  else
+    {
+      digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
+    }
 #if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
 
   if((current_temp[CHAMBER] > target_temp[CHAMBER] + 5) && target_temp[CHAMBER] != 0)
