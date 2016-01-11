@@ -82,6 +82,8 @@ static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable mus
 uint16_t thermocoupleErrorCount = 0;
 uint16_t thermocoupleErrorTimer = 0;
 
+uint16_t extractionSpeed = 255;
+
 static double read_temp(uint8_t sensor_number);
 
 void temp_set(double t, uint8_t sensor_number)
@@ -252,7 +254,7 @@ void temp_tick(void)
 
   if((current_temp[CHAMBER] > target_temp[CHAMBER] + 5) && target_temp[CHAMBER] != 0)
     {
-      setBlowerSpeed(255);
+      setBlowerSpeed(extractionSpeed);
     }
   else
     {

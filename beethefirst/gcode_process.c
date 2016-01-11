@@ -1639,6 +1639,22 @@ eParseResult process_gcode_command(){
               temp_set(next_target.S, CHAMBER);
             }
 
+          if(next_target.seen_A)
+            {
+              if(next_target.A > 255)
+                {
+                  extractionSpeed = 255;
+                }
+              else if(extractionSpeed < 0)
+                {
+                  extractionSpeed = 0;
+                }
+              else
+                {
+                  extractionSpeed = next_target.A;
+                }
+            }
+
           if(sd_printing){
               reply_sent = 1;
           }/*No need for else*/
