@@ -252,7 +252,7 @@ void temp_tick(void)
 
   if((current_temp[CHAMBER] > target_temp[CHAMBER] + 5) && target_temp[CHAMBER] != 0)
     {
-      setBlowerSpeed(100);
+      setBlowerSpeed(255);
     }
   else
     {
