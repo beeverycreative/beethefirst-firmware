@@ -122,6 +122,7 @@ char statusStr[32];
 bool is_calibrating = false;
 bool is_heating_Process = false;
 bool is_heating_MCode = false;
+bool is_cooling_Process = false;
 
 //Calibrate Position
 int32_t calibratePos = 0;
@@ -409,6 +410,7 @@ bool print_file()
   lineNumber = 0;
   plannedLineNumber = 0;
   lineStop = -1;
+  is_cooling_Process = false;
 
   config.last_print_time = 0;
   write_config();
@@ -645,6 +647,11 @@ eParseResult process_gcode_command(){
             {
               is_heating_Process = false;
               temp_set(0, EXTRUDER_0);
+            }
+
+          if(is_cooling_Process)
+            {
+              is_cooling_Process = 0;
             }
           memset(statusStr, '\0', sizeof(statusStr));
 
@@ -1395,6 +1402,7 @@ eParseResult process_gcode_command(){
           temp_set(0,EXTRUDER_0);
           disableBlower();
           enter_power_saving = 0;
+          is_cooling_Process = true;
 
         }
         break;
@@ -2003,6 +2011,10 @@ eParseResult process_gcode_command(){
               if(in_power_saving)
                 {
                   serial_writestr("Power_Saving ");
+                }
+              if(is_cooling_Process)
+                {
+                  serial_writestr("Cooling ");
                 }
 
               if(strlen(statusStr) > 0)

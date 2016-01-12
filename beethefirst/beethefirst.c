@@ -792,6 +792,7 @@ int app_main (void){
               write_config();
               filament_coeff = 1;
               feedrate_coeff = 1;
+              is_cooling_Process = true;
           }
 
       }/*no need for else*/

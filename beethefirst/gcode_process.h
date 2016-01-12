@@ -69,6 +69,7 @@ extern bool      sd_writing_file; // writing to SD file
 extern bool      is_heating_Process;
 extern bool      is_calibrating;
 extern bool      is_heating_MCode;
+bool is_cooling_Process;
 
 #ifdef EXP_Board
   extern bool      manualBlockFanControl;        //manual control of fan using M132 and M133 M-Codes
