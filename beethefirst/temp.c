@@ -170,22 +170,38 @@ void temp_tick(void)
   current_temp_r2c2 = read_R2C2_temp();
 #endif
 
-  pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
+  if(current_temp[EXTRUDER_0] > -50)
+    {
+      pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
+      //pterm = config.kp * pid_error;
+      //iterm += (config.ki*pid_error);
+      pterm = kp * pid_error;
+      iterm += (ki*pid_error);
+
+      if(iterm > PID_FUNTIONAL_RANGE){
+          iterm = PID_FUNTIONAL_RANGE;
+      }else if(iterm < 0){
+          iterm = 0;
+      }
+
+      dterm_temp = pid_error - last_error;
+      //dterm = config.kd * dterm_temp;
+      dterm = kd * dterm_temp;
+
+      output = pterm + iterm + dterm;
+
+      last_error = pid_error;
+
+      if(output > 100) {
+          output = 100;
+      }else if(output<0 ) {
+          output = 0;
+      }
+    }
+
   pid_error_bed = target_temp[HEATED_BED_0] - current_temp[HEATED_BED_0];
-
-  //pterm = config.kp * pid_error;
-  //iterm += (config.ki*pid_error);
-  pterm = kp * pid_error;
-  iterm += (ki*pid_error);
-
   pterm_bed = kp_bed * pid_error_bed;
   iterm_bed += (ki_bed*pid_error_bed);
-
-  if(iterm > PID_FUNTIONAL_RANGE){
-      iterm = PID_FUNTIONAL_RANGE;
-  }else if(iterm < 0){
-      iterm = 0;
-  }
 
   if(iterm_bed > PID_FUNTIONAL_RANGE){
       iterm_bed = PID_FUNTIONAL_RANGE;
@@ -193,25 +209,12 @@ void temp_tick(void)
       iterm_bed = 0;
   }
 
-  dterm_temp = pid_error - last_error;
-  //dterm = config.kd * dterm_temp;
-  dterm = kd * dterm_temp;
-
   dterm_temp_bed = pid_error_bed - last_error_bed;
   dterm_bed = kd_bed * dterm_temp_bed;
 
-  output = pterm + iterm + dterm;
-
   output_bed = pterm_bed + iterm_bed + dterm_bed;
 
-  last_error = pid_error;
   last_error_bed = pid_error_bed;
-
-  if(output > 100) {
-      output = 100;
-  }else if(output<0 ) {
-      output = 0;
-  }
 
   if(output_bed > 100) {
       output_bed = 100;
