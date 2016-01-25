@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.4.8
+FW_VERSION = 10.4.9
 
 #Define Config UID
 CFG_UID = 18
@@ -565,6 +565,11 @@ btfschool: CFLAGS += -DBTF_SCHOOL
 btfschool: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
+# BTF_IS_BATT
+btfschoolbatt: CFLAGS += -DBTF_SCHOOL_BATT
+btfschoolbatt: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfschoolbatt: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_BATT end
+
 #
 
 # Target for the build-sequence.
@@ -610,6 +615,10 @@ copyBinBTF_ME:
 
 copyBinBTF_SCHOOL:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-Firmware-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
+	
+copyBinBTF_SCHOOL_BATT:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEEINSCHOOL-A-Firmware-$(FW_VERSION).BIN
 	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 
 endif

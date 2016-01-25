@@ -47,6 +47,10 @@
   #define EXP_Board       //Expansion Board P02V04A
   #define USE_BATT
 #endif
+#ifdef BTF_SCHOOL_BATT
+  #define EXP_Board       //Expansion Board P02V04A
+  #define USE_BATT
+#endif
 
 /*
         Machine Pin Definitions
