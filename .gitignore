@@ -3,4 +3,5 @@ FLASH_RUN/
 releases/old/
 openocd_v0.5.0-scripts/
 openocd_v0.4.0-scripts/
+.settings/language.settings.xml
 *.bak
