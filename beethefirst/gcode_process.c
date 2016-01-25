@@ -1759,6 +1759,13 @@ eParseResult process_gcode_command(){
         //Resume SD Print from pause
       case 643:
         {
+#ifdef USE_BATT
+          if(!ps_ext_state)
+            {
+              sersendf("Can't resume print without power supply\n");
+            }
+#endif
+
           if(pauseAtZ)
             {
               pauseAtZ = false;
