@@ -111,7 +111,7 @@ tConfigItem config_lookup [] =
 
         ////Filament and Nozzle configs
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
-        {"nozzleSize",&config.nozzleSize , TYPE_INT, {.val_i=300}},
+        {"nozzleSize",&config.nozzleSize , TYPE_INT, {.val_i=400}},
 
         //Battery Variables
         {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=180}},

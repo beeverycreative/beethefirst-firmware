@@ -472,9 +472,9 @@ eParseResult process_gcode_command(){
       || next_target.M == 702 || next_target.M == 703 || next_target.M == 704)
     {
       if(leave_power_saving)
-      {
-        reinit_system();
-      }
+        {
+          reinit_system();
+        }
 
       lastCmd_time = 0;
     }
@@ -1944,6 +1944,34 @@ eParseResult process_gcode_command(){
         {
           synch_queue();
           print_file();
+        }
+        break;
+
+        //Set Nozzle Size (in Microns default:400)
+      case 1024:
+        {
+          if(sd_printing)
+            {
+              reply_sent = 1;
+            }
+          else
+            {
+              if(next_target.seen_S)
+                {
+                  config.nozzleSize = next_target.S;
+                  write_config();
+                }
+            }
+        }
+        break;
+
+        //Report Nozzle Size
+      case 1025:
+        {
+          if(!sd_printing)
+            {
+              sersendf("Nozzle Size:%u\n",config.nozzleSize);
+            }
         }
         break;
 
