@@ -109,8 +109,9 @@ tConfigItem config_lookup [] =
         { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
 
-        //bcode string
+        ////Filament and Nozzle configs
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
+        {"nozzleSize",&config.nozzleSize , TYPE_INT, {.val_i=300}},
 
         //Battery Variables
         {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=180}},

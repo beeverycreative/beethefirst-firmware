@@ -82,7 +82,10 @@ struct configuration
   double blockTemperatureFanMax;
   double blockFanMinSpeed;
   double blockFanMaxSpeed;
+
+  //Filament and Nozzle configs
   char bcodeStr[100];
+  uint16_t nozzleSize;
 
   //Battery Variables
   uint32_t batteryPrintTime;
