@@ -1800,7 +1800,7 @@ eParseResult process_gcode_command(){
               }
               buzzer_wait ();
               buzzer_play (3000);
-              Extrude(100,300);
+              Extrude(65,300);
               SetEPos(0);
               config.status = 3;
             }
@@ -1822,7 +1822,7 @@ eParseResult process_gcode_command(){
               }
               buzzer_wait ();
               buzzer_play (3000);
-              Extrude(50,300);
+              Extrude(15,300);
               Extrude(-23,1000);
               Extrude(25,800);
               Extrude(-30,2000);
@@ -1858,12 +1858,14 @@ eParseResult process_gcode_command(){
                   else
                     {
                       config.acceleration = 400;
-                      GoTo5D(-30,0,10,startpoint.e,15000);
+                      GoTo5D(0,0,10,startpoint.e,15000);
                       config.acceleration = 1000;
                     }
 
                   strcpy(statusStr, "Heating");
                   config.status = 3;
+                  synch_queue();
+                  config.acceleration = 500;
                 }
               else if(is_heating_Process && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                 {
@@ -1876,13 +1878,15 @@ eParseResult process_gcode_command(){
                     {
                       GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,15000);
                       config.acceleration = 400;
-                      GoTo5D(-50,0,110,startpoint.e,startpoint.feed_rate);
+                      GoTo5D(0,0,110,startpoint.e,startpoint.feed_rate);
                       config.acceleration = 1000;
                     }
 
                   is_heating_Process = true;
                   strcpy(statusStr, "Load/Unload");
                   config.status = 3;
+                  synch_queue();
+                  config.acceleration = 500;
                 }
             }
           if(sd_printing){
