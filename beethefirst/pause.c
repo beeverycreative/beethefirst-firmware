@@ -23,6 +23,8 @@ void initPause(void)
   config.startpoint_filament_coeff = filament_coeff;
   config.startpoint_feedrate_coeff = feedrate_coeff;
   config.blowerSpeed = currenBWSpeed;
+
+  config.filament_in_spool -= printed_filament;
 }
 
 void enterShutDown(void)
@@ -103,6 +105,9 @@ void resumePrint(void)
       Extrude(20,300);
       Extrude(-2,6000);
       Extrude(2,500);
+
+      printed_filament = config.last_print_filament + 20;
+      config.filament_in_spool += config.last_print_filament;
 
       if(config.blowerSpeed == 0)
         {

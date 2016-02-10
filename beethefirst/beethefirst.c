@@ -674,6 +674,8 @@ int app_main (void){
               print2USB = false;
               //sersendf(";EOF\n");
               config.last_print_time = time_elapsed;
+              config.last_print_filament = printed_filament;
+              config.filament_in_spool -= printed_filament;
               write_config();
               filament_coeff = 1;
               feedrate_coeff = 1;

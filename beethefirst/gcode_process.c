@@ -90,6 +90,8 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+double printed_filament = 0;
+
 extern bool     debugMode = false;              //Enable debug functions
 
 //Pause at Z Vars
@@ -346,6 +348,7 @@ bool print_file()
   estimated_time = 0;
   number_of_lines = 0;
   executed_lines = 0;
+  printed_filament = 0.0;
 
   config.last_print_time = 0;
   write_config();
@@ -496,6 +499,21 @@ eParseResult process_gcode_command(){
           }else{
               config.status = 5;
           }
+
+          double e_move_mm = next_target.target.e - startpoint.e;
+          if(e_move_mm != 0)
+            {
+              if(sd_printing)
+                {
+                  printed_filament += e_move_mm;
+                }
+              //If not printing increase filament based on GCode
+              if(!sd_printing)
+                {
+                  config.filament_in_spool -= e_move_mm;
+                  write_config();
+                }
+            }
 
           enqueue_moved(&next_targetd);
 
@@ -1811,6 +1829,8 @@ eParseResult process_gcode_command(){
               Extrude(65,300);
               SetEPos(0);
               config.status = 3;
+              config.filament_in_spool -= 65;
+              write_config();
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1837,6 +1857,8 @@ eParseResult process_gcode_command(){
               Extrude(-50,200);
               SetEPos(0);
               config.status = 3;
+              config.filament_in_spool -= 17;
+              write_config();
             }
           if(sd_printing){
               reply_sent = 1;
@@ -1959,8 +1981,32 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //Set Nozzle Size (in Microns default:400)
+        //Set ammount of filament in spool (mm)
       case 1024:
+        {
+          if(next_target.seen_X)
+            {
+              config.filament_in_spool = next_target.target.x;
+            }
+        }
+        break;
+
+        //Get ammount of filament in spool (mm)
+      case 1025:
+        {
+          sersendf("Filament in Spool: %g\n",config.filament_in_spool);
+        }
+        break;
+
+        //Send last print filament consumption (mm)
+      case 1026:
+        {
+          sersendf("Last print filament: %g\n",config.last_print_filament);
+        }
+        break;
+
+        //Set Nozzle Size (in Microns default:400)
+      case 1027:
         {
           if(sd_printing)
             {
@@ -1978,7 +2024,7 @@ eParseResult process_gcode_command(){
         break;
 
         //Report Nozzle Size
-      case 1025:
+      case 1028:
         {
           if(!sd_printing)
             {

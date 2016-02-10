@@ -73,6 +73,7 @@ struct configuration
   double  startpoint_feedrate_coeff;
   int32_t blowerSpeed;
   int32_t last_print_time;
+  double last_print_filament;
   int32_t battery_ShutDown;
 
   //Block Fan Control
@@ -85,6 +86,7 @@ struct configuration
 
   //Filament and Nozzle configs
   char bcodeStr[100];
+  double filament_in_spool;
   uint16_t nozzleSize;
 
   //Battery Variables
