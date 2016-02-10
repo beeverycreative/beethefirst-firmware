@@ -650,6 +650,8 @@ eParseResult process_gcode_command(){
           strcpy(statusStr, "Calibration");
           is_calibrating = true;
           config.status = 3;
+          synch_queue();
+          config.acceleration = 500;
         }
         break;
         //Prceed to next Calibration Procedure step
@@ -676,6 +678,8 @@ eParseResult process_gcode_command(){
 
               calibratePos = 2;
               config.status = 3;
+              synch_queue();
+              config.acceleration = 500;
             }
           else if(calibratePos == 2)
             {
@@ -694,6 +698,8 @@ eParseResult process_gcode_command(){
 
               calibratePos = 3;
               config.status = 3;
+              synch_queue();
+              config.acceleration = 500;
             }
           else if(calibratePos == 3)
             {
@@ -708,6 +714,8 @@ eParseResult process_gcode_command(){
               home();
               calibratePos = 0;
               config.status = 3;
+              synch_queue();
+              config.acceleration = 500;
             }
         }
         break;
