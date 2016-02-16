@@ -490,7 +490,7 @@ eParseResult process_gcode_command(){
       case 0:
       case 1:
         {
-          if(!position_ok && !next_target.seen_B && !sd_printing){
+          if(!position_ok && !next_target.seen_B && !sd_printing && !debugMode){
               serial_writestr("position not ok ");
               break;
           }

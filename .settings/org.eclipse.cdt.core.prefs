@@ -1,4 +1,9 @@
 eclipse.preferences.version=1
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/PATH/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/PATH/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/PATH/value=/bin\:/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/usr/games\:/usr/local/games\:/usr/lib/jvm/java-8-oracle/bin\:/usr/lib/jvm/java-8-oracle/db/bin\:/usr/lib/jvm/java-8-oracle/jre/bin\:/usr/local/gcc-arm-none-eabi-4_8-2014q1/bin/
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/appendContributed=true
 org.eclipse.cdt.core.formatter.alignment_for_arguments_in_method_invocation=16
 org.eclipse.cdt.core.formatter.alignment_for_assignment=16
 org.eclipse.cdt.core.formatter.alignment_for_base_clause_in_type_declaration=80
