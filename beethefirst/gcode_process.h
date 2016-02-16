@@ -74,6 +74,8 @@ extern bool      is_heating_MCode;
 
 extern bool     debugMode;              //Enable debug functions
 
+double printed_filament;
+
 void enqueue_wait_temp (void);
 
 FRESULT scan_files (char* path);

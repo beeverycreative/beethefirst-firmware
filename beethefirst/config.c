@@ -99,6 +99,7 @@ tConfigItem config_lookup [] =
         {"startpoint_feedrate_coeff", &config.startpoint_feedrate_coeff, TYPE_DOUBLE, {.val_d=1}},
         {"Blower_Speed",&config.blowerSpeed , TYPE_INT, {.val_i=0}},
         {"Last_Print_Time",&config.last_print_time , TYPE_INT, {.val_i=0}},
+        {"Last_Print_Filament",&config.last_print_filament , TYPE_DOUBLE, {.val_i=0.0}},
         {"Battery_Shutdown",&config.battery_ShutDown , TYPE_INT, {.val_i=0}},
 
         //Block Fan Control
@@ -111,6 +112,7 @@ tConfigItem config_lookup [] =
 
         ////Filament and Nozzle configs
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
+        {"Filament_in_Spool", &config.filament_in_spool, TYPE_DOUBLE, {.val_d=0.0}},
         {"nozzleSize",&config.nozzleSize , TYPE_INT, {.val_i=400}},
 
         //Battery Variables
