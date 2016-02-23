@@ -2026,10 +2026,9 @@ eParseResult process_gcode_command(){
         //Report Nozzle Size
       case 1028:
         {
-          if(!sd_printing)
-            {
-              sersendf("Nozzle Size:%u\n",config.nozzleSize);
-            }
+
+          sersendf("Nozzle Size:%u\n",config.nozzleSize);
+
         }
         break;
 
