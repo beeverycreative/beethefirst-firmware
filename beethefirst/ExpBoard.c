@@ -39,7 +39,7 @@ void verifySDownConditions(void)
 {
   if(sDown_filtered < SDown_Threshold)
     {
-      if(sd_printing)
+      if(sd_printing || sd_pause)
         {
           initPause();
           config.status = 9;
@@ -63,7 +63,7 @@ void verifyBatteryLevels(void)
     {
       charge_time = 0;
       //Printing
-      if(sd_printing)
+      if(sd_printing || sd_pause)
         {
           //If not in Battery Mode operation
           if(!batteryMode)
