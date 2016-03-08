@@ -3,6 +3,8 @@ FLASH_RUN/
 releases/old/
 openocd_v0.5.0-scripts/
 openocd_v0.4.0-scripts/
+openocd-0.9-scripts/
 *.bak
-.settings/language.settings.xml
-
+.settings/
+*.cproject
+*.project
