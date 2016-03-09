@@ -39,9 +39,21 @@ void verifySDownConditions(void)
 {
   if(sDown_filtered < SDown_Threshold)
     {
-      if(sd_printing || sd_pause)
+      if(sd_printing)
         {
+
           initPause();
+          config.status = 9;
+          write_config();
+          sd_printing = 0;
+
+          queue_flush();
+          reset_current_block();
+
+          home_z();
+        }
+      else if(printerPause)
+        {
           config.status = 9;
           write_config();
           sd_printing = 0;

@@ -957,7 +957,10 @@ eParseResult process_gcode_command(){
               estimated_time = next_target.A;
           }else{
               if(!next_target.seen_B){
-                  serial_writestr("error - not seen A\n");
+                  if(!sd_printing)
+                    {
+                      serial_writestr("error - not seen A\n");
+                    }
                   reply_sent = 1;
               }/*No need for else*/
               break;
@@ -967,7 +970,10 @@ eParseResult process_gcode_command(){
               number_of_lines = next_target.L;
           }else{
               if(!next_target.seen_B){
-                  serial_writestr("error - not seen L\n");
+                  if(!sd_printing)
+                    {
+                      serial_writestr("error - not seen L\n");
+                    }
                   reply_sent = 1;
               }/*No need for else*/
               break;
