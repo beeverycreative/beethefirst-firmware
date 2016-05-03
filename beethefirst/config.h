@@ -52,6 +52,13 @@ struct configuration
   double  acceleration;
   double  junction_deviation;
   
+  //PID
+  double kp;
+  double ki;
+  double kd;
+  double kBlower;
+  double kVent;
+
   // options
 
   int32_t status;
@@ -101,9 +108,9 @@ struct configuration
 
 extern struct configuration config;
 
-extern double kp;
-extern double ki;
-extern double kd;
+//extern double kp;
+//extern double ki;
+//extern double kd;
 
 void read_config (void);
 void reset_config (void);

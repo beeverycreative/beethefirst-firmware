@@ -81,6 +81,13 @@ tConfigItem config_lookup [] =
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
+        //PID
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=6.0}},
+        { "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
+        { "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=80.0}},
+        { "extruder_kBlower", &config.kBlower, TYPE_DOUBLE, {.val_d=0.0035}},
+        { "extruder_kVent", &config.kVent, TYPE_DOUBLE, {.val_d=0.005}},
+
         { "status", &config.status, TYPE_INT, {.val_i=1}},
 
         {"filename",config.filename , TYPE_STRING, {.val_s=0}},

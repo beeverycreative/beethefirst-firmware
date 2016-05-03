@@ -350,18 +350,21 @@ void gcode_parse_char(uint8_t c)
         break;
 
         case 'T':
-        //config.kp = value;
-          kp = value;
+          next_target.T = value;
+          //config.kp = value;
+          //kp = value;
         break;
 
         case 'U':
-        //config.ki = (value/1000);
-          ki = (value/1000);
+          next_target.U = (value/1000);
+          //config.ki = (value/1000);
+          //ki = (value/1000);
         break;
 
         case 'V':
-        //config.kd = value;
-          kd = value;
+          next_target.V = value;
+          //config.kd = value;
+          //kd = value;
         break;
 
         case 'W':

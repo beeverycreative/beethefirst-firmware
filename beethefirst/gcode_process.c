@@ -117,10 +117,6 @@ bool      manualBlockFanControl = false;        //manual control of fan using M1
 int32_t   extruderFanSpeed = 0;
 #endif
 
-double kp = 6.0;
-double ki = 0.0013;
-double kd = 80.0;
-
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
 #define EXTRUDER_NUM_3  4
@@ -1299,18 +1295,46 @@ eParseResult process_gcode_command(){
       case 130:
         {
           if(!next_target.seen_B ){
-              if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+              bool pidChange = false;
+
+              if (next_target.seen_T){
+
+                  config.kp = next_target.T;
+                  pidChange = true;
+              }
+
+              if (next_target.seen_U){
+
+                  config.ki = next_target.U;
+                  pidChange = true;
+              }
+
+              if (next_target.seen_V){
+
+                  config.kd = next_target.V;
+                  pidChange = true;
+              }
+
+              if (pidChange)
+                {
+                  write_config();
+                }
+
+              if(!sd_printing)
+                {
                   serial_writestr("kp: ");
-                  //serwrite_double(config.kp);
-                  serwrite_double(kp);
+                  serwrite_double(config.kp);
+
                   serial_writestr(" ki:");
-                  //serwrite_double(config.ki);
-                  serwrite_double(ki);
+                  serwrite_double(config.ki);
+
                   serial_writestr(" kd:");
-                  //serwrite_double(config.kd);
-                  serwrite_double(kd);
+                  serwrite_double(config.kd);
+
                   serial_writestr(" ");
-              }/*No need for else*/
+                }
+
+
           }/*No need for else*/
         }
         break;
@@ -1803,6 +1827,9 @@ eParseResult process_gcode_command(){
               pauseAtZ = false;
             }
 
+          queue_flush();
+          reset_current_block();
+
           if(next_target.seen_W) {
               config.startpoint_filament_coeff= next_target.W;
           }
@@ -1812,6 +1839,9 @@ eParseResult process_gcode_command(){
               temp_set(config.startpoint_temperature, EXTRUDER_0);
           }
           enqueue_wait_temp();
+
+          is_heating_Process = false;
+          memset(statusStr, '\0', sizeof(statusStr));
 
           sd_resume = true;
           if(sd_printing){
@@ -1889,7 +1919,8 @@ eParseResult process_gcode_command(){
                   home();
                   if(printerPause || printerShutdown)
                     {
-
+                      GoTo5D(0,0,startpoint.z,startpoint.e,15000);
+                      config.startpoint_temperature = next_target.S;
                     }
                   else
                     {
@@ -1908,7 +1939,7 @@ eParseResult process_gcode_command(){
                   config.status = 4;
                   if(printerPause || printerShutdown)
                     {
-
+                      GoTo5D(0,0,startpoint.z,startpoint.e,15000);
                     }
                   else
                     {
@@ -2034,6 +2065,15 @@ eParseResult process_gcode_command(){
         {
 
           sersendf("Nozzle Size:%u\n",config.nozzleSize);
+
+        }
+        break;
+
+        //Send Extruder log
+      case 1029:
+        {
+
+          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Vent:%u Bw:%u Z:%g ",current_temp[0],target_temp[0],output,'%',config.kp,config.ki,config.kd,pterm,iterm,dterm,current_temp[1],extruderFanSpeed,currenBWSpeed, startpoint.z);
 
         }
         break;

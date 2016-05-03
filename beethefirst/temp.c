@@ -142,10 +142,10 @@ void temp_tick(void)
 
   pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
 
-  //pterm = config.kp * pid_error;
-  //iterm += (config.ki*pid_error);
-  pterm = kp * pid_error;
-  iterm += (ki*pid_error);
+  pterm = config.kp * pid_error;
+  iterm += (config.ki*pid_error);
+  //pterm = kp * pid_error;
+  //iterm += (ki*pid_error);
 
   if(iterm > PID_FUNTIONAL_RANGE){
       iterm = PID_FUNTIONAL_RANGE;
@@ -154,10 +154,13 @@ void temp_tick(void)
   }
 
   dterm_temp = pid_error - last_error;
-  //dterm = config.kd * dterm_temp;
-  dterm = kd * dterm_temp;
+  dterm = config.kd * dterm_temp;
+  //dterm = kd * dterm_temp;
 
   output = pterm + iterm + dterm;
+  //output *= 0.95937 + 0.00907*currenBWSpeed + 0.01662*extruderFanSpeed + 0.000009*currenBWSpeed*currenBWSpeed - 0.000035*currenBWSpeed*extruderFanSpeed - 0.000068*extruderFanSpeed*extruderFanSpeed;
+  //output += output*config.kVent*extruderFanSpeed;
+  //output += output*config.kBlower*currenBWSpeed;
 
   last_error = pid_error;
 
