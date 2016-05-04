@@ -52,6 +52,15 @@ struct configuration
   double  acceleration;
   double  junction_deviation;
 
+  //PID
+  double kp;
+  double ki;
+  double kd;
+
+  double kp_bed;
+  double ki_bed;
+  double kd_bed;
+
   // options
 
   int32_t status;
@@ -87,6 +96,7 @@ struct configuration
   //Filament
   char bcodeStr[100];
   double filament_in_spool;
+  uint16_t nozzleSize;
 
   //Battery Variables
   uint32_t batteryPrintTime;
@@ -104,6 +114,7 @@ struct configuration
 
 extern struct configuration config;
 
+/*
 extern double kp;
 extern double ki;
 extern double kd;
@@ -111,6 +122,7 @@ extern double kd;
 extern double kp_bed;
 extern double ki_bed;
 extern double kd_bed;
+*/
 
 void read_config (void);
 void reset_config (void);

@@ -74,6 +74,7 @@ static double read_spi_temp(void);
 double current_temp [NUMBER_OF_SENSORS] = {0};
 double target_temp  [NUMBER_OF_SENSORS] = {0};
 static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable must have the higher value of ADC for filter start at the lowest temperature
+uint32_t chamberHeaterState = 0;
 
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
@@ -173,10 +174,10 @@ void temp_tick(void)
   if(current_temp[EXTRUDER_0] > -50)
     {
       pid_error = target_temp[EXTRUDER_0] - current_temp[EXTRUDER_0];
-      //pterm = config.kp * pid_error;
-      //iterm += (config.ki*pid_error);
-      pterm = kp * pid_error;
-      iterm += (ki*pid_error);
+      pterm = config.kp * pid_error;
+      iterm += (config.ki*pid_error);
+      //pterm = kp * pid_error;
+      //iterm += (ki*pid_error);
 
       if(iterm > PID_FUNTIONAL_RANGE){
           iterm = PID_FUNTIONAL_RANGE;
@@ -185,8 +186,8 @@ void temp_tick(void)
       }
 
       dterm_temp = pid_error - last_error;
-      //dterm = config.kd * dterm_temp;
-      dterm = kd * dterm_temp;
+      dterm = config.kd * dterm_temp;
+      //dterm = kd * dterm_temp;
 
       output = pterm + iterm + dterm;
 
@@ -200,8 +201,8 @@ void temp_tick(void)
     }
 
   pid_error_bed = target_temp[HEATED_BED_0] - current_temp[HEATED_BED_0];
-  pterm_bed = kp_bed * pid_error_bed;
-  iterm_bed += (ki_bed*pid_error_bed);
+  pterm_bed = config.kp_bed * pid_error_bed;
+  iterm_bed += (config.ki_bed*pid_error_bed);
 
   if(iterm_bed > PID_FUNTIONAL_RANGE){
       iterm_bed = PID_FUNTIONAL_RANGE;
@@ -210,7 +211,7 @@ void temp_tick(void)
   }
 
   dterm_temp_bed = pid_error_bed - last_error_bed;
-  dterm_bed = kd_bed * dterm_temp_bed;
+  dterm_bed = config.kd_bed * dterm_temp_bed;
 
   output_bed = pterm_bed + iterm_bed + dterm_bed;
 
@@ -243,15 +244,18 @@ void temp_tick(void)
   if(target_temp[CHAMBER] == 0)
     {
       digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
+      chamberHeaterState = 0;
     }
 
   if(current_temp[CHAMBER] < target_temp[CHAMBER])
     {
       digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 1);
+      chamberHeaterState = 1;
     }
   else
     {
       digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
+      chamberHeaterState = 0;
     }
 #if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
 

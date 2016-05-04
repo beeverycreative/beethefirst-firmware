@@ -97,6 +97,7 @@ uint16_t thermocoupleErrorCount;
 uint16_t thermocoupleErrorTimer;
 
 uint16_t extractionSpeed;
+uint32_t chamberHeaterState;
 
 int protection_temperature;
 int PID_FUNTIONAL_RANGE;

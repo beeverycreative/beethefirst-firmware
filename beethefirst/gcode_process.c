@@ -143,14 +143,18 @@ double ki = 0.0013;
 double kd = 80.0;
 #endif
 #if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
+/*
 double kp = 22.2;
 double ki = 0.00108;
 double kd = 114;
+ */
 #endif
 
+/*
 double kp_bed = 6.0;
 double ki_bed = 0.0013;
 double kd_bed = 80.0;
+ */
 
 #define EXTRUDER_NUM_1  1
 #define EXTRUDER_NUM_2  2
@@ -1537,18 +1541,74 @@ eParseResult process_gcode_command(){
       case 130:
         {
           if(!next_target.seen_B ){
-              if ((next_target.seen_T | next_target.seen_U | next_target.seen_V) == 0){
+              bool pidChange = false;
+
+              if (next_target.seen_T){
+                  if(next_target.seen_S && next_target.S == 1)
+                    {
+                      config.kp_bed = next_target.T;
+                    }
+                  else if(!next_target.seen_S || (next_target.seen_S && next_target.S == 1))
+                    {
+                      config.kp = next_target.T;
+                    }
+                  pidChange = true;
+              }
+
+              if (next_target.seen_U){
+
+                  if(next_target.seen_S && next_target.S == 1)
+                    {
+                      config.ki_bed = next_target.U;
+                    }
+                  else if(!next_target.seen_S || (next_target.seen_S && next_target.S == 1))
+                    {
+                      config.ki = next_target.U;
+                    }
+                  pidChange = true;
+              }
+
+              if (next_target.seen_V){
+                  if(next_target.seen_S && next_target.S == 1)
+                    {
+                      config.kd_bed = next_target.V;
+                    }
+                  else if(!next_target.seen_S || (next_target.seen_S && next_target.S == 1))
+                    {
+                      config.kd = next_target.V;
+                    }
+                  pidChange = true;
+              }
+
+              if (pidChange)
+                {
+                  write_config();
+                }
+
+              if(!sd_printing)
+                {
                   serial_writestr("kp: ");
-                  //serwrite_double(config.kp);
-                  serwrite_double(kp);
+                  serwrite_double(config.kp);
+
                   serial_writestr(" ki:");
-                  //serwrite_double(config.ki);
-                  serwrite_double(ki);
+                  serwrite_double(config.ki);
+
                   serial_writestr(" kd:");
-                  //serwrite_double(config.kd);
-                  serwrite_double(kd);
+                  serwrite_double(config.kd);
+
+                  serial_writestr("kp_bed: ");
+                  serwrite_double(config.kp_bed);
+
+                  serial_writestr(" ki_bed:");
+                  serwrite_double(config.ki_bed);
+
+                  serial_writestr(" kd_bed:");
+                  serwrite_double(config.kd_bed);
+
                   serial_writestr(" ");
-              }/*No need for else*/
+                }
+
+
           }/*No need for else*/
         }
         break;
@@ -2349,6 +2409,44 @@ eParseResult process_gcode_command(){
       case 1026:
         {
           sersendf("Last print filament: %g\n",config.last_print_filament);
+        }
+        break;
+
+        //Set Nozzle Size (in Microns default:400)
+      case 1027:
+        {
+          if(sd_printing)
+            {
+              reply_sent = 1;
+            }
+          else
+            {
+              if(next_target.seen_S)
+                {
+                  config.nozzleSize = next_target.S;
+                  write_config();
+                }
+            }
+        }
+        break;
+
+        //Report Nozzle Size
+      case 1028:
+        {
+
+          sersendf("Nozzle Size:%u\n",config.nozzleSize);
+
+        }
+        break;
+        //Send Extruder log
+      case 1029:
+        {
+          sersendf("T:%g/%g(%g%c) B:%g/%g(%g%c) C:%g/%g(ext:%u,out:%u) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g Z:%g ",\
+              current_temp[0],target_temp[0],output,'%',\
+              current_temp[1],target_temp[1],output_bed,'%',\
+              current_temp[2],target_temp[2],output_bed,extractionSpeed,chamberHeaterState,\
+              config.kp,config.ki,config.kd,pterm,iterm,dterm, startpoint.z);
+
         }
         break;
 

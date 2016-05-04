@@ -81,6 +81,15 @@ tConfigItem config_lookup [] =
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
+        //PID
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=22.2}},
+        { "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.00108}},
+        { "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=114.0}},
+
+        { "bed_kp", &config.kp_bed, TYPE_DOUBLE, {.val_d=6.0}},
+        { "bed_ki", &config.ki_bed, TYPE_DOUBLE, {.val_d=0.0013}},
+        { "bed_kd", &config.kd_bed, TYPE_DOUBLE, {.val_d=80.0}},
+
         { "status", &config.status, TYPE_INT, {.val_i=1}},
 
         {"filename",config.filename , TYPE_STRING, {.val_s=0}},
@@ -113,6 +122,7 @@ tConfigItem config_lookup [] =
         //bcode string
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
         {"Filament_in_Spool", &config.filament_in_spool, TYPE_DOUBLE, {.val_d=0.0}},
+        {"nozzleSize",&config.nozzleSize , TYPE_INT, {.val_i=400}},
 
         //Battery Variables
         {"battery_Print_Time",&config.batteryPrintTime , TYPE_INT, {.val_i=300}},
