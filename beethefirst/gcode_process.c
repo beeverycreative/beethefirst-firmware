@@ -2072,9 +2072,17 @@ eParseResult process_gcode_command(){
         //Send Extruder log
       case 1029:
         {
-
-          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Vent:%u Bw:%u Z:%g ",current_temp[0],target_temp[0],output,'%',config.kp,config.ki,config.kd,pterm,iterm,dterm,current_temp[1],extruderFanSpeed,currenBWSpeed, startpoint.z);
-
+#ifdef EXP_BOARD
+          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Vent:%u Bw:%u Z:%g ",\
+              current_temp[0],target_temp[0],output,'%',\
+              config.kp,config.ki,config.kd,pterm,iterm,dterm,\
+              current_temp[1],extruderFanSpeed,currenBWSpeed, startpoint.z);
+#else
+          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Bw:%u Z:%g ",\
+              current_temp[0],target_temp[0],output,'%',\
+              config.kp,config.ki,config.kd,pterm,iterm,dterm,\
+              current_temp[1],currenBWSpeed, startpoint.z);
+#endif
         }
         break;
 
