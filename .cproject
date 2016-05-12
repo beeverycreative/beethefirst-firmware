@@ -55,7 +55,7 @@
 							<builder id="org.eclipse.cdt.build.core.settings.default.builder.220164989" incrementalBuildTarget="btfplus" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1531903917" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.295497945" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.533463000" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols"/>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.533463000" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols"/>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.880219757" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.129910010" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">

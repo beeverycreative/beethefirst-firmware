@@ -2072,7 +2072,7 @@ eParseResult process_gcode_command(){
         //Send Extruder log
       case 1029:
         {
-#ifdef EXP_BOARD
+#ifdef EXP_Board
           sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Vent:%u Bw:%u Z:%g ",\
               current_temp[0],target_temp[0],output,'%',\
               config.kp,config.ki,config.kd,pterm,iterm,dterm,\
