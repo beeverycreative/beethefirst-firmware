@@ -164,6 +164,7 @@ void temp_tick(void)
 
   output = pterm + iterm + dterm;
 
+#ifdef EXP_Board
   double p00 = -0.02242;
   double p10 = -0.001512*extruderFanSpeed;
   double p01 = 0.01811*currenBWSpeed;
@@ -171,13 +172,14 @@ void temp_tick(void)
   double p11 = -0.00006381*extruderFanSpeed*currenBWSpeed;
   double p02 = -0.00008276*currenBWSpeed*currenBWSpeed;
   double p30 = -0.000002056*extruderFanSpeed*extruderFanSpeed*extruderFanSpeed;
-  double p21 = -0.000000008015*currenBWSpeed*currenBWSpeed*extruderFanSpeed;
+  double p21 = -0.000000008015*currenBWSpeed*extruderFanSpeed*extruderFanSpeed;
   double p12 = 0.0000002986*extruderFanSpeed*currenBWSpeed*currenBWSpeed;
 
   double pxy = p00 + p10 + p01 + p20 + p11 + p02 + p30 + p21 + p12;
 
 
   output = output*(1 + pxy);
+#endif
 
   last_error = pid_error;
 
