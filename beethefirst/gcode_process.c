@@ -1860,9 +1860,14 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
+              float loadFeedrate = 300;
+              if(next_target.seen_S)
+                {
+                  loadFeedrate = next_target.S;
+                }
               buzzer_wait ();
               buzzer_play (3000);
-              Extrude(65,300);
+              Extrude(65,loadFeedrate);
               SetEPos(0);
               config.status = 3;
               config.filament_in_spool -= 65;
@@ -1884,13 +1889,18 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
+              float loadFeedrate = 300;
+              if(next_target.seen_S)
+                {
+                  loadFeedrate = next_target.S;
+                }
               buzzer_wait ();
               buzzer_play (3000);
-              Extrude(15,300);
+              Extrude(15,loadFeedrate);
               Extrude(-23,1000);
-              Extrude(25,800);
+              Extrude(25,2*loadFeedrate);
               Extrude(-30,2000);
-              Extrude(-50,200);
+              Extrude(-50,loadFeedrate);
               SetEPos(0);
               config.status = 3;
               config.filament_in_spool -= 17;
