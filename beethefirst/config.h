@@ -112,7 +112,7 @@ extern struct configuration config;
 //extern double ki;
 //extern double kd;
 
-void read_config (void);
+bool read_config (void);
 void reset_config (void);
 void print_config (void);
 void write_config (void);

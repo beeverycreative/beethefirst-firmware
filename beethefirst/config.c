@@ -292,7 +292,7 @@ void print_config (void)
 
 
 
-void read_config (void)
+bool read_config (void)
 {
     unsigned j;
     char *pmem = SECTOR_29_START;
@@ -347,12 +347,14 @@ void read_config (void)
     }*//*No need for else*/
 
     if(read_err){
-        reset_config();
+        //reset_config();
+        return false;
     }/*No need for else*/
 
     /* Initialize using values read from "config.txt" file */
     gcode_parse_init();
 
+    return true;
 }
 void reset_config (void)
 {
