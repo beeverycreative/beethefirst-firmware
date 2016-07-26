@@ -1458,8 +1458,8 @@ eParseResult process_gcode_command(){
               }/*No need for else*/
           }else{
               if (next_target.seen_X){
-                  if(next_target.target.x > 2000){
-                      next_target.target.x = 2000;
+                  if(next_target.target.x > 10000){
+                      next_target.target.x = 10000;
                   }
                   config.acceleration = next_target.target.x;
 
