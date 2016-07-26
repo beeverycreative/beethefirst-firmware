@@ -2213,21 +2213,29 @@ eParseResult process_gcode_command(){
               if(next_target.S == 1)
                 {
                   debugMode = true;
-                  sersendf("Debug Mode Enabled\n");
+                  if(!sd_printing) {
+                      sersendf("Debug Mode Enabled\n");
+                  }
                 }
               else if(next_target.S == 0)
                 {
                   debugMode = false;
-                  sersendf("Debug Mode Disabled\n");
+                  if(!sd_printing) {
+                      sersendf("Debug Mode Disabled\n");
+                  }
                 }
             } else {
                 if(debugMode == false)
                   {
-                    sersendf("Debug Mode Disabled\n");
+                    if(!sd_printing) {
+                        sersendf("Debug Mode Disabled\n");
+                    }
                   }
                 else
                   {
-                    sersendf("Debug Mode Enabled\n");
+                    if(!sd_printing) {
+                        sersendf("Debug Mode Enabled\n");
+                    }
                   }
             }
 
