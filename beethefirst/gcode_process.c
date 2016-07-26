@@ -590,6 +590,9 @@ eParseResult process_gcode_command(){
       case 90:
         {
           relativeCoordinates = false;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
@@ -597,6 +600,9 @@ eParseResult process_gcode_command(){
       case 91:
         {
           relativeCoordinates = true;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
@@ -1262,7 +1268,7 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //M128 - Excruder block regression adjust
+        //M128 - Extruder block regression adjust
       case 128:
         {
 
@@ -1333,6 +1339,10 @@ eParseResult process_gcode_command(){
 
                   serial_writestr(" ");
                 }
+
+              if(sd_printing){
+                  reply_sent = 1;
+              }/*No need for else*/
 
 
           }/*No need for else*/
@@ -1476,6 +1486,11 @@ eParseResult process_gcode_command(){
               serwrite_double((double)feedrate_coeff*100);
               serial_writestr(" ");
           }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+
         }
         break;
         // M221 - Set flowrate factor override percentage
@@ -1490,6 +1505,10 @@ eParseResult process_gcode_command(){
           else {
               sersendf("flowrate coefficient: %g\n",(double)filament_coeff*100);
           }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
@@ -2025,6 +2044,9 @@ eParseResult process_gcode_command(){
         {
           synch_queue();
           print_file();
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
@@ -2209,6 +2231,10 @@ eParseResult process_gcode_command(){
                   }
             }
 
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+
 
         }
         break;
@@ -2262,6 +2288,10 @@ eParseResult process_gcode_command(){
                   sersendf("No pause pending\n");
               }
             }
+
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
         }
         break;
         // unknown mcode: spit an error
