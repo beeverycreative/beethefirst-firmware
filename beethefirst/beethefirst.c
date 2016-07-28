@@ -446,6 +446,8 @@ int app_main (void){
   position_ok = 0;
 
   init();
+  bool cfg_res = read_config();
+  /*
   uint32_t tries = 5;
   bool cfg_res = false;
   while(tries > 0)
@@ -466,6 +468,7 @@ int app_main (void){
       USBHwConnect(FALSE);
       go_to_reset(); // reinicia o sistema
     }
+  */
 
   if (config.uid != CFG_UID) {
       reset_config();
