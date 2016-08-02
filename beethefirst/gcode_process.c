@@ -2056,6 +2056,7 @@ eParseResult process_gcode_command(){
           if(next_target.seen_X)
             {
               config.filament_in_spool = next_target.target.x;
+              write_config();
             }
         }
         break;
