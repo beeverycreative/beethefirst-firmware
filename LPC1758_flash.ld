@@ -159,7 +159,7 @@ SECTIONS
     *(.ram.b)
     . = ALIGN (8);
     _endbss = .;
-    /*_ebss = .;*/ /*Uncomment to enable sprintf support*/
+    _ebss = .; /*Uncomment to enable sprintf support*/
     _end = .;
     __end = .;
   } >ram AT>rom
