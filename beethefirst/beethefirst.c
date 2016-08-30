@@ -470,7 +470,7 @@ int app_main (void){
     }
   */
 
-  //read_config_override();
+  read_config_override();
 
   if(!cfg_res)
     {
