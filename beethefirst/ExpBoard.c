@@ -47,10 +47,10 @@ void verifySDownConditions(void)
           write_config();
           sd_printing = 0;
 
-          queue_flush();
-          reset_current_block();
+          //queue_flush();
+          //reset_current_block();
 
-          home_z();
+          //home_z();
         }
       else if(printerPause)
         {
@@ -58,10 +58,28 @@ void verifySDownConditions(void)
           write_config();
           sd_printing = 0;
 
-          queue_flush();
-          reset_current_block();
+          int32_t sDownVal[5];
+          int32_t sDownValFilt = 4096;
+          for(int i=0;i<5;i++)
+            {
+              sDownVal[i] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+              sDownValFilt = getMedianValue(sDownVal);
+            }
 
-          home_z();
+          if(sDownValFilt < SDown_Threshold)
+            {
+
+              queue_flush();
+              reset_current_block();
+
+              home_z();
+            }
+          else {
+              config.status = 5;
+              write_config();
+              sd_printing = true;
+          }
+
         }
     }
 }
@@ -108,7 +126,7 @@ void verifyBatteryLevels(void)
         {
 
         }
-        */
+       */
       if(!sd_printing && batteryMode)
         {
           //Printer Paused... Enter Shutdown

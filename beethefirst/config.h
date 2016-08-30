@@ -64,7 +64,7 @@ struct configuration
   int32_t status;
 
   // autonomous
-  char filename[50];
+  char filename[20];
   int32_t  sd_pos;
   int32_t estimated_time;
   int32_t time_elapsed;
@@ -92,7 +92,7 @@ struct configuration
   double blockFanMaxSpeed;
 
   //Filament and Nozzle configs
-  char bcodeStr[100];
+  char bcodeStr[20];
   double filament_in_spool;
   uint16_t nozzleSize;
 

@@ -37,6 +37,7 @@
 #include "lights.h"
 #include "fans.h"
 #include "MovementController.h"
+#include <stdio.h>
 
 //Relative Coordinates Option
 bool relativeCoordinates;
@@ -84,6 +85,8 @@ extern FRESULT sd_init(void);
 extern bool sd_write_to_file(char *pStr, unsigned bytes_to_write);
 
 extern bool print_file();
+extern bool write_config_override();
+extern bool read_config_override();
 
 extern bool sd_read_file (tLineBuffer *pLine);
 

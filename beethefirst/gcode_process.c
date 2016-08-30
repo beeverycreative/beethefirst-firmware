@@ -131,6 +131,11 @@ const double auto_reverse_feed_rate = 18000;
 double auto_prime_factor = 640;
 double auto_reverse_factor = 640;
 
+/****************************************************************************
+ *                                                                          *
+ * enqueue_wait_temp - Prepare Wait for temperature                         *
+ *                                                                          *
+ ****************************************************************************/
 void enqueue_wait_temp (void)
 {
   tActionRequest request;
@@ -139,12 +144,22 @@ void enqueue_wait_temp (void)
   plan_buffer_action (&request);
 }
 
-
+/****************************************************************************
+ *                                                                          *
+ * sd_initialise - Initialize SD Card                                       *
+ *                                                                          *
+ ****************************************************************************/
 
 void sd_initialise(void)
 {
   sd_active = true;
 }
+
+/****************************************************************************
+ *                                                                          *
+ * sd_list_dir - List SD Directories                                        *
+ *                                                                          *
+ ****************************************************************************/
 
 void sd_list_dir (void)
 {
@@ -154,6 +169,12 @@ void sd_list_dir (void)
 
   sd_list_dir_sub(path);
 }
+
+/****************************************************************************
+ *                                                                          *
+ * sd_open - Open SD File                                                   *
+ *                                                                          *
+ ****************************************************************************/
 
 unsigned sd_open(FIL *pFile, char *path, uint8_t flags){
   FRESULT res;
@@ -171,10 +192,22 @@ unsigned sd_open(FIL *pFile, char *path, uint8_t flags){
   }
 }
 
+/****************************************************************************
+ *                                                                          *
+ * sd_close - Close SD File                                                 *
+ *                                                                          *
+ ****************************************************************************/
+
 void sd_close(FIL *pFile)
 {
   f_close (pFile);
 }
+
+/****************************************************************************
+ *                                                                          *
+ * sd_read_file - Read SD Fie Line                                          *
+ *                                                                          *
+ ****************************************************************************/
 
 bool sd_read_file(tLineBuffer *pLine)
 {
@@ -194,6 +227,12 @@ bool sd_read_file(tLineBuffer *pLine)
     }
 }
 
+/****************************************************************************
+ *                                                                          *
+ * sd_write_to_file - Write to SD File                                      *
+ *                                                                          *
+ ****************************************************************************/
+
 bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
 {
   UINT bytes_written;
@@ -209,45 +248,38 @@ bool sd_write_to_file(char *pStr, unsigned bytes_to_write)
   return result;
 }
 
+/****************************************************************************
+ *                                                                          *
+ * sd_filesize - get SD File Size                                           *
+ *                                                                          *
+ ****************************************************************************/
+
 unsigned sd_filesize (FIL *pFile)
 {
   return f_size(pFile);
 }
+
+/****************************************************************************
+ *                                                                          *
+ * SD Seek - Seek SD File Position                                          *
+ *                                                                          *
+ ****************************************************************************/
 
 void sd_seek(FIL *pFile, unsigned pos)
 {
   f_lseek (pFile, pos);
 }
 
+/****************************************************************************
+ *                                                                          *
+ * scan_files - Scan and list SD Card Files                                 *
+ *                                                                          *
+ ****************************************************************************/
+
 static TCHAR lfname[_MAX_LFN];
 
 FRESULT scan_files (char* path)
 {
-  /*
-  DIR dirs;
-  FRESULT res;
-  BYTE i;
-  char *fn;
-
-  if ((res = f_opendir(&dirs, path)) == FR_OK) {
-
-      for (;; ) {
-          Finfo.lfname = lfname;
-          Finfo.lfsize = _MAX_LFN - 1;
-          /* Read a directory item
-          res = f_readdir(&dirs, &Finfo);
-          if (res || !Finfo.fname[0]) {
-              break;                                  // Error or end of dir
-          }
-          if (Finfo.fattrib & AM_DIR) {
-
-          }
-          else {
-              sersendf("/%s\r\n", Finfo.lfname[0] ? Finfo.lfname : Finfo.fname);
-          }
-
-      }
-   */
 
   DIR dirs;
   FRESULT res;
@@ -283,6 +315,12 @@ FRESULT scan_files (char* path)
   return res;
 }
 
+/****************************************************************************
+ *                                                                          *
+ * sd_init - Initialize SD Card                                             *
+ *                                                                          *
+ ****************************************************************************/
+
 FRESULT sd_init()
 {
   DSTATUS ds;
@@ -304,6 +342,12 @@ FRESULT sd_init()
 
   return fsRes;
 }
+
+/****************************************************************************
+ *                                                                          *
+ * print_file - Print Selected File                                         *
+ *                                                                          *
+ ****************************************************************************/
 
 bool print_file()
 {
@@ -366,6 +410,12 @@ bool print_file()
   return true;
 }
 
+/****************************************************************************
+ *                                                                          *
+ * reinit_system - Re-Init System                                           *
+ *                                                                          *
+ ****************************************************************************/
+
 void reinit_system(){
   leave_power_saving = 0;
   in_power_saving = FALSE;
@@ -398,10 +448,120 @@ void reinit_system(){
   }
 }
 
+
 /****************************************************************************
  *                                                                          *
- * Command Received - process it                                             *
- *                                                                           *
+ * write_config_override - Write Config Override                            *
+ *                                                                          *
+ ****************************************************************************/
+
+bool write_config_override()
+{
+  char fName[120];
+  char line[100];
+
+  //closes file
+  sd_close(&file);
+  sd_init();
+
+  memset(fName, '\0', sizeof(fName));
+
+  if(strlen(next_target.filename) > 0)
+    {
+      strcpy(fName, next_target.filename);
+    }
+  else
+    {
+      strcpy(fName, "OVER");
+    }
+  //opens as empty file
+  if (sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
+      if(!next_target.seen_B) {
+          //sersendf("File created: %s\n",fName);
+      }
+      sd_pos = 0;
+      //save current filename to config
+      strcpy(config.filename, next_target.filename);
+      strcpy(statusStr, "Waiting4File");
+  }else{
+      if(!next_target.seen_B){
+          sersendf("error creating file: %s\n",fName);
+      }
+  }
+
+  //Backup Z offset
+  memset(line, '\0', sizeof(line));
+  double num = config.home_pos_z;
+  unsigned int intpart = (unsigned int)num;
+  double dec = (num - intpart)*1000.0;
+  unsigned int decpart = (unsigned int)dec;
+  sprintf(&line[0],"M604 Z%u.%u\n",intpart,decpart);
+  sd_write_to_file(line,strlen(line));
+
+  //Backup Nozzle Size
+  memset(line, '\0', sizeof(line));
+  sprintf(&line[0],"M1027 S%u\n",config.nozzleSize);
+  sd_write_to_file(line,strlen(line));
+
+  //Backup Filament Name
+  if(strcmp(config.bcodeStr, "_no_file") != 0)
+    {
+      memset(line, '\0', sizeof(line));
+      sprintf(&line[0],"M1000 %s\n",config.bcodeStr);
+      sd_write_to_file(line,strlen(line));
+    }
+
+  //Save to config
+  memset(line, '\0', sizeof(line));
+  sprintf(&line[0],"M601\n");
+  sd_write_to_file(line,strlen(line));
+
+  sd_close(&file);
+
+  return true;
+
+}
+
+/****************************************************************************
+ *                                                                          *
+ * read_config_override - Read Config Override                            *
+ *                                                                          *
+ ****************************************************************************/
+
+bool read_config_override()
+{
+  sersendf("Loading Config Override\n");
+  sd_init();
+
+  executed_lines = 0;
+  //closes file
+  sd_close(&file);
+  char fileName[120];
+
+  //opens a file
+  if (sd_open(&file, "OVER", FA_READ)) {
+      if(!next_target.seen_B) {
+          //sersendf("File opened: %s\n",next_target.filename);
+      }/*No need for else*/
+      sd_pos = 0;
+      //save current filename to config
+      strcpy(config.filename, "OVER");
+  }else{
+      if(!next_target.seen_B){
+          sersendf("error opening file: %s\n",next_target.filename);
+          serial_writestr(next_target.filename);
+          serial_writestr("\n");
+      }/*No need for else*/
+  }
+
+  print_file();
+
+  return true;
+}
+/****************************************************************************
+ *                                                                          *
+ * Command Received - process it                                            *
+ *                                                                          *
  ****************************************************************************/
 
 eParseResult process_gcode_command(){
@@ -684,6 +844,7 @@ eParseResult process_gcode_command(){
               config.home_pos_z -= startpoint.z;
               SetZPos(0);
               write_config();
+              write_config_override();
 
               if(!sd_printing){
                   config.status = 4;
@@ -2019,6 +2180,7 @@ eParseResult process_gcode_command(){
               strcpy(config.bcodeStr,next_target.filename);
               memset(next_target.filename, '\0', sizeof(next_target.filename));
               write_config();
+              write_config_override();
             } else {
                 sersendf("Error, Please Specify Filament String");
             }
@@ -2088,6 +2250,7 @@ eParseResult process_gcode_command(){
                 {
                   config.nozzleSize = next_target.S;
                   write_config();
+                  write_config_override();
                 }
             }
         }
@@ -2116,6 +2279,20 @@ eParseResult process_gcode_command(){
               config.kp,config.ki,config.kd,pterm,iterm,dterm,\
               current_temp[1],currenBWSpeed, startpoint.z);
 #endif
+        }
+        break;
+
+        //Write Config-Override
+      case 1030:
+        {
+          write_config_override();
+        }
+        break;
+
+        //Read Config-Override
+      case 1031:
+        {
+          read_config_override();
         }
         break;
 

@@ -347,7 +347,7 @@ bool read_config (void)
     }*//*No need for else*/
 
     if(read_err){
-        //reset_config();
+        reset_config();
         return false;
     }/*No need for else*/
 

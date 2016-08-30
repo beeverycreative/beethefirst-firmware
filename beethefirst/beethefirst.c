@@ -470,8 +470,16 @@ int app_main (void){
     }
   */
 
+  //read_config_override();
+
+  if(!cfg_res)
+    {
+      read_config_override();
+    }
+
   if (config.uid != CFG_UID) {
       reset_config();
+      read_config_override();
   }
 
   if(config.status == 9)
