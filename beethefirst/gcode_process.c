@@ -457,8 +457,13 @@ void reinit_system(){
 
 bool write_config_override()
 {
-  char fName[120];
+
+  char fName[20];
+  char currfName[20];
   char line[100];
+
+  memset(currfName, '\0', sizeof(currfName));
+  strcpy(currfName, config.filename);
 
   //closes file
   sd_close(&file);
@@ -482,7 +487,6 @@ bool write_config_override()
       sd_pos = 0;
       //save current filename to config
       strcpy(config.filename, next_target.filename);
-      strcpy(statusStr, "Waiting4File");
   }else{
       if(!next_target.seen_B){
           sersendf("error creating file: %s\n",fName);
@@ -517,6 +521,13 @@ bool write_config_override()
   sd_write_to_file(line,strlen(line));
 
   sd_close(&file);
+
+  if(sd_printing || sd_resume || sd_pause)
+    {
+      strcpy(config.filename,currfName);
+      write_config();
+
+    }
 
   return true;
 
