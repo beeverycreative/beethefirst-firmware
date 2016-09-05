@@ -522,11 +522,10 @@ bool write_config_override()
 
   sd_close(&file);
 
-  if(sd_printing || sd_resume || sd_pause)
+  if(printerPause || sd_printing || sd_resume || sd_pause)
     {
       strcpy(config.filename,currfName);
       write_config();
-
     }
 
   return true;
@@ -1207,6 +1206,7 @@ eParseResult process_gcode_command(){
           FRESULT res;
 
           memset(fName, '\0', sizeof(fName));
+          memset(statusStr, '\0', sizeof(statusStr));
 
           if(strlen(next_target.filename) > 0)
             {
