@@ -458,6 +458,8 @@ void reinit_system(){
 bool write_config_override()
 {
 
+  __disable_irq();
+
   char fName[20];
   char currfName[20];
   char line[100];
@@ -510,8 +512,12 @@ bool write_config_override()
   //Backup Filament Name
   if(strcmp(config.bcodeStr, "_no_file") != 0)
     {
+      char bcodeStrBck[20];
+
       memset(line, '\0', sizeof(line));
-      sprintf(&line[0],"M1000 %s\n",config.bcodeStr);
+      memset(bcodeStrBck, '\0', sizeof(bcodeStrBck));
+      strcpy(bcodeStrBck,config.bcodeStr);
+      sprintf(&line[0],"M1000 %s\n",bcodeStrBck);
       sd_write_to_file(line,strlen(line));
     }
 
@@ -527,6 +533,8 @@ bool write_config_override()
       strcpy(config.filename,currfName);
       write_config();
     }
+
+  __enable_irq();
 
   return true;
 
