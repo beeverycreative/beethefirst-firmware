@@ -43,9 +43,10 @@ void verifySDownConditions(void)
         {
 
           initPause();
-          config.status = 9;
+          //config.status = 9;
           write_config();
-          sd_printing = 0;
+          sd_printing = false;
+          printerPause = true;
 
           //queue_flush();
           //reset_current_block();
@@ -63,8 +64,8 @@ void verifySDownConditions(void)
           for(int i=0;i<5;i++)
             {
               sDownVal[i] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-              sDownValFilt = getMedianValue(sDownVal);
             }
+          sDownValFilt = getMedianValue(sDownVal);
 
           if(sDownValFilt < SDown_Threshold)
             {
@@ -72,12 +73,13 @@ void verifySDownConditions(void)
               queue_flush();
               reset_current_block();
 
+              printerPause = false;
+
               home_z();
             }
           else {
-              config.status = 5;
-              write_config();
-              sd_printing = true;
+              //sd_printing = true;
+              sd_restartPrint = true;
           }
 
         }
