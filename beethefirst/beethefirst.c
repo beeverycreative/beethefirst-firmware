@@ -702,6 +702,7 @@ int app_main (void){
           }else{
               sd_printing = false;
               print2USB = false;
+              debugMode = false;
               //sersendf(";EOF\n");
               config.last_print_time = time_elapsed;
               config.last_print_filament = printed_filament;

@@ -495,6 +495,10 @@ bool write_config_override()
       }
   }
 
+  memset(line, '\0', sizeof(line));
+  strcpy(line,"M1110 S1\n");
+  sd_write_to_file(line,strlen(line));
+
   //Backup Z offset
   memset(line, '\0', sizeof(line));
   double num = config.home_pos_z;
