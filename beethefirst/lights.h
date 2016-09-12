@@ -11,7 +11,7 @@
   extern bool      logo_state;           // logo state
   extern uint32_t  blink_interval;
 
-  uint32_t shutDownLogoState;
+  bool shutDownLogoState;
   int32_t logoDuty;
 #endif
 
@@ -19,6 +19,5 @@ extern void LogoLightControl(void);
 extern void setLogoPWM(int32_t val);
 
 #ifdef EXP_Board
-  void PowerSavingLightControl(void);
   void ShutdownLightControl(void);
 #endif

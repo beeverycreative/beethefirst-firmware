@@ -53,6 +53,7 @@ extern uint32_t  sd_pos;
 extern bool      sd_printing;     // printing from SD file
 extern bool      print2USB;      // printing from SD file to USB
 extern bool      sd_pause;             // printing paused
+extern bool      shutdown_pause;       //pause print from shutdown
 extern bool      sd_resume;             // resume from sd pause
 extern bool      printerShutdown;             // printer in shutdown
 extern bool      printerPause;             // printer in pause

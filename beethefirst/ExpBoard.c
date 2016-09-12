@@ -43,44 +43,54 @@ void verifySDownConditions(void)
         {
 
           initPause();
-          //config.status = 9;
+          config.status = 9;
           write_config();
           sd_printing = false;
-          printerPause = true;
+          sd_pause = false;
+          sd_resume = false;
+          shutdown_pause = true;
+
+          return;
 
           //queue_flush();
           //reset_current_block();
 
           //home_z();
         }
-      else if(printerPause)
+      else if(shutdown_pause)
         {
-          config.status = 9;
-          write_config();
-          sd_printing = 0;
+          //config.status = 9;
+          //write_config();
 
           int32_t sDownVal[5];
-          int32_t sDownValFilt = 4096;
+          int32_t sDown_filt = 4096;
           for(int i=0;i<5;i++)
             {
               sDownVal[i] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
             }
-          sDownValFilt = getMedianValue(sDownVal);
+          sDown_filt = getMedianValue(sDownVal);
 
-          if(sDownValFilt < SDown_Threshold)
+          if(sDown_filt < SDown_Threshold)
             {
 
               queue_flush();
               reset_current_block();
 
               printerPause = false;
+              shutdown_pause = false;
 
               home_z();
             }
           else {
               //sd_printing = true;
               sd_restartPrint = true;
+              shutdown_pause = false;
           }
+
+          sDown_filtered = sDown_filt;
+          memcpy(sDownADC_raw,sDownVal,sizeof(sDownVal));
+
+          return;
 
         }
     }

@@ -41,6 +41,7 @@
   extern uint32_t adc_filtered_r2c2;
   int32_t adc_r2c2_raw;
   extern int32_t sDown_filtered;
+  extern int32_t sDownADC_raw[5];
 #endif
 #ifdef USE_BATT
   extern int32_t batt_filtered;

@@ -78,6 +78,7 @@ uint32_t  sd_pos = 0;
 bool      sd_printing = false;      // printing from SD file
 bool      print2USB = false;      // printing from SD file to USB
 bool      sd_pause = false;             // printing paused
+bool      shutdown_pause = false;             // printing paused
 bool      sd_resume = false;             // resume from sd pause
 bool      printerShutdown = false;             // printer in shutdown
 bool      printerPause = false;             // printer in pause
@@ -503,9 +504,18 @@ bool write_config_override()
   memset(line, '\0', sizeof(line));
   double num = config.home_pos_z;
   unsigned int intpart = (unsigned int)num;
-  double dec = (num - intpart)*1000.0;
+  double dec = (num - intpart)*10000.0;
   unsigned int decpart = (unsigned int)dec;
-  sprintf(&line[0],"M604 Z%u.%u\n",intpart,decpart);
+  if(decpart < 1000.0F && decpart >= 100.0F) {
+      sprintf(&line[0],"M604 Z%u.0%u\n",intpart,decpart);
+  } else if(decpart < 100.0F && decpart >= 10.0F) {
+      sprintf(&line[0],"M604 Z%u.00%u\n",intpart,decpart);
+  } else if(decpart < 10.0F) {
+      sprintf(&line[0],"M604 Z%u.000%u\n",intpart,decpart);
+  } else {
+      sprintf(&line[0],"M604 Z%u.%u\n",intpart,decpart);
+  }
+
   sd_write_to_file(line,strlen(line));
 
   //Backup Nozzle Size
@@ -2200,6 +2210,7 @@ eParseResult process_gcode_command(){
 
           if(strlen(next_target.filename) > 0)
             {
+              memset(config.bcodeStr, '\0', sizeof(config.bcodeStr));
               strcpy(config.bcodeStr,next_target.filename);
               memset(next_target.filename, '\0', sizeof(next_target.filename));
               write_config();

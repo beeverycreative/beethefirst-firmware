@@ -4,21 +4,17 @@
   bool      start_logo_blink = false;      // start logo blink
   bool      stop_logo_blink = true;      // stop logo blink
   bool      logo_state = false;           // logo state
-  uint32_t  blink_interval = 20000;
+  uint32_t  blink_interval = 2000;
 
-  uint32_t shutDownLogoState = 0;
+  bool shutDownLogoState = 0;
   int32_t logoDuty = 0;
 #endif
 
 void LogoLightControl(void)
 {
 #ifdef EXP_Board
-  //Logo Blink
-  if(in_power_saving && !printerShutdown)
-    {
-      PowerSavingLightControl();
-    }
-  else if(printerShutdown)
+  //Logo/LEDs Blink
+  if(printerShutdown)
     {
       ShutdownLightControl();
     }
@@ -43,78 +39,24 @@ void setLogoPWM(int32_t val)
 }
 
 
-void PowerSavingLightControl(void)
-{
-  if(start_logo_blink && (blink_time > blink_interval))
-    {
-        if(logo_state) {
-            setLogoPWM(0);
-            logo_state = 0;
-            ilum_off();
-        } else {
-            setLogoPWM(25);
-            logo_state = 1;
-            ilum_on();
-        }
-
-        blink_time = 0;
-
-    }
-
-}
-
-
 void ShutdownLightControl(void)
 {
-  switch(shutDownLogoState)
-  {
-  case(0):
-    blink_time = 0;
-    ilum_on();
-    setLogoPWM(50);
-    shutDownLogoState ++;
-    break;
-  case(1):
-    if(blink_time > 300)
-      {
-        setLogoPWM(0);
-        shutDownLogoState ++;
-        ilum_off();
+
+  if(blink_time > blink_interval)
+    {
+      if(shutDownLogoState) {
+          setLogoPWM(0);
+          shutDownLogoState = 0;
+          ilum_off();
+      } else {
+          setLogoPWM(50);
+          shutDownLogoState = 1;
+          ilum_on();
       }
-  break;
-  case(2):
-    if(blink_time > 600)
-      {
-        setLogoPWM(50);
-        shutDownLogoState ++;
-        ilum_on();
-      }
-  break;
-  case(3):
-    if(blink_time > 900)
-      {
-        setLogoPWM(0);
-        shutDownLogoState ++;
-        ilum_off();
-      }
-  break;
-  case(4):
-    if(blink_time > 1200)
-      {
-        ilum_off();
-        shutDownLogoState ++;
-      }
-  break;
-  case(5):
-    if(blink_time > 3600)
-      {
-        shutDownLogoState = 0;
-      }
-  break;
-  default:
-    ilum_on();
-    setLogoPWM(50);
-  }
+
+      blink_time = 0;
+
+    }
 }
 
 #endif

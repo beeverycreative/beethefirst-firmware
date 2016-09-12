@@ -485,6 +485,8 @@ int app_main (void){
   if(config.status == 9)
     {
       printerShutdown = true;
+      start_logo_blink = 1;
+      stop_logo_blink = 0;
     }
 
   // grbl init
@@ -520,10 +522,6 @@ int app_main (void){
        *
        ***********************************************************************/
       //Verify if printer should enter in power saving
-
-
-      //connectedUSB = digital_read(1,30);
-
       if(
           !sd_printing
           && !sd_restartPrint
@@ -621,6 +619,14 @@ int app_main (void){
           lastCmd_time = 0;
 
       }/*no need for else*/
+/*
+      if ((plan_queue_empty())
+          && (shutdown_pause)) {
+          printerPause = true;
+          shutdown_pause = false;
+          lastCmd_time = 0;
+
+      }*//*no need for else*/
 
       /***********************************************************************
        *
@@ -641,6 +647,8 @@ int app_main (void){
           sd_restartPrint = false;
           printerShutdown = false;
           printerPause = false;
+
+          shutdown_pause = false;
 
           disableSerialReply = false;
         }
