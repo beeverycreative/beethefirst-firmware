@@ -485,8 +485,6 @@ int app_main (void){
   if(config.status == 9)
     {
       printerShutdown = true;
-      start_logo_blink = 1;
-      stop_logo_blink = 0;
     }
 
   // grbl init
