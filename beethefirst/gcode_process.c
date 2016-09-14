@@ -688,7 +688,13 @@ eParseResult process_gcode_command(){
               config.status = 5;
           }
 
-          double e_move_mm = next_target.target.e - startpoint.e;
+          double e_move_mm;
+          if(relativeCoordinates) {
+              e_move_mm = next_target.target.e;
+          } else {
+              e_move_mm = next_target.target.e - startpoint.e;
+          }
+
           if(e_move_mm != 0)
             {
               if(sd_printing)
@@ -1361,6 +1367,9 @@ eParseResult process_gcode_command(){
           disableBlower();
           enter_power_saving = 0;
           config.status = 3;
+
+          config.filament_in_spool -= printed_filament;
+          write_config();
 
         }
         break;
