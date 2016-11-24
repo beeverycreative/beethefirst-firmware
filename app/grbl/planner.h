@@ -53,8 +53,8 @@
   #define HOME_DIR_Y              -1
   #define HOME_DIR_Z              1
 
-  #define HOME_POS_X              -96
-  #define HOME_POS_Y              -65
+  #define HOME_POS_X              -35
+  #define HOME_POS_Y              67
 
   #define PRINT_VOL_X             190
   #define PRINT_VOL_Y             135
@@ -126,9 +126,9 @@
   #define HOME_POS_Y              -52.5
   #define HOME_POS_Z              80
 
-  #define PRINT_VOL_X             90
-  #define PRINT_VOL_Y             105
-  #define PRINT_VOL_Z             80
+  #define PRINT_VOL_X             70
+  #define PRINT_VOL_Y             120
+  #define PRINT_VOL_Z             85
 #endif
 /*
 double MAX_FEED_X;
