@@ -75,8 +75,8 @@ tConfigItem config_lookup [] =
         { "steps_per_mm_e", &config.steps_per_mm_e, TYPE_DOUBLE, {.val_d=STEPS_MM_E0}},
 
         { "home_pos_x", &config.home_pos_x, TYPE_DOUBLE, {.val_d=HOME_POS_X}},
-        { "home_pos_x", &config.home_pos_y, TYPE_DOUBLE, {.val_d=HOME_POS_Y}},
-        { "home_pos_x", &config.home_pos_z, TYPE_DOUBLE, {.val_d=HOME_POS_Z}},
+        { "home_pos_y", &config.home_pos_y, TYPE_DOUBLE, {.val_d=HOME_POS_Y}},
+        { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=HOME_POS_Z}},
 
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=1500.000}},         /* 100mm / second^2 */
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
@@ -134,7 +134,7 @@ tConfigItem config_lookup [] =
 
         //Encoder
         {"Encoder_steps_mm", &config.encStepsMM, TYPE_DOUBLE, {.val_d=0.1121}},
-        {"Maximum_Encoder_Delta",&config.maxDelta_mm , TYPE_INT, {.val_i=5}}
+        {"Maximum_Encoder_Delta",&config.maxDelta_mm , TYPE_INT, {.val_i=2}}
 
     };
 

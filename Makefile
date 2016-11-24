@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 11.0.7
+FW_VERSION = 11.0.8
 
 #Define Config UID
 CFG_UID = 26
@@ -576,6 +576,11 @@ btfsmoothieV2: CFLAGS += -DBTF_SMOOTHIE -DBTF_SMOOTHIE_V2 -DB_V='"$(B_Version)"'
 btfsmoothieV2: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-V2-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
 btfsmoothieV2: begin createdirs gccversion build sizeafter copyBtfsmoothieV2 end
 
+# BTF_SMOOTHIE
+btfsmoothieV3: CFLAGS += -DBTF_SMOOTHIE -DBTF_SMOOTHIE_V2 -DB_V='"$(B_Version)"'
+btfsmoothieV3: CFLAGS += -DFW_V='"BEEVC-BEE-SMOOTHIE-V3-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfsmoothieV3: begin createdirs gccversion build sizeafter copyBtfsmoothieV3 end
+
 #
 
 # Target for the build-sequence.
@@ -631,6 +636,10 @@ copyBtfsmoothieV2:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-V2-$(FW_VERSION).BIN
 	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF		
 
+copyBtfsmoothieV3:
+	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEE_SMOOTHIE-Firmware-V3-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF	
+	
 endif
 
 # Eye candy.
