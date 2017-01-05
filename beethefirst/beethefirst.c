@@ -325,7 +325,7 @@ void temperatureTimerCallback (tTimer *pTimer)
               }
           }
 
-        if(target_temp[EXTRUDER_0] == 0 || is_heating_Process || is_heating_MCode)
+        if(target_temp[EXTRUDER_0] == 0 || is_heating_MCode)
           {
             extruderFanSpeed = 0;
           }

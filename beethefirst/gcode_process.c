@@ -1231,7 +1231,6 @@ eParseResult process_gcode_command(){
       case 33: //M33 - Start SD print
         {
           char fName[120];
-          FRESULT res;
 
           memset(fName, '\0', sizeof(fName));
           memset(statusStr, '\0', sizeof(statusStr));
