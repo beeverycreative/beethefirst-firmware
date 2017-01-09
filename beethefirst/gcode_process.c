@@ -164,7 +164,7 @@ void sd_initialise(void)
 
 void sd_list_dir (void)
 {
-  char path[120];
+  char path[30];
 
   strcpy (path, "");
 
@@ -461,8 +461,8 @@ bool write_config_override()
 
   __disable_irq();
 
-  char fName[20];
-  char currfName[20];
+  char fName[30];
+  char currfName[30];
   char line[100];
 
   memset(currfName, '\0', sizeof(currfName));
@@ -526,7 +526,7 @@ bool write_config_override()
   //Backup Filament Name
   if(strcmp(config.bcodeStr, "_no_file") != 0)
     {
-      char bcodeStrBck[20];
+      char bcodeStrBck[30];
 
       memset(line, '\0', sizeof(line));
       memset(bcodeStrBck, '\0', sizeof(bcodeStrBck));
@@ -568,7 +568,7 @@ bool read_config_override()
   executed_lines = 0;
   //closes file
   sd_close(&file);
-  char fileName[120];
+  char fileName[30];
 
   //opens a file
   if (sd_open(&file, "OVER", FA_READ)) {
@@ -1009,7 +1009,7 @@ eParseResult process_gcode_command(){
           executed_lines = 0;
           //closes file
           sd_close(&file);
-          char fileName[120];
+          char fileName[30];
 
           //opens a file
           if (sd_open(&file, next_target.filename, FA_READ)) {
@@ -1118,7 +1118,7 @@ eParseResult process_gcode_command(){
         //M30 <filename>
       case 30:
         {
-          char fName[120];
+          char fName[30];
           //closes file
           sd_close(&file);
           sd_init();
@@ -1230,7 +1230,7 @@ eParseResult process_gcode_command(){
 
       case 33: //M33 - Start SD print
         {
-          char fName[120];
+          char fName[30];
 
           memset(fName, '\0', sizeof(fName));
           memset(statusStr, '\0', sizeof(statusStr));
@@ -1960,7 +1960,7 @@ eParseResult process_gcode_command(){
       case 639:
         {
           if(!next_target.seen_B ){
-              for(int i=0;i<120;i++){
+              for(int i=0;i<30;i++){
                   if(next_target.filename[i]){
                       serial_writechar(next_target.filename[i]);
                   }else{
