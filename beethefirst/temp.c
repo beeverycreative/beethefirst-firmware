@@ -104,7 +104,7 @@ double temp_get_target(uint8_t sensor_number)
 
 uint8_t	temp_achieved(uint8_t sensor_number)
 {
-  if (current_temp[sensor_number] >= (target_temp[sensor_number] - 2))
+  if (current_temp[sensor_number] >= (target_temp[sensor_number]*((100.0-tol)/100)))
     return 255;
 
   return 0;
@@ -112,7 +112,7 @@ uint8_t	temp_achieved(uint8_t sensor_number)
 
 uint8_t temps_achieved (void)
 {
-  if ((current_temp[EXTRUDER_0] >= (target_temp[EXTRUDER_0] - 2)) && (current_temp[HEATED_BED_0] >= (target_temp[HEATED_BED_0] - 2)))
+  if ((current_temp[EXTRUDER_0]>=target_temp[EXTRUDER_0]*((100.0-tol)/100)) && (current_temp[HEATED_BED_0] >= target_temp[HEATED_BED_0]*((100.0-tol)/100)))
     return 255;
 
   return 0;

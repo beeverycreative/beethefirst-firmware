@@ -1506,19 +1506,20 @@ eParseResult process_gcode_command(){
               bool pidChange = false;
 
               if (next_target.seen_T){
-
+               //   sersendf("kp=%g\n", next_target.T);
                   config.kp = next_target.T;
                   pidChange = true;
               }
 
               if (next_target.seen_U){
-
+              //    sersendf("ki=%g\n", next_target.U*1000.0);
                   config.ki = next_target.U;
+
                   pidChange = true;
               }
 
               if (next_target.seen_V){
-
+            //      sersendf("kd=%g\n", next_target.V);
                   config.kd = next_target.V;
                   pidChange = true;
               }
@@ -1534,7 +1535,7 @@ eParseResult process_gcode_command(){
                   serwrite_double(config.kp);
 
                   serial_writestr(" ki:");
-                  serwrite_double(config.ki);
+                  serwrite_double(config.ki*1000.0);
 
                   serial_writestr(" kd:");
                   serwrite_double(config.kd);
@@ -2313,12 +2314,12 @@ eParseResult process_gcode_command(){
 #ifdef EXP_Board
           sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Vent:%u Bw:%u Z:%g ",\
               current_temp[0],target_temp[0],output,'%',\
-              config.kp,config.ki,config.kd,pterm,iterm,dterm,\
+              config.kp,config.ki*1000.0,config.kd,pterm,iterm,dterm,\
               current_temp[1],extruderFanSpeed,currenBWSpeed, startpoint.z);
 #else
           sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Bw:%u Z:%g ",\
               current_temp[0],target_temp[0],output,'%',\
-              config.kp,config.ki,config.kd,pterm,iterm,dterm,\
+              config.kp,config.ki*1000.0,config.kd,pterm,iterm,dterm,\
               current_temp[1],currenBWSpeed, startpoint.z);
 #endif
         }

@@ -35,6 +35,8 @@
 #define EXTRUDER_0                      0
 #define HEATED_BED_0                    1
 
+#define tol    1.2      //Temperatures tolerance
+
 #ifdef EXP_Board
   extern double extruderBlockTemp;
   extern double current_temp_r2c2;
