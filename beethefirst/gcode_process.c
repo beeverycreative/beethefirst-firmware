@@ -75,6 +75,7 @@ FATFS Fatfs[_VOLUMES];          /* File system object for each logical drive */
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
 
+
 bool      sd_printing = false;      // printing from SD file
 bool      print2USB = false;      // printing from SD file to USB
 bool      sd_pause = false;             // printing paused
@@ -164,7 +165,7 @@ void sd_initialise(void)
 
 void sd_list_dir (void)
 {
-  char path[30];
+  char path[line_length];
 
   strcpy (path, "");
 
@@ -461,8 +462,8 @@ bool write_config_override()
 
   __disable_irq();
 
-  char fName[30];
-  char currfName[30];
+  char fName[line_length];
+  char currfName[line_length];
   char line[100];
 
   memset(currfName, '\0', sizeof(currfName));
@@ -526,7 +527,7 @@ bool write_config_override()
   //Backup Filament Name
   if(strcmp(config.bcodeStr, "_no_file") != 0)
     {
-      char bcodeStrBck[30];
+      char bcodeStrBck[line_length];
 
       memset(line, '\0', sizeof(line));
       memset(bcodeStrBck, '\0', sizeof(bcodeStrBck));
@@ -568,7 +569,7 @@ bool read_config_override()
   executed_lines = 0;
   //closes file
   sd_close(&file);
-  char fileName[30];
+  char fileName[line_length];
 
   //opens a file
   if (sd_open(&file, "OVER", FA_READ)) {
@@ -1009,7 +1010,7 @@ eParseResult process_gcode_command(){
           executed_lines = 0;
           //closes file
           sd_close(&file);
-          char fileName[30];
+          char fileName[line_length];
 
           //opens a file
           if (sd_open(&file, next_target.filename, FA_READ)) {
@@ -1118,7 +1119,7 @@ eParseResult process_gcode_command(){
         //M30 <filename>
       case 30:
         {
-          char fName[30];
+          char fName[line_length];
           //closes file
           sd_close(&file);
           sd_init();
@@ -1230,7 +1231,7 @@ eParseResult process_gcode_command(){
 
       case 33: //M33 - Start SD print
         {
-          char fName[30];
+          char fName[line_length];
 
           memset(fName, '\0', sizeof(fName));
           memset(statusStr, '\0', sizeof(statusStr));
@@ -1961,7 +1962,7 @@ eParseResult process_gcode_command(){
       case 639:
         {
           if(!next_target.seen_B ){
-              for(int i=0;i<30;i++){
+              for(int i=0;i<line_length;i++){
                   if(next_target.filename[i]){
                       serial_writechar(next_target.filename[i]);
                   }else{
@@ -2137,56 +2138,78 @@ eParseResult process_gcode_command(){
         //Start Heating and got to heat position
       case 703:
         {
+
           if(!sd_printing)
             {
-              if(next_target.seen_S && !is_heating_Process)
+              // Wait for all movements to end
+              synch_queue();
+
+              // Check if heating process is active
+              if(is_heating_Process)
                 {
-                  pterm = 0;
-                  iterm = 0;
-                  dterm = 0;
-                  dterm_temp = 0;
+                  // Check if the setpoint temperature was reached
+                  if (current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
+                    {
+                      // Move bed to change filemant coordinates
+                      double zDest = config.home_pos_z;
+                      if(printerPause || printerShutdown) zDest = startpoint.z; // If there is a print do not move the z axis
+
+                      // Backup current acceleration value
+                      double acclerationStart = config.acceleration;
+
+                      // Ensure low acceleration in this move
+                      config.acceleration = 400;
+                      GoTo5D(0,0,zDest,startpoint.e,15000);
+                      if(!printerPause && !printerShutdown) config.acceleration = 1000;
+
+                      // Wait for movement to stop
+                      synch_queue();
+
+                      // Write status load/unload string
+                      strcpy(statusStr, "Load/Unload");
+
+                      // Restore acceleration
+                      config.acceleration = acclerationStart;
+
+                    }
+                  else break;
+                }
+              else
+                {
+                  // If no temperature is define, break
+                  if(!next_target.seen_S) break;
+
+                  // Start Heating process
                   is_heating_Process = true;
                   temp_set(next_target.S,EXTRUDER_0);
-                  config.status = 4;
+                  config.startpoint_temperature = next_target.S;
                   home();
-                  if(printerPause || printerShutdown)
-                    {
-                      GoTo5D(0,0,startpoint.z,startpoint.e,15000);
-                      config.startpoint_temperature = next_target.S;
-                    }
-                  else
-                    {
-                      config.acceleration = 400;
-                      GoTo5D(0,0,10,startpoint.e,15000);
-                      config.acceleration = 1000;
-                    }
 
+                  // Move bed to heating coordinates
+                  double zDest = 10.0;
+                  if(printerPause || printerShutdown) zDest = startpoint.z; // If there is a print do not move the z axis
+
+                  // Backup current acceleration value
+                  double acclerationStart = config.acceleration;
+
+                  // Ensure low acceleration in this move
+                  config.acceleration = 400;
+                  GoTo5D(0,0,zDest,startpoint.e,15000);
+                  if(!printerPause && !printerShutdown) config.acceleration = 1000;
+
+                  // Wait for movement to stop
+                  synch_queue();
+
+                  // Write heating status string
                   strcpy(statusStr, "Heating");
-                  config.status = 3;
-                  synch_queue();
-                  config.acceleration = 500;
-                }
-              else if(is_heating_Process && current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
-                {
-                  config.status = 4;
-                  if(printerPause || printerShutdown)
-                    {
-                      GoTo5D(0,0,startpoint.z,startpoint.e,15000);
-                    }
-                  else
-                    {
-                      GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,15000);
-                      config.acceleration = 400;
-                      GoTo5D(0,0,110,startpoint.e,startpoint.feed_rate);
-                      config.acceleration = 1000;
-                    }
 
-                  is_heating_Process = true;
-                  strcpy(statusStr, "Load/Unload");
-                  config.status = 3;
-                  synch_queue();
-                  config.acceleration = 500;
+                  // Restore previous acceleration
+                  config.acceleration = acclerationStart;
+
                 }
+
+              config.status = 3;
+
             }
           if(sd_printing){
               reply_sent = 1;

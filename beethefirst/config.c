@@ -45,6 +45,7 @@
 /* values reflecting the gearing of your machine
  * numbers are integers or double
  */
+
 struct configuration config;
 
 #define TYPE_INT    0

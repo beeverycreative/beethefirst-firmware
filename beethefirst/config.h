@@ -30,11 +30,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define line_length 30 //Max length to file names and respective lines
+
 #include "stdint.h"
 
 
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
+
+//extern unsigned char line_length;
 
 struct configuration
 {
@@ -64,7 +68,7 @@ struct configuration
   int32_t status;
 
   // autonomous
-  char filename[30];
+  char filename[line_length];
   int32_t  sd_pos;
   int32_t estimated_time;
   int32_t time_elapsed;
@@ -92,7 +96,7 @@ struct configuration
   double blockFanMaxSpeed;
 
   //Filament and Nozzle configs
-  char bcodeStr[30];
+  char bcodeStr[line_length];
   double filament_in_spool;
   uint16_t nozzleSize;
 

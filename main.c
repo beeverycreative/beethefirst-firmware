@@ -1,10 +1,10 @@
 /* Copyright (c) 2011-2013 BEEVC - Electronic Systems        */
 
-
 #include "r2c2.h"
 
 #define USER_FLASH_START 0x10000 /* For USB bootloader */
 //#define USER_FLASH_START 0x0 /* No USB bootloader */
+
 
 extern int app_main (void);
 
