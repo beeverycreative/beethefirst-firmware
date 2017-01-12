@@ -38,8 +38,6 @@
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1
 
-//extern unsigned char line_length;
-
 struct configuration
 {
   int32_t uid;
