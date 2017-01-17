@@ -151,6 +151,12 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     int j;
     eParseResult result = PR_OK;
 
+    //Only lines started with G and M have to be parsed
+    uint8_t firstChar = pLine->data[0];
+    if(firstChar != 'G' && firstChar != 'M'){
+        return PR_ERROR;
+    }
+
     for (j=0; j < pLine->len; j++){
         gcode_parse_char (pLine->data [j]);
     }

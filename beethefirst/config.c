@@ -83,7 +83,11 @@ tConfigItem config_lookup [] =
         { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
 
         //PID
+#ifdef EXP_Board
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=10.0}},
+#else
         { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=6.0}},
+#endif
         { "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
         { "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=80.0}},
         { "extruder_kBlower", &config.kBlower, TYPE_DOUBLE, {.val_d=0.0035}},
