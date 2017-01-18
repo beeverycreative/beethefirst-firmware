@@ -446,30 +446,6 @@ int app_main (void){
 
   init();
   bool cfg_res = read_config();
-  /*
-  uint32_t tries = 5;
-  bool cfg_res = false;
-  while(tries > 0)
-    {
-      cfg_res = read_config();
-      if(cfg_res == true)
-        {
-          break;
-        }
-      else
-        {
-          tries --;
-        }
-    }
-  if(cfg_res == false)
-    {
-      delay_ms(1000);
-      USBHwConnect(FALSE);
-      go_to_reset(); // reinicia o sistema
-    }
-  */
-
-  //read_config_override();
 
   if(!cfg_res)
     {

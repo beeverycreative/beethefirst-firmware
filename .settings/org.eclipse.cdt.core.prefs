@@ -26,6 +26,11 @@ environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.9165173
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/PATH/value=/bin\:/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/usr/games\:/usr/local/games\:/usr/lib/jvm/java-8-oracle/bin\:/usr/lib/jvm/java-8-oracle/db/bin\:/usr/lib/jvm/java-8-oracle/jre/bin\:/usr/local/gcc-arm-none-eabi-4_8-2014q1/bin/
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/append=true
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1912326411.916517369.1870256009/appendContributed=true
+environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.401789811/PATH/delimiter=\:
+environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.401789811/PATH/operation=append
+environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.401789811/PATH/value=/Users/mgomes/gcc-arm-none-eabi/bin/
+environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.401789811/append=true
+environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.401789811/appendContributed=true
 environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.559853841/append=true
 environment/project/ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.559853841/appendContributed=true
 environment/project/org.eclipse.linuxtools.cdt.autotools.core.toolChain.469514369/PATH/delimiter=\:

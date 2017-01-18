@@ -1272,16 +1272,6 @@ eParseResult process_gcode_command(){
           temp_set(0, EXTRUDER_0);
         }break;
 
-      case 100:
-	{/*
-          if(next_target.seen_S){
-              SDown_Threshold = next_target.S;
-          }else{*/
-              sersendf("Threshold:%u\n", SDown_Threshold);
-
-	}
-      break;
-
         // M104- set temperature
       case 104:
         {
@@ -1380,6 +1370,10 @@ eParseResult process_gcode_command(){
 
           config.filament_in_spool -= printed_filament;
           write_config();
+
+          memset(statusStr, '\0', sizeof(statusStr));
+          is_heating_Process = false;
+          is_calibrating = false;
 
         }
         break;
@@ -1517,20 +1511,18 @@ eParseResult process_gcode_command(){
               bool pidChange = false;
 
               if (next_target.seen_T){
-               //   sersendf("kp=%g\n", next_target.T);
+
                   config.kp = next_target.T;
                   pidChange = true;
               }
 
               if (next_target.seen_U){
-              //    sersendf("ki=%g\n", next_target.U*1000.0);
-                  config.ki = next_target.U;
 
                   pidChange = true;
               }
 
               if (next_target.seen_V){
-            //      sersendf("kd=%g\n", next_target.V);
+
                   config.kd = next_target.V;
                   pidChange = true;
               }

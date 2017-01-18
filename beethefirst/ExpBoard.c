@@ -40,34 +40,30 @@ void verifySDownConditions(void)
   if(sDown_filtered < SDown_Threshold)
     {
 
-	//  heated_bed_off();
+      if(sd_printing)
+	{
 
-	      if(sd_printing)
-		{
+	  initPause();
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
 
-		  initPause();
+	  queue_flush();
+	  reset_current_block();
 
-		  config.status = 9;
-		  write_config();
-		 // heated_bed_on();
+	  home_z();
+	}
+      else if(printerPause)
+	{
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
 
-		  sd_printing = false;
+	  queue_flush();
+	  reset_current_block();
 
-		  queue_flush();
-		  reset_current_block();
+	  home_z();
 
-		  home_z();
-		}
-	      else if(printerPause)
-		{
-
-		  config.status = 9;
-		  write_config();
-		  sd_printing = false;
-		  queue_flush();
-		  reset_current_block();
-
-		  home_z();
 	}
     }
 }
