@@ -593,14 +593,6 @@ int app_main (void){
           lastCmd_time = 0;
 
       }/*no need for else*/
-/*
-      if ((plan_queue_empty())
-          && (shutdown_pause)) {
-          printerPause = true;
-          shutdown_pause = false;
-          lastCmd_time = 0;
-
-      }*//*no need for else*/
 
       /***********************************************************************
        *
