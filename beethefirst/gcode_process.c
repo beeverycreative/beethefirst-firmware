@@ -94,7 +94,7 @@ bool      sd_writing_file = false;  // writing to SD file
 
 double printed_filament = 0;
 
-extern bool     debugMode = false;              //Enable debug functions
+extern bool debugMode = false;              //Enable debug functions
 
 //Pause at Z Vars
 bool pauseAtZ = false;
@@ -1272,6 +1272,16 @@ eParseResult process_gcode_command(){
           temp_set(0, EXTRUDER_0);
         }break;
 
+      case 100:
+	{/*
+          if(next_target.seen_S){
+              SDown_Threshold = next_target.S;
+          }else{*/
+              sersendf("Threshold:%u\n", SDown_Threshold);
+
+	}
+      break;
+
         // M104- set temperature
       case 104:
         {
@@ -1702,7 +1712,7 @@ eParseResult process_gcode_command(){
         {
           if(next_target.seen_S)
             {
-              double currentFlowrate = filament_coeff;
+        //    double currentFlowrate = filament_coeff;
               filament_coeff = (double) next_target.S / 100;
               //startpoint.f = startpoint.feed_rate * feedrate_coeff/currentFeedrate;
             }

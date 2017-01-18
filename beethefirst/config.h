@@ -30,10 +30,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define SDown_Threshold	1400      //2700 -> 24V Shutdown threshold at 16V
+#define BatteryLevel_Threshold         2475
+#define sDownADC_midpos 5
+
 #define line_length 30 //Max length to file names and respective lines
 
 #include "stdint.h"
-
 
 #define MM_REPRAP_MENDEL  0
 #define MM_RAPMAN         1

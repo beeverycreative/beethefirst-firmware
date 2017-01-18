@@ -1,17 +1,17 @@
 #include "ExpBoard.h"
 
-int32_t getMedianValue(int32_t array[5])
+int32_t getMedianValue(int32_t array[sDownADC_length])
 {
-  int32_t sortedArray[5];
+  int32_t sortedArray[sDownADC_length];
 
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < sDownADC_length; i++)
     {
       sortedArray[i] = array[i];
     }
 
-  bubble_sort(sortedArray, 5);
+  bubble_sort(sortedArray, sDownADC_length);
 
-  return sortedArray[2];
+  return sortedArray[sDownADC_midpos];
 }
 
 void bubble_sort(int32_t list[], int32_t n)
@@ -39,60 +39,36 @@ void verifySDownConditions(void)
 {
   if(sDown_filtered < SDown_Threshold)
     {
-      if(sd_printing)
-        {
 
-          initPause();
-          config.status = 9;
-          write_config();
-          sd_printing = false;
-          sd_pause = false;
-          sd_resume = false;
-          shutdown_pause = true;
+	//  heated_bed_off();
 
-          return;
+	      if(sd_printing)
+		{
 
-          //queue_flush();
-          //reset_current_block();
+		  initPause();
 
-          //home_z();
-        }
-      else if(shutdown_pause)
-        {
-          //config.status = 9;
-          //write_config();
+		  config.status = 9;
+		  write_config();
+		 // heated_bed_on();
 
-          int32_t sDownVal[5];
-          int32_t sDown_filt = 4096;
-          for(int i=0;i<5;i++)
-            {
-              sDownVal[i] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-            }
-          sDown_filt = getMedianValue(sDownVal);
+		  sd_printing = false;
 
-          if(sDown_filt < SDown_Threshold)
-            {
+		  queue_flush();
+		  reset_current_block();
 
-              queue_flush();
-              reset_current_block();
+		  home_z();
+		}
+	      else if(printerPause)
+		{
 
-              printerPause = false;
-              shutdown_pause = false;
+		  config.status = 9;
+		  write_config();
+		  sd_printing = false;
+		  queue_flush();
+		  reset_current_block();
 
-              home_z();
-            }
-          else {
-              //sd_printing = true;
-              sd_restartPrint = true;
-              shutdown_pause = false;
-          }
-
-          sDown_filtered = sDown_filt;
-          memcpy(sDownADC_raw,sDownVal,sizeof(sDownVal));
-
-          return;
-
-        }
+		  home_z();
+	}
     }
 }
 #endif

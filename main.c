@@ -45,4 +45,3 @@ int main(void)
   /* should never get here */
   while(1) ;
 }
-
