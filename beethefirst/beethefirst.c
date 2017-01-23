@@ -55,14 +55,20 @@
 
 tTimer temperatureTimer;
 #ifdef EXP_Board
+#define num_anlog_reads 102
   uint32_t i_sDownADC_raw;
   uint8_t consecutive_measures;
   int32_t sDownADC_raw[sDownADC_length];
   tTimer sDownTimer;
   int32_t sDown_filtered = 4095;
-
   tTimer blockFanTimer;
+
+ bool sd_volt_log = false;
+ uint16_t volt_fic_counter = 0;
+ uint16_t volt_sector[num_anlog_reads]={0};
+ tLineBuffer sd_line_volt_buf;
 #endif
+
 #ifdef USE_BATT
   int32_t battADC_raw;
   int32_t batt_filtered = 4095;
@@ -235,8 +241,17 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-
     sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
+
+    if(sd_volt_log && sd_line_volt_buf.seen_lf == 0){
+	if(volt_fic_counter >= num_anlog_reads){
+	    sd_line_volt_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
+	}
+	else if (volt_fic_counter < num_anlog_reads) { //Store the current analog reading to store later in SD card
+	    volt_sector[volt_fic_counter] = sDownADC_raw[i_sDownADC_raw % sDownADC_length];
+	    volt_fic_counter ++;
+	}
+    }
 
      if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
 	 consecutive_measures++;
@@ -402,6 +417,8 @@ void WDT_IRQHandler(void){
 }
 
 int app_main (void){
+
+
   long timer1 = 0;
   eParseResult parse_result;
   int temperature = 0;
@@ -411,6 +428,9 @@ int app_main (void){
   unsigned char sector[SD_BUF_SIZE] = {0};
   unsigned int BytesWritten;
   FRESULT res;
+
+  FRESULT volt_res;
+
   // set up pid default variables
   last_error = 0;
   dterm_temp = 0;
@@ -598,7 +618,6 @@ int app_main (void){
           printerPause = true;
           shutdown_pause = false;
           lastCmd_time = 0;
-
       }*//*no need for else*/
 
       /***********************************************************************
@@ -792,8 +811,35 @@ int app_main (void){
               config.status = 3;
 
           }/*no need for else*/
+          //
+      	}/*no need for else*/
 
-      }/*no need for else*/
+      #ifdef EXP_Board
 
+      if (sd_line_volt_buf.seen_lf && sd_volt_log )//Log Voltage to file
+        {
+	 sd_line_volt_buf.seen_lf = 0;
+
+  	 uint16_t temp_mult = MAX_LINE / volt_fic_counter;
+
+  	char temps[5];
+
+    for(int j = 0; j < volt_fic_counter ; j++){
+        sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
+        strcat(sd_line_volt_buf.data, temps); //Concatenates temporary string into write buffer
+    }
+
+    volt_res = sd_write_to_file(sd_line_volt_buf.data, volt_fic_counter*temp_mult); //Writes data to voltage log file
+    strcpy(sd_line_volt_buf.data, ""); //Clears buffer string
+    volt_fic_counter = 0;
+
+	 if(volt_res != FR_OK) {
+	                      serwrite_uint32(volt_res);
+	                      serial_writestr(" - error writing file\n");
+	                  }
+
+    }
+  #endif
   }
+
 }

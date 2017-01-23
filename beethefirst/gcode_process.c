@@ -54,7 +54,6 @@
 #define FW_V "0.0.0"
 #endif
 
-
 DWORD acc_size;                         /* Work register for fs command */
 WORD acc_files, acc_dirs;
 FILINFO Finfo;
@@ -74,7 +73,6 @@ FIL       file;
 FATFS Fatfs[_VOLUMES];          /* File system object for each logical drive */
 uint32_t  filesize = 0;
 uint32_t  sd_pos = 0;
-
 
 bool      sd_printing = false;      // printing from SD file
 bool      print2USB = false;      // printing from SD file to USB
@@ -117,6 +115,10 @@ int32_t calibratePos = 0;
 #ifdef EXP_Board
 bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
 int32_t   extruderFanSpeed = 0;
+extern bool sd_volt_log;
+extern uint16_t volt_sector[];
+extern tLineBuffer sd_line_volt_buf;
+extern uint16_t volt_fic_counter;
 #endif
 
 #define EXTRUDER_NUM_1  1
@@ -357,6 +359,7 @@ bool print_file()
 
   //Init SD Card
   res = sd_init();
+
   if(res != FR_OK)
     {
       sersendf("error mouting file system");
@@ -499,7 +502,7 @@ bool write_config_override()
 
   memset(line, '\0', sizeof(line));
   strcpy(line,"M1110 S1\n");
-  sd_write_to_file(line,strlen(line));
+  sd_write_to_file(line, strlen(line));
 
   //Backup Z offset
   memset(line, '\0', sizeof(line));
@@ -539,7 +542,7 @@ bool write_config_override()
   //Save to config
   memset(line, '\0', sizeof(line));
   sprintf(&line[0],"M601\n");
-  sd_write_to_file(line,strlen(line));
+  sd_write_to_file(line, strlen(line));
 
   sd_close(&file);
 
@@ -1272,9 +1275,9 @@ eParseResult process_gcode_command(){
           temp_set(0, EXTRUDER_0);
         }break;
 
-        // M104- set temperature
+      // M104- set temperature
       case 104:
-        {
+	{
           double maxTemp = 250;
 #ifdef EXP_Board
           maxTemp = 300;
@@ -2363,6 +2366,25 @@ eParseResult process_gcode_command(){
           read_config_override();
         }
         break;
+
+      case 1032:
+	{ //M1032 Starts voltage log
+	char fName[line_length];
+	strcpy(fName, "VOLT_LOG");
+	sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ); //opens as empty file for voltage log
+	sd_volt_log = true;
+      }
+      break;
+
+      case 1033:
+	{ //M1033 Stops voltage log
+	sd_volt_log = false;
+	sd_line_volt_buf.seen_lf = 0;
+	volt_fic_counter = 0;
+	f_sync(&file); //Synchronizes and closes file
+	sd_close(&file);
+      }
+	break;
 
 #ifdef USE_BATT
         //Read PS Ext Input
