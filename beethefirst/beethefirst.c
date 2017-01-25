@@ -5,13 +5,13 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
      notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
      notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the
      distribution.
-   * Neither the name of the copyright holders nor the names of
+ * Neither the name of the copyright holders nor the names of
      contributors may be used to endorse or promote products derived
      from this software without specific prior written permission.
 
@@ -26,7 +26,7 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -56,22 +56,23 @@
 tTimer temperatureTimer;
 #ifdef EXP_Board
 #define num_anlog_reads 102
-  uint32_t i_sDownADC_raw;
-  uint8_t consecutive_measures;
-  int32_t sDownADC_raw[sDownADC_length];
-  tTimer sDownTimer;
-  int32_t sDown_filtered = 4095;
-  tTimer blockFanTimer;
+uint32_t i_sDownADC_raw;
+uint8_t consecutive_measures;
+int32_t sDownADC_raw[sDownADC_length];
+tTimer sDownTimer;
+int32_t sDown_filtered = 4095;
+tTimer blockFanTimer;
 
- bool sd_volt_log = false;
- uint16_t volt_fic_counter = 0;
- uint16_t volt_sector[num_anlog_reads]={0};
- tLineBuffer sd_line_volt_buf;
+uint8_t sd_volt_log = false;
+bool sd_volt_loop = false;
+uint16_t volt_fic_counter = 0;
+uint16_t volt_sector[num_anlog_reads]={0};
+tLineBuffer sd_line_volt_buf;
 #endif
 
 #ifdef USE_BATT
-  int32_t battADC_raw;
-  int32_t batt_filtered = 4095;
+int32_t battADC_raw;
+int32_t batt_filtered = 4095;
 #endif
 
 tLineBuffer serial_line_buf;
@@ -239,124 +240,123 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifdef EXP_Board
 
 #ifndef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
-  {
-    sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
+void shutdownTimerCallBack (tTimer *pTimer)
+{
+  sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-    if(sd_volt_log && sd_line_volt_buf.seen_lf == 0){
-	if(volt_fic_counter >= num_anlog_reads){
-	    sd_line_volt_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
-	}
-	else if (volt_fic_counter < num_anlog_reads) { //Store the current analog reading to store later in SD card
-	    volt_sector[volt_fic_counter] = sDownADC_raw[i_sDownADC_raw % sDownADC_length];
-	    volt_fic_counter ++;
-	}
-    }
-
-     if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
-	 consecutive_measures++;
-
-     }else{
-	 consecutive_measures=0;
-     }
-     if(consecutive_measures>=2){
-	 sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
-     	 verifySDownConditions();
-     }
-     	 i_sDownADC_raw ++;
-
+  if(sd_volt_log && sd_line_volt_buf.seen_lf == 0){
+      if(volt_fic_counter >= num_anlog_reads){
+	  sd_line_volt_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
+      }
+      else if(volt_fic_counter < num_anlog_reads) { //Store the current analog reading to store later in SD card
+	  volt_sector[volt_fic_counter] = sDownADC_raw[i_sDownADC_raw % sDownADC_length];
+	  volt_fic_counter ++;
+      }
   }
+
+  if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
+      consecutive_measures++;
+  }else{
+      consecutive_measures=0;
+  }
+  if(consecutive_measures>=2){
+      sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
+      verifySDownConditions();
+  }
+  i_sDownADC_raw ++;
+
+}
 #endif
 
 #ifdef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
-  {
-    int i, j;
-    int32_t a;
+void shutdownTimerCallBack (tTimer *pTimer)
+{
+  int i, j;
+  int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+  sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+  //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+  i_sDownADC_raw ++;
+  if(i_sDownADC_raw >= 5)
+    {
+      i_sDownADC_raw = 0;
+    }
 
-    int32_t batt_buf[sDownADC_length];
-    for(int32_t j = 0; j < 5; j++)
-      {
-        batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-      }
+  int32_t batt_buf[sDownADC_length];
+  for(int32_t j = 0; j < 5; j++)
+    {
+      batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
+    }
 
-    battADC_raw = getMedianValue(batt_buf);
+  battADC_raw = getMedianValue(batt_buf);
 
-    sDown_filtered = getMedianValue(sDownADC_raw);
-    batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
+  sDown_filtered = getMedianValue(sDownADC_raw);
+  batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
 
-    ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
+  ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
 
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
+  if(debugMode == false)
+    {
+      verifySDownConditions();
+    }
 
-    if(debugMode == false)
-      {
-        verifyBatteryLevels();
-      }
+  if(debugMode == false)
+    {
+      verifyBatteryLevels();
+    }
 
-  }
+}
 #endif
 
-  void blockFanTimerCallBack(tTimer *pTimer) {
+void blockFanTimerCallBack(tTimer *pTimer) {
 
-    if (manualBlockFanControl == false && debugMode == false)
-      {
-        double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
+  if (manualBlockFanControl == false && debugMode == false)
+    {
+      double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
 
-        if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
-          {
-            if(fSpeed > 100) fSpeed = 100;
-            extruderFanSpeed = fSpeed;
-          }
-        else if(extruderFanSpeed != 0)
-          {
-            if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
-              {
-                extruderFanSpeed = 0;
-              }
-            if(fSpeed < 0)
-              {
-                extruderFanSpeed = 0;
-              }
-            else if(fSpeed > 100)
-              {
-                extruderFanSpeed = 100;
-              }
-            else
-              {
-                extruderFanSpeed = fSpeed;
-              }
-          }
+      if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
+	{
+	  if(fSpeed > 100) fSpeed = 100;
+	  extruderFanSpeed = fSpeed;
+	}
+      else if(extruderFanSpeed != 0)
+	{
+	  if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
+	    {
+	      extruderFanSpeed = 0;
+	    }
+	  if(fSpeed < 0)
+	    {
+	      extruderFanSpeed = 0;
+	    }
+	  else if(fSpeed > 100)
+	    {
+	      extruderFanSpeed = 100;
+	    }
+	  else
+	    {
+	      extruderFanSpeed = fSpeed;
+	    }
+	}
 
-        if(target_temp[EXTRUDER_0] == 0 || is_heating_MCode)
-          {
-            extruderFanSpeed = 0;
-          }
+      if(target_temp[EXTRUDER_0] == 0 || is_heating_MCode)
+	{
+	  extruderFanSpeed = 0;
+	}
 
-        extruder_block_fan_on();
-        pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
-        pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-      }
+      extruder_block_fan_on();
+      pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
+      pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+    }
 
-    if(current_temp_r2c2 < 40 && in_power_saving)
-      {
-        r2c2_fan_off();
-      } else {
-          r2c2_fan_on();
-      }
+  if(current_temp_r2c2 < 40 && in_power_saving)
+    {
+      r2c2_fan_off();
+    } else {
+	r2c2_fan_on();
+    }
 
-  }
+}
 #endif
 
 void init(void)
@@ -418,6 +418,13 @@ void WDT_IRQHandler(void){
 
 int app_main (void){
 
+  /*
+  bool trelativeCoordinates;
+  double xo;
+  double yo;
+  double zo;
+  double accelo;*/
+  int32_t log_counter = 0;
 
   long timer1 = 0;
   eParseResult parse_result;
@@ -505,9 +512,9 @@ int app_main (void){
        *
        ***********************************************************************/
       if(debugMode == false)
-        {
-          LogoLightControl();
-        }
+	{
+	  LogoLightControl();
+	}
 
       /***********************************************************************
        *
@@ -516,62 +523,62 @@ int app_main (void){
        ***********************************************************************/
       //Verify if printer should enter in power saving
       if(
-          !sd_printing
-          && !sd_restartPrint
-          && !sd_pause
-          && lastCmd_time > (config.powerSavingWaitTime * 1000 - powerSavingDelay)
-          && !in_power_saving
-          && !is_heating_Process
-          && !is_heating_MCode
-          && !is_calibrating
-          && !enter_power_saving
-          && !debugMode
-          && !printerPause
-          && !transfer_mode)
-        {
-          temp_set(0, EXTRUDER_0);
-          enter_power_saving = 1;
-          rest_time = 0;
-        }
+	  !sd_printing
+	  && !sd_restartPrint
+	  && !sd_pause
+	  && lastCmd_time > (config.powerSavingWaitTime * 1000 - powerSavingDelay)
+	  && !in_power_saving
+	  && !is_heating_Process
+	  && !is_heating_MCode
+	  && !is_calibrating
+	  && !enter_power_saving
+	  && !debugMode
+	  && !printerPause
+	  && !transfer_mode)
+	{
+	  temp_set(0, EXTRUDER_0);
+	  enter_power_saving = 1;
+	  rest_time = 0;
+	}
 
       if(enter_power_saving && (rest_time > powerSavingDelay))
-        {
+	{
 
-          synch_queue();
-          home_z();
+	  synch_queue();
+	  home_z();
 
-          while(!(plan_queue_empty())){
-              continue;
-          }
-          //pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
-          //digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 0); /* Disable reset for all stepper motors */
-          x_disable();
-          y_disable();
-          z_disable();
-          e_disable();
+	  while(!(plan_queue_empty())){
+	      continue;
+	  }
+	  //pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
+	  //digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 0); /* Disable reset for all stepper motors */
+	  x_disable();
+	  y_disable();
+	  z_disable();
+	  e_disable();
 
-          temp_set(0, EXTRUDER_0);
+	  temp_set(0, EXTRUDER_0);
 
 #ifdef EXP_Board
-          blink_time = 0;
-          start_logo_blink = 1;
-          stop_logo_blink = 0;
-          logo_state = 0;
-          blink_interval = 1000;
+	  blink_time = 0;
+	  start_logo_blink = 1;
+	  stop_logo_blink = 0;
+	  logo_state = 0;
+	  blink_interval = 1000;
 
-          ilum_off();
+	  ilum_off();
 
-          extruder_block_fan_on();
-          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
-          pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          manualBlockFanControl = true;
+	  extruder_block_fan_on();
+	  pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
+	  pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+	  manualBlockFanControl = true;
 
 #endif
 
-          leave_power_saving = 1;
-          enter_power_saving = 0;
-          in_power_saving = true;
-      }/* No need for else */
+	  leave_power_saving = 1;
+	  enter_power_saving = 0;
+	  in_power_saving = true;
+	}/* No need for else */
 
 
       /***********************************************************************
@@ -586,19 +593,19 @@ int app_main (void){
       //nor printing form sd card
       //then is ready
       if((plan_queue_empty())
-          && (config.status != 0)
-          && (config.status != 7)
-          && (config.status != 9)
-          && (!sd_printing)){
+	  && (config.status != 0)
+	  && (config.status != 7)
+	  && (config.status != 9)
+	  && (!sd_printing)){
 
-          config.status = 3;
+	  config.status = 3;
       }/*no need for else*/
 
       if((plan_queue_empty())
-          && (config.status != 0)
-          && (sd_printing)){
+	  && (config.status != 0)
+	  && (sd_printing)){
 
-          config.status = 5;
+	  config.status = 5;
       }/*no need for else*/
 
       /***********************************************************************
@@ -607,12 +614,12 @@ int app_main (void){
        *
        ***********************************************************************/
       if ((plan_queue_empty())
-          && (sd_pause)) {
-          pausePrint();
-          lastCmd_time = 0;
+	  && (sd_pause)) {
+	  pausePrint();
+	  lastCmd_time = 0;
 
       }/*no need for else*/
-/*
+      /*
       if ((plan_queue_empty())
           && (shutdown_pause)) {
           printerPause = true;
@@ -626,58 +633,58 @@ int app_main (void){
        *
        ***********************************************************************/
       if ((plan_queue_empty())
-          && (sd_resume)) {
-          resumePrint();
+	  && (sd_resume)) {
+	  resumePrint();
       }/*no need for else*/
 
       if(plan_queue_empty() && sd_restartPrint)
-        {
-          config.status = 5;
-          sd_printing = true;
-          sd_pause = false;
-          sd_resume = false;
-          sd_restartPrint = false;
-          printerShutdown = false;
-          printerPause = false;
+	{
+	  config.status = 5;
+	  sd_printing = true;
+	  sd_pause = false;
+	  sd_resume = false;
+	  sd_restartPrint = false;
+	  printerShutdown = false;
+	  printerPause = false;
 
-          shutdown_pause = false;
+	  shutdown_pause = false;
 
-          disableSerialReply = false;
-        }
+	  disableSerialReply = false;
+	}
       /***********************************************************************
        *
        *                PROCESS CHARACTERS FROM USB PORT
        *
        ***********************************************************************/
       while (!serial_line_buf.seen_lf
-          && (serial_rxchars() != 0)){
+	  && (serial_rxchars() != 0)){
 
-          unsigned char c = serial_popchar();
+	  unsigned char c = serial_popchar();
 
-          if (serial_line_buf.len < MAX_LINE){
-              serial_line_buf.data [serial_line_buf.len] = c;
-              serial_line_buf.len++;
-          }/*no need for else*/
+	  if (serial_line_buf.len < MAX_LINE){
+	      serial_line_buf.data [serial_line_buf.len] = c;
+	      serial_line_buf.len++;
+	  }/*no need for else*/
 
-          if (((c==10) || (c==13))
-              && (transfer_mode == 0)){
+	  if (((c==10) || (c==13))
+	      && (transfer_mode == 0)){
 
-              if (serial_line_buf.len > 1)
-                serial_line_buf.seen_lf = 1;
-              else
-                serial_line_buf.len = 0;
+	      if (serial_line_buf.len > 1)
+		serial_line_buf.seen_lf = 1;
+	      else
+		serial_line_buf.len = 0;
 
-          }/*no need for else*/
+	  }/*no need for else*/
 
-          if (transfer_mode == 1){
-              number_of_bytes = number_of_bytes + 1;
-              if ((number_of_bytes == bytes_to_transfer)
-                  ||((counter + serial_line_buf.len) == SD_BUF_SIZE)){
+	  if (transfer_mode == 1){
+	      number_of_bytes = number_of_bytes + 1;
+	      if ((number_of_bytes == bytes_to_transfer)
+		  ||((counter + serial_line_buf.len) == SD_BUF_SIZE)){
 
-                  serial_line_buf.seen_lf = 1;
-                  break;
-              }/*no need for else*/
-          }/*no need for else*/
+		  serial_line_buf.seen_lf = 1;
+		  break;
+	      }/*no need for else*/
+	  }/*no need for else*/
       }
 
       /***********************************************************************
@@ -687,30 +694,30 @@ int app_main (void){
        ***********************************************************************/
       // process SD file if no serial command pending
       if (!sd_line_buf.seen_lf
-          && sd_printing
-          && (plan_queue_size() < 10)){
+	  && sd_printing
+	  && (plan_queue_size() < 10)){
 
-          if (sd_read_file (&sd_line_buf)){
-              if(print2USB)
-                {
-                  sersendf(&sd_line_buf);
-                } else {
-                    sd_line_buf.seen_lf = 1;
-                }
+	  if (sd_read_file (&sd_line_buf)){
+	      if(print2USB)
+		{
+		  sersendf(&sd_line_buf);
+		} else {
+		    sd_line_buf.seen_lf = 1;
+		}
 
-              executed_lines++;
-          }else{
-              sd_printing = false;
-              print2USB = false;
-              debugMode = false;
-              //sersendf(";EOF\n");
-              config.last_print_time = time_elapsed;
-              config.last_print_filament = printed_filament;
-              config.filament_in_spool -= printed_filament;
-              write_config();
-              filament_coeff = 1;
-              feedrate_coeff = 1;
-          }
+	      executed_lines++;
+	  }else{
+	      sd_printing = false;
+	      print2USB = false;
+	      debugMode = false;
+	      //sersendf(";EOF\n");
+	      config.last_print_time = time_elapsed;
+	      config.last_print_filament = printed_filament;
+	      config.filament_in_spool -= printed_filament;
+	      write_config();
+	      filament_coeff = 1;
+	      feedrate_coeff = 1;
+	  }
 
       }/*no need for else*/
 
@@ -721,28 +728,28 @@ int app_main (void){
        ***********************************************************************/
       // if queue is full, we wait
       if (!plan_queue_full()
-          && !transfer_mode
-          && (serial_line_buf.seen_lf
-              || sd_line_buf.seen_lf) ){
+	  && !transfer_mode
+	  && (serial_line_buf.seen_lf
+	      || sd_line_buf.seen_lf) ){
 
-          /* At end of each line, put the "GCode" on movebuffer.
-           * If there are movement to do, Timer will start and execute code which
-           * will take data from movebuffer and generate the required step pulses
-           * for stepper motors.
-           */
+	  /* At end of each line, put the "GCode" on movebuffer.
+	   * If there are movement to do, Timer will start and execute code which
+	   * will take data from movebuffer and generate the required step pulses
+	   * for stepper motors.
+	   */
 
-          // give priority to user commands
-          if (serial_line_buf.seen_lf){
+	  // give priority to user commands
+	  if (serial_line_buf.seen_lf){
 
-              parse_result = gcode_parse_line (&serial_line_buf);
-              serial_line_buf.len = 0;
-              serial_line_buf.seen_lf = 0;
+	      parse_result = gcode_parse_line (&serial_line_buf);
+	      serial_line_buf.len = 0;
+	      serial_line_buf.seen_lf = 0;
 
-          }else if (sd_line_buf.seen_lf){
-              parse_result = gcode_parse_line (&sd_line_buf);
-              sd_line_buf.len = 0;
-              sd_line_buf.seen_lf = 0;
-          }
+	  }else if (sd_line_buf.seen_lf){
+	      parse_result = gcode_parse_line (&sd_line_buf);
+	      sd_line_buf.len = 0;
+	      sd_line_buf.seen_lf = 0;
+	  }
       }/*no need for else*/
 
       /***********************************************************************
@@ -751,95 +758,166 @@ int app_main (void){
        *
        ***********************************************************************/
       if (transfer_mode
-          && (serial_line_buf.len != 0)){
+	  && (serial_line_buf.len != 0)){
 
-          /*used in the debug loop back*/
-          //serial_writeblock(serial_line_buf.data,serial_line_buf.len);
+	  /*used in the debug loop back*/
+	  //serial_writeblock(serial_line_buf.data,serial_line_buf.len);
 
-          /*This should never occur!*/
-          if (!((counter + serial_line_buf.len) <= SD_BUF_SIZE)){
-              serial_writestr("error : sector overflow ");
-              serwrite_uint32(counter + serial_line_buf.len);
-              serial_writestr("\n");
-          }/*no need for else*/
+	  /*This should never occur!*/
+	  if (!((counter + serial_line_buf.len) <= SD_BUF_SIZE)){
+	      serial_writestr("error : sector overflow ");
+	      serwrite_uint32(counter + serial_line_buf.len);
+	      serial_writestr("\n");
+	  }/*no need for else*/
 
-          /*the USB message is transfered to the array that is going to be stored*/
-          for (int i = 0; i < serial_line_buf.len; i++){
-              sector[counter+i] = serial_line_buf.data[i];
-          }
+	  /*the USB message is transfered to the array that is going to be stored*/
+	  for (int i = 0; i < serial_line_buf.len; i++){
+	      sector[counter+i] = serial_line_buf.data[i];
+	  }
 
-          counter = counter + serial_line_buf.len;
-          serial_line_buf.len = 0;
-          serial_line_buf.seen_lf = 0;
+	  counter = counter + serial_line_buf.len;
+	  serial_line_buf.len = 0;
+	  serial_line_buf.seen_lf = 0;
 
-          /*if the array to be written is full, it is write*/
-          if (counter == SD_BUF_SIZE){
-              /* writes to the file*/
-              res = sd_write_to_file(sector, SD_BUF_SIZE);
-              if(res != FR_OK) {
-                  serwrite_uint32(res);
-                  serial_writestr(" - error writing file\n");
-              }else{
-                  serial_writestr("tog\n");
-              }
-              counter = 0;
+	  /*if the array to be written is full, it is write*/
+	  if (counter == SD_BUF_SIZE){
+	      /* writes to the file*/
+	      res = sd_write_to_file(sector, SD_BUF_SIZE);
+	      if(res != FR_OK) {
+		  serwrite_uint32(res);
+		  serial_writestr(" - error writing file\n");
+	      }else{
+		  serial_writestr("tog\n");
+	      }
+	      counter = 0;
 
-          }/*no need for else*/
+	  }/*no need for else*/
 
-          if (number_of_bytes == bytes_to_transfer){
+	  if (number_of_bytes == bytes_to_transfer){
 
-              /*if the array to be written is full, it is write*/
-              if (counter != 0){
+	      /*if the array to be written is full, it is write*/
+	      if (counter != 0){
 
-                  /* writes to the file*/
-                  res = sd_write_to_file(sector, counter);
-                  if(res != FR_OK) {
-                      serwrite_uint32(res);
-                      serial_writestr(" - error writing file\n");
-                  }else{
-                      serial_writestr("tog\n");
-                  }
-              }/*no need for else*/
+		  /* writes to the file*/
+		  res = sd_write_to_file(sector, counter);
+		  if(res != FR_OK) {
+		      serwrite_uint32(res);
+		      serial_writestr(" - error writing file\n");
+		  }else{
+		      serial_writestr("tog\n");
+		  }
+	      }/*no need for else*/
 
 
-              f_sync(&file);
+	      f_sync(&file);
 
-              bytes_to_transfer = 0;
-              number_of_bytes = 0;
-              transfer_mode = 0;
-              counter = 0;
-              config.status = 3;
+	      bytes_to_transfer = 0;
+	      number_of_bytes = 0;
+	      transfer_mode = 0;
+	      counter = 0;
+	      config.status = 3;
 
-          }/*no need for else*/
-          //
-      	}/*no need for else*/
+	  }/*no need for else*/
+	  //
+      }/*no need for else*/
 
-      #ifdef EXP_Board
+#ifdef EXP_Board
 
-      if (sd_line_volt_buf.seen_lf && sd_volt_log )//Log Voltage to file
-        {
-	 sd_line_volt_buf.seen_lf = 0;
+      if (sd_line_volt_buf.seen_lf && sd_volt_log > 0){//Log Voltage to file
+	  sd_line_volt_buf.seen_lf = 0;
 
-  	 uint16_t temp_mult = MAX_LINE / volt_fic_counter;
+	  //  uint16_t temp_mult = (MAX_LINE / volt_fic_counter) + 1;
 
-  	char temps[5];
+	  char temps[5];
 
-    for(int j = 0; j < volt_fic_counter ; j++){
-        sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
-        strcat(sd_line_volt_buf.data, temps); //Concatenates temporary string into write buffer
-    }
+	  for(int j = 0; j < volt_fic_counter ; j++){
+	      sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
+	      strcat(sd_line_volt_buf.data, temps); //Concatenates temporary string into write buffer
+	  }
 
-    volt_res = sd_write_to_file(sd_line_volt_buf.data, volt_fic_counter*temp_mult); //Writes data to voltage log file
-    strcpy(sd_line_volt_buf.data, ""); //Clears buffer string
-    volt_fic_counter = 0;
+	  volt_res = sd_write_to_file(sd_line_volt_buf.data, volt_fic_counter*sizeof(temps)); //Writes data to voltage log file
 
-	 if(volt_res != FR_OK) {
-	                      serwrite_uint32(volt_res);
-	                      serial_writestr(" - error writing file\n");
-	                  }
+	  if(volt_res != FR_OK) {
+	      serwrite_uint32(volt_res);
+	      serial_writestr(" - error writing file\n");
+	  }
 
-    }
-  #endif
-  }
+	  strcpy(sd_line_volt_buf.data, ""); //Clears buffer string
+	  volt_fic_counter = 0;
+	  if (sd_volt_log == 3 && plan_queue_empty()){
+	      f_sync(&file); //Synchronizes and closes file
+	      sd_close(&file);
+	      sd_volt_log = 0;
+	      log_counter = 0;
+	  }
+	}
+
+      if (sd_volt_log == 1 && sd_volt_loop){//Log Voltage movement procedure
+	  switch (log_counter){
+	    case 0:
+	      if(plan_queue_empty()){
+		  /*  trelativeCoordinates = relativeCoordinates;
+		  xo = startpoint.x;
+		  yo = startpoint.y;
+		  zo = startpoint.z;
+		  accelo = config.acceleration;
+		  config.acceleration = 200.0;*/
+		  home();
+		  log_counter++;
+	      }
+	      break;
+	    case 1:
+	      if(plan_queue_empty()){
+		  GoTo5D(-96.0, -65.0, 125.0, startpoint.e, 1500);
+		  log_counter++;
+	      }
+	      break;
+	    case 2:
+	      if(plan_queue_empty()){
+		  GoTo5D(startpoint.x, 65.0, startpoint.z, startpoint.e, 1500);
+		  log_counter++;
+	      }
+	      break;
+	    case 3:
+	      if(plan_queue_empty()){
+		  GoTo5D(-96.0, 65.0 , 10.0, startpoint.e, 1500);
+		  log_counter++;
+	      }
+	      break;
+	    case 4:
+	      if(plan_queue_empty()){
+		  GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
+		  log_counter++;
+	      }
+	      break;
+	    case 5:
+	      if(plan_queue_empty()){
+		  GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
+		  log_counter++;
+	      }
+	      break;
+	    case 6:
+	      if(plan_queue_empty()){
+		  GoTo5D(startpoint.x, -65.0, startpoint.z, startpoint.e, 1500);
+		  log_counter = 0;
+	      }
+	      break;
+	  }
+	  /* case 7:
+	      log_counter = 0;
+
+	      //  config.acceleration = accelo;
+	      // relativeCoordinates = trelativeCoordinates;
+	      //sd_line_volt_buf.seen_lf = 1;
+	      // log_counter ++;
+	      break;*/
+      }else if(sd_volt_log == 2 && sd_volt_loop && plan_queue_empty()){
+	      home();
+	      sd_volt_log = 3;
+	      sd_volt_loop = false;
+      }
+
+#endif
+}
 
 }
