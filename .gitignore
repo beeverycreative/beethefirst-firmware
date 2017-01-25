@@ -8,3 +8,5 @@ openocd-0.9-scripts/
 .settings/
 *.cproject
 *.project
+.cproject
+.project
