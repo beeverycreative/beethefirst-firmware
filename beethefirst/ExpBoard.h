@@ -6,7 +6,7 @@
 #include "temp.h"
 #include "config.h"
 
-#define SDown_Threshold         1200            //2700 -> 24V Shutdown threshold at ~10V
+#define SDown_Threshold         1400            //2700 -> 24V Shutdown threshold at ~10V
 #define BatteryLevel_Threshold         2475
 
 int32_t getMedianValue(int32_t array[5]);

@@ -55,10 +55,11 @@
 
 tTimer temperatureTimer;
 #ifdef EXP_Board
-  int32_t i_sDownADC_raw;
-  int32_t sDownADC_raw[5];
+  uint16_t i_sDownADC_raw;
+  uint16_t consecutive_measures;
+  uint16_t sDownADC_raw[sDownADC_length];
   tTimer sDownTimer;
-  int32_t sDown_filtered = 4095;
+  uint16_t sDown_filtered = 4095;
 
   tTimer blockFanTimer;
 #endif
@@ -234,22 +235,20 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int i, j;
-    int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+    sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-    sDown_filtered = getMedianValue(sDownADC_raw);
+     if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
+	 consecutive_measures++;
 
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
+     }else{
+	 consecutive_measures=0;
+     }
+     if(consecutive_measures>=2){
+	 sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
+     	 verifySDownConditions();
+     }
+     	 i_sDownADC_raw ++;
 
   }
 #endif
