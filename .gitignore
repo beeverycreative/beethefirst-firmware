@@ -10,3 +10,4 @@ openocd-0.9-scripts/
 *.project
 .cproject
 .project
+.~*
