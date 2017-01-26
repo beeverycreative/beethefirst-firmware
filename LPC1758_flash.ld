@@ -31,8 +31,8 @@ SEARCH_DIR(.)
 
 MEMORY
 {
-  rom (rx)  : ORIGIN = 64K, LENGTH = (512K-64K) /* Bootloader uses first 64Kbytes of flash memory */
- /* rom (rx)  : ORIGIN = 0, LENGTH = (512K) *//* No Bootloader */
+  /*rom (rx)  : ORIGIN = 64K, LENGTH = (512K-64K)*/ /* Bootloader uses first 64Kbytes of flash memory */
+  rom (rx)  : ORIGIN = 0, LENGTH = (512K) /* No Bootloader */
   ram (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
   ahbb0(rw) : ORIGIN = 0x2007C000, LENGTH =  16K
   /* ahbb1(rw) : ORIGIN = 0x20080000, LENGTH =  16K */
