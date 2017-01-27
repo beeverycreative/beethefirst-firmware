@@ -57,7 +57,7 @@ tTimer temperatureTimer;
 #ifdef EXP_Board
   uint16_t i_sDownADC_raw;
   uint16_t consecutive_measures;
-  uint16_t sDownADC_raw[sDownADC_length];
+  uint16_t sDownADC_raw[sDownADC_length]; //Supply voltage measures length
   tTimer sDownTimer;
   uint16_t sDown_filtered = 4095;
 

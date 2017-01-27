@@ -36,7 +36,8 @@
 #define HEATED_BED_0                    1
 
 #define tol    1.2      //Temperatures tolerance
-#define sDownADC_length 11
+#define sDownADC_length 11 //Supply voltage measures length
+#define sDownADC_midpos 5 //Middle position of the array
 
 #ifdef EXP_Board
 extern double extruderBlockTemp;
