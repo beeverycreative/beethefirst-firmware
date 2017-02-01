@@ -63,11 +63,12 @@ tTimer temperatureTimer;
   tTimer blockFanTimer;
 
   #define num_anlog_reads 102
+ // tLineBuffer sd_line_volt_buf;
+  uint16_t volt_sector[num_anlog_reads] = {0};
+  uint16_t volt_fic_counter = 0;
+  uint16_t log_counter = 0; //Counter related to the voltage log movement loop
   uint8_t sd_volt_log = 0;
   bool sd_volt_loop = false;
-  uint16_t volt_fic_counter = 0;
-  uint16_t volt_sector[num_anlog_reads]={0};
-  tLineBuffer sd_line_volt_buf;
 #endif
 #ifdef USE_BATT
   int32_t battADC_raw;
@@ -241,15 +242,12 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int i, j;
-    int32_t a;
 
     sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
 
-
-    if(sd_volt_log && sd_line_volt_buf.seen_lf == 0){
+    if((sd_volt_log == 1 || sd_volt_log == 2) && sd_line_buf.seen_lf == 0){
 	if(volt_fic_counter >= num_anlog_reads){
-	    sd_line_volt_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
+	    sd_line_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
 	}
 	else if(volt_fic_counter < num_anlog_reads) { //Store the current analog reading to store later in SD card
 	    volt_sector[volt_fic_counter] = sDownADC_raw[i_sDownADC_raw];
@@ -425,8 +423,6 @@ int app_main (void){
   long timer1 = 0;
   eParseResult parse_result;
   int temperature = 0;
-
-  uint16_t log_counter = 0; //Counter related to the voltage log movement loop
 
   /*variables used to write the gcode in the sd card*/
   unsigned int counter = 0;
@@ -741,7 +737,7 @@ int app_main (void){
               serial_line_buf.len = 0;
               serial_line_buf.seen_lf = 0;
 
-          }else if (sd_line_buf.seen_lf){
+          }else if (sd_line_buf.seen_lf && sd_volt_log == 0){
               parse_result = gcode_parse_line (&sd_line_buf);
               sd_line_buf.len = 0;
               sd_line_buf.seen_lf = 0;
@@ -819,87 +815,74 @@ int app_main (void){
 
 #ifdef EXP_Board
 
-      if (sd_line_volt_buf.seen_lf && sd_volt_log > 0){//Log Voltage to file
-	  sd_line_volt_buf.seen_lf = 0;
+      if (sd_line_buf.seen_lf && sd_volt_log > 0){//Log Voltage to file
+    	  sd_line_buf.seen_lf = 0;
 
-	  //  uint16_t temp_mult = (MAX_LINE / volt_fic_counter) + 1;
+    	  //  uint16_t temp_mult = (MAX_LINE / volt_fic_counter) + 1;
 
-	  char temps[5];
+    	  char temps[5];
 
-	  for(int j = 0; j < volt_fic_counter ; j++){
-	      sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
-	      strcat(sd_line_volt_buf.data, temps); //Concatenates temporary string into write buffer
-	  }
+    	  for(int j = 0; j < volt_fic_counter ; j++){
+    		  sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
+    		  strcat(sd_line_buf.data, temps); //Concatenates temporary string into write buffer
+    	  }
 
-	  FRESULT volt_res = sd_write_to_file(sd_line_volt_buf.data, volt_fic_counter*sizeof(temps)); //Writes data to voltage log file
+    	  FRESULT volt_res = sd_write_to_file(sd_line_buf.data, volt_fic_counter*sizeof(temps)); //Writes data to voltage log file
 
-	  if(volt_res != FR_OK) {
-	      serwrite_uint32(volt_res);
-	      serial_writestr(" - error writing file\n");
-	  }
+    	  if(volt_res != FR_OK) {
+    		  serwrite_uint32(volt_res);
+    		  serial_writestr(" - error writing file\n");
+    	  }
 
-	  strcpy(sd_line_volt_buf.data, ""); //Clears buffer string
-	  volt_fic_counter = 0;
-	  if (sd_volt_log == 3 && plan_queue_empty()){
-	      f_sync(&file); //Synchronizes and closes file
-	      sd_close(&file);
-	      sd_volt_log = 0;
-	      log_counter = 0;
-	  }
+    	  strcpy(sd_line_buf.data, ""); //Clears buffer string
+    	  volt_fic_counter = 0;
+    	  if (sd_volt_log == 3 && plan_queue_empty()){
+    		  f_sync(&file); //Synchronizes and closes file
+    		  sd_close(&file);
+    		  sd_volt_log = 0;
+    		  log_counter = 0;
+    	  }
       }
+      if(plan_queue_empty()){
+    	  if (sd_volt_log == 1 && sd_volt_loop){//Log Voltage movement procedure
+    		  switch (log_counter){
+    		  case 0:
+    			  home();
+    			  log_counter++;
 
-      if (sd_volt_log == 1 && sd_volt_loop){//Log Voltage movement procedure
-	  switch (log_counter){
-	    case 0:
-	      if(plan_queue_empty()){
-		  home();
-		  log_counter++;
-	      }
-	      break;
-	    case 1:
-	      if(plan_queue_empty()){
-		  GoTo5D(-96.0, -65.0, 125.0, startpoint.e, 1500);
-		  log_counter++;
-	      }
-	      break;
-	    case 2:
-	      if(plan_queue_empty()){
-		  GoTo5D(startpoint.x, 65.0, startpoint.z, startpoint.e, 1500);
-		  log_counter++;
-	      }
-	      break;
-	    case 3:
-	      if(plan_queue_empty()){
-		  GoTo5D(-96.0, 65.0 , 10.0, startpoint.e, 1500);
-		  log_counter++;
-	      }
-	      break;
-	    case 4:
-	      if(plan_queue_empty()){
-		  GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
-		  log_counter++;
-	      }
-	      break;
-	    case 5:
-	      if(plan_queue_empty()){
-		  GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
-		  log_counter++;
-	      }
-	      break;
-	    case 6:
-	      if(plan_queue_empty()){
-		  GoTo5D(startpoint.x, -65.0, startpoint.z, startpoint.e, 1500);
-		  log_counter = 0;
-	      }
-	      break;
-	  }
+    			  break;
+    		  case 1:
+    			  GoTo5D(-96.0, -65.0, /*125.*/0, startpoint.e, 1500);
+    			  log_counter++;
+    			  break;
+    		  case 2:
+    			  GoTo5D(startpoint.x, 65.0, startpoint.z, startpoint.e, 1500);
+    			  log_counter++;
+    			  break;
+    		  case 3:
+    			  GoTo5D(-96.0, 65.0 , /*1*/0.0, startpoint.e, 1500);
+    			  log_counter++;
+    			  break;
+    		  case 4:
+    			  GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
+    			  log_counter++;
+    			  break;
+    		  case 5:
+    			  GoTo5D(-96.0, startpoint.y, /*125.*/0, startpoint.e, 1500);
+    			  log_counter++;
+    			  break;
+    		  case 6:
+    			  GoTo5D(startpoint.x, -65.0, startpoint.z, startpoint.e, 1500);
+    			  log_counter = 0;
+    			  break;
+    		  }
 
-      }else if(sd_volt_log == 2 && sd_volt_loop && plan_queue_empty()){
-	  home();
-	  sd_volt_log = 3;
-	  sd_volt_loop = false;
+    	  }else if(sd_volt_log == 2 && sd_volt_loop){
+    		  home();
+    		  sd_volt_log = 3;
+    		  sd_volt_loop = false;
+    	  }
       }
-
 #endif
 
   }

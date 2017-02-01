@@ -118,9 +118,10 @@ int32_t calibratePos = 0;
 bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
 int32_t   extruderFanSpeed = 0;
 
+//extern tLineBuffer sd_line_volt_buf;
+extern tLineBuffer sd_line_buf;
 extern uint8_t sd_volt_log;
 extern bool sd_volt_loop;
-extern tLineBuffer sd_line_volt_buf;
 #endif
 
 #define EXTRUDER_NUM_1  1
@@ -2539,7 +2540,7 @@ eParseResult process_gcode_command(){
 
       case 1113:
 	{//M1113 Stops voltage log
-	  sd_line_volt_buf.seen_lf = 1;
+	  sd_line_buf.seen_lf = 1;
 	  if(!sd_volt_loop){
 	      sd_volt_log = 3;
 	  }else if(sd_volt_loop){
