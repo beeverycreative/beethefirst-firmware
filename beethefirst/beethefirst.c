@@ -852,7 +852,7 @@ int app_main (void){
 
     			  break;
     		  case 1:
-    			  GoTo5D(-96.0, -65.0, /*125.*/0, startpoint.e, 1500);
+    			  GoTo5D(-96.0, -65.0, 125.0, startpoint.e, 1500);
     			  log_counter++;
     			  break;
     		  case 2:
@@ -860,7 +860,7 @@ int app_main (void){
     			  log_counter++;
     			  break;
     		  case 3:
-    			  GoTo5D(-96.0, 65.0 , /*1*/0.0, startpoint.e, 1500);
+    			  GoTo5D(-96.0, 65.0 , 10.0, startpoint.e, 1500);
     			  log_counter++;
     			  break;
     		  case 4:
@@ -868,7 +868,7 @@ int app_main (void){
     			  log_counter++;
     			  break;
     		  case 5:
-    			  GoTo5D(-96.0, startpoint.y, /*125.*/0, startpoint.e, 1500);
+    			  GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
     			  log_counter++;
     			  break;
     		  case 6:
