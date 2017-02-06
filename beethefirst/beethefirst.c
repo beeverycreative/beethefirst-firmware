@@ -61,7 +61,7 @@ tTimer temperatureTimer;
   int32_t sDown_filtered = 4095;
 
   tTimer blockFanTimer;
-  
+
   #define num_anlog_reads 102
   uint16_t volt_sector[num_anlog_reads] = {0}; //Array to store the most recent supply voltage measures
   uint8_t volt_fic_counter = 0;	//Number of supply voltage measures
@@ -242,8 +242,8 @@ void temperatureTimerCallback (tTimer *pTimer)
   {
 
     sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    
-    if(sd_volt_log > 0 && sd_line_buf.seen_lf == 0){
+
+   if(sd_volt_log > 0 && sd_line_buf.seen_lf == 0){
 		if(volt_fic_counter >= num_anlog_reads){
 			sd_line_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
 		}
@@ -252,7 +252,7 @@ void temperatureTimerCallback (tTimer *pTimer)
 			volt_fic_counter ++;
 		}
     }
-    
+
     i_sDownADC_raw ++;
     if(i_sDownADC_raw >= 5)
       {
@@ -494,6 +494,8 @@ int app_main (void){
   buzzer_wait();
 
   //print_infi();
+
+  uint16_t ct =0;
 
   // main loop
   for (;;){
@@ -809,7 +811,7 @@ int app_main (void){
 
 	#ifdef EXP_Board
 
-      if (sd_line_buf.seen_lf && sd_volt_log > 0){//Log Voltage to file
+      if (sd_line_buf.seen_lf && sd_volt_log /*> 0*/){//Log Voltage to file
     	  sd_line_buf.seen_lf = 0;
 
     	  char temps[5];
@@ -830,14 +832,19 @@ int app_main (void){
     	  volt_fic_counter = 0;
     	
     	   if (sd_volt_log == 3){
+     		  sd_volt_log = 0;
     		  f_sync(&file); //Synchronizes and closes file
     		  sd_close(&file);
-    		  sd_volt_log = 0;
     	  }
       }
-    	  
-      if(sd_volt_loop && plan_queue_empty()){
-    	  if (sd_volt_log == 1){//Log Voltage movement procedure
+
+	  if(ct<500){	 ct++;
+		 }else{
+
+      if(sd_volt_loop == true && sd_volt_log == 1){//Log Voltage movement procedure
+    	  if(plan_queue_empty() == 1){
+    	      if(sd_volt_loop == true && sd_volt_log == 1){//Log Voltage movement procedure
+
     		  switch (log_loop_counter){
     		  case 0:
     			  home();
@@ -856,26 +863,28 @@ int app_main (void){
     			  log_loop_counter++;
     			  break;
     		  case 4:
-    			  GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
-    			  log_loop_counter++;
+    			 GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
+    			 log_loop_counter++;
     			  break;
     		  case 5:
-    			  GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
+    			 GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
     			  log_loop_counter++;
     			  break;
     		  case 6:
     			  GoTo5D(startpoint.x, -65.0, startpoint.z, startpoint.e, 1500);
     			  log_loop_counter = 0;
     			  break;
-    		  }
-
-    	  }else if(sd_volt_log == 2){
+    		  }}
+    	}
+     }else if(sd_volt_loop && sd_volt_log == 2){ //Loop interrupted
+		  if(plan_queue_empty() == 1){
     		  home();
     		  sd_volt_log = 3;
     		  sd_volt_loop = false;
     		  log_loop_counter = 0;
-    	  }
-      }
+		  }
+     }}
+
 	#endif
 
   }

@@ -2515,7 +2515,7 @@ eParseResult process_gcode_command(){
         //TODO M1200 - Replacement for M640 Command - Pause
         //TODO M1201 - Replacement for M643 Command - Resume
         //M1202- Pause ate Z
-        
+
 	#ifdef EXP_Board
 
 		  case 1112:
@@ -2525,7 +2525,7 @@ eParseResult process_gcode_command(){
 			  sd_init();
 			  sd_volt_log = 1;
 			  if(next_target.S == 1){//Starts Voltage log with With movement loop
-				  relativeCoordinates = false;
+				  relativeCoordinates = 0;
 				  sd_volt_loop = true;
 			  }else if(next_target.S == 0){//Starts Voltage log 
 				  sd_volt_loop = false;
