@@ -61,6 +61,12 @@ tTimer temperatureTimer;
   int32_t sDown_filtered = 4095;
 
   tTimer blockFanTimer;
+  
+  #define num_anlog_reads 102
+  uint16_t volt_sector[num_anlog_reads] = {0}; //Array to store the most recent supply voltage measures
+  uint8_t volt_fic_counter = 0;	//Number of supply voltage measures
+  uint8_t sd_volt_log = 0; //Voltage log flag
+  bool sd_volt_loop = false; //Voltage log loop flag
 #endif
 #ifdef USE_BATT
   int32_t battADC_raw;
@@ -234,10 +240,19 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int i, j;
-    int32_t a;
 
     sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
+    
+    if(sd_volt_log > 0 && sd_line_buf.seen_lf == 0){
+		if(volt_fic_counter >= num_anlog_reads){
+			sd_line_buf.seen_lf = 1; //Set flag if limit of analog readings reaches the limit
+		}
+		else if(volt_fic_counter < num_anlog_reads){ //Store the current analog reading to store later in SD card
+			volt_sector[volt_fic_counter] = sDownADC_raw[i_sDownADC_raw];
+			volt_fic_counter ++;
+		}
+    }
+    
     i_sDownADC_raw ++;
     if(i_sDownADC_raw >= 5)
       {
@@ -438,6 +453,10 @@ int app_main (void){
   charge_time = 0;
   batteryMode = false;
   charging = false;
+#endif
+
+#ifdef EXP_Board
+  uint8_t log_loop_counter = 0; //Counter related to the voltage log movement loop
 #endif
 
   // Set initial protection_temperature
@@ -712,7 +731,7 @@ int app_main (void){
               serial_line_buf.len = 0;
               serial_line_buf.seen_lf = 0;
 
-          }else if (sd_line_buf.seen_lf){
+          }else if (sd_volt_log == 0 && sd_line_buf.seen_lf){
               parse_result = gcode_parse_line (&sd_line_buf);
               sd_line_buf.len = 0;
               sd_line_buf.seen_lf = 0;
@@ -787,6 +806,77 @@ int app_main (void){
           }/*no need for else*/
 
       }/*no need for else*/
+
+	#ifdef EXP_Board
+
+      if (sd_line_buf.seen_lf && sd_volt_log > 0){//Log Voltage to file
+    	  sd_line_buf.seen_lf = 0;
+
+    	  char temps[5];
+
+    	  for(uint8_t j = 0; j < volt_fic_counter ; j++){
+    		  sprintf(&temps[0], "%4u\n", volt_sector[j]); //Writes decimal value into string
+    		  strcat(sd_line_buf.data, temps); //Concatenates temporary string into write buffer
+    	  }
+
+    	  res = sd_write_to_file(sd_line_buf.data, volt_fic_counter*sizeof(temps)); //Writes data to voltage log file
+
+    	  if(res != FR_OK) {
+    		  serwrite_uint32(res);
+    		  serial_writestr(" - error writing file\n");
+    	  }
+
+    	  strcpy(sd_line_buf.data, ""); //Clears buffer string
+    	  volt_fic_counter = 0;
+    	
+    	   if (sd_volt_log == 3){
+    		  f_sync(&file); //Synchronizes and closes file
+    		  sd_close(&file);
+    		  sd_volt_log = 0;
+    	  }
+      }
+    	  
+      if(sd_volt_loop && plan_queue_empty()){
+    	  if (sd_volt_log == 1){//Log Voltage movement procedure
+    		  switch (log_loop_counter){
+    		  case 0:
+    			  home();
+    			  log_loop_counter++;
+    			  break;
+    		  case 1:
+    			  GoTo5D(-96.0, -65.0, 125.0, startpoint.e, 1500);
+    			  log_loop_counter++;
+    			  break;
+    		  case 2:
+    			  GoTo5D(startpoint.x, 65.0, startpoint.z, startpoint.e, 1500);
+    			  log_loop_counter++;
+    			  break;
+    		  case 3:
+    			  GoTo5D(-96.0, 65.0 , 10.0, startpoint.e, 1500);
+    			  log_loop_counter++;
+    			  break;
+    		  case 4:
+    			  GoTo5D(88.0, startpoint.y, startpoint.z, startpoint.e, 1500);
+    			  log_loop_counter++;
+    			  break;
+    		  case 5:
+    			  GoTo5D(-96.0, startpoint.y, 125.0, startpoint.e, 1500);
+    			  log_loop_counter++;
+    			  break;
+    		  case 6:
+    			  GoTo5D(startpoint.x, -65.0, startpoint.z, startpoint.e, 1500);
+    			  log_loop_counter = 0;
+    			  break;
+    		  }
+
+    	  }else if(sd_volt_log == 2){
+    		  home();
+    		  sd_volt_log = 3;
+    		  sd_volt_loop = false;
+    		  log_loop_counter = 0;
+    	  }
+      }
+	#endif
 
   }
 }

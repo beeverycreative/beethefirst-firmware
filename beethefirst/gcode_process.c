@@ -117,6 +117,10 @@ int32_t calibratePos = 0;
 #ifdef EXP_Board
 bool      manualBlockFanControl = false;        //manual control of fan using M126 and M127 M-Codes
 int32_t   extruderFanSpeed = 0;
+
+extern tLineBuffer sd_line_buf;
+extern uint8_t sd_volt_log;
+extern bool sd_volt_loop;
 #endif
 
 #define EXTRUDER_NUM_1  1
@@ -2511,6 +2515,43 @@ eParseResult process_gcode_command(){
         //TODO M1200 - Replacement for M640 Command - Pause
         //TODO M1201 - Replacement for M643 Command - Resume
         //M1202- Pause ate Z
+        
+	#ifdef EXP_Board
+
+		  case 1112:
+			{ //M1112 Starts voltage log
+		  if(next_target.seen_S){
+			  if(next_target.S == 1 || next_target.S == 0){
+			  sd_init();
+			  sd_volt_log = 1;
+			  if(next_target.S == 1){//Starts Voltage log with With movement loop
+				  relativeCoordinates = false;
+				  sd_volt_loop = true;
+			  }else if(next_target.S == 0){//Starts Voltage log 
+				  sd_volt_loop = false;
+			  }
+			  }
+			  char vlfName[line_length];
+			  strcpy(vlfName, "VOLT_LOG");
+			  if(!sd_open(&file, vlfName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)){
+			  sersendf("error opening file: %s\n",vlfName);
+			  } //opens as empty file for voltage log
+			}
+		}
+		break;
+
+		  case 1113:
+		{//M1113 Stops voltage log
+		  if(!sd_volt_loop){
+			  sd_line_buf.seen_lf = 1;
+			  sd_volt_log = 3;
+		  }else if(sd_volt_loop){
+			  sd_volt_log = 2;
+		  }
+		}
+		break;
+	#endif
+        
       case 1202:
         {
           if(next_target.seen_Z)
