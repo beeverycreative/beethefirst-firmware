@@ -11,3 +11,4 @@ openocd-0.9-scripts/
 .cproject
 .project
 .~*
+.DS_Store
