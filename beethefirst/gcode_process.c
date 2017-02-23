@@ -468,7 +468,7 @@ bool write_config_override()
 
   char fName[line_length];
   char currfName[line_length];
-  char line[100];
+  char line[line_length];
 
   memset(currfName, '\0', sizeof(currfName));
   strcpy(currfName, config.filename);
@@ -961,6 +961,10 @@ eParseResult process_gcode_command(){
         }
       }
   }else if (next_target.seen_M){
+
+	  if(next_target.M != 104 && next_target.M != 105 && next_target.M != 625){
+		  sd_volt_loop =false;
+	  }
 
       switch (next_target.M)
       {
@@ -2519,35 +2523,39 @@ eParseResult process_gcode_command(){
 	#ifdef EXP_Board
 
 		  case 1112:
-			{ //M1112 Starts voltage log
-		  if(next_target.seen_S){
-			  if(next_target.S == 1 || next_target.S == 0){
-			  sd_init();
-			  sd_volt_log = 1;
-			  if(next_target.S == 1){//Starts Voltage log with With movement loop
-				  relativeCoordinates = 0;
-				  sd_volt_loop = true;
-			  }else if(next_target.S == 0){//Starts Voltage log 
-				  sd_volt_loop = false;
+		  { //M1112 Starts voltage log
+			  if(next_target.seen_S){
+				  if(next_target.S == 1 || next_target.S == 0){
+					  sd_init();
+					  f_sync(&file); //Synchronizes and closes file
+					  sd_close(&file);
+			    	  strcpy(sd_line_buf.data, ""); //Clears buffer string
+					  char vlfName[line_length];
+					  strcpy(vlfName, "VOLT_LOG");
+					  if(!sd_open(&file, vlfName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)){
+						  sersendf("error opening file: %s\n",vlfName);
+					  } //opens as empty file for voltage log
+					  sd_volt_log = 1;
+					  if(next_target.S == 1){//Starts Voltage log with With movement loop
+						  relativeCoordinates = 0;
+						  sd_volt_loop = true;
+					  }else if(next_target.S == 0){//Starts Voltage log
+						  sd_volt_loop = false;
+					  }
+				  }
 			  }
-			  }
-			  char vlfName[line_length];
-			  strcpy(vlfName, "VOLT_LOG");
-			  if(!sd_open(&file, vlfName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)){
-			  sersendf("error opening file: %s\n",vlfName);
-			  } //opens as empty file for voltage log
-			}
-		}
+		  }
 		break;
 
 		  case 1113:
 		{//M1113 Stops voltage log
-		  if(!sd_volt_loop){
+			sd_volt_loop = true;
+			if(sd_volt_loop && sd_volt_log == 1){
+			  sd_volt_log = 2;
+			 } else if(!sd_volt_loop && sd_volt_log == 1){
 			  sd_line_buf.seen_lf = 1;
 			  sd_volt_log = 3;
-		  }else if(sd_volt_loop){
-			  sd_volt_log = 2;
-		  }
+			 }
 		}
 		break;
 	#endif

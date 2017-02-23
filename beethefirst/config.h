@@ -30,7 +30,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define line_length 30 //Max length to file names and respective lines
+#define line_length 50 //Max length to file names and respective lines
 
 #include "stdint.h"
 
