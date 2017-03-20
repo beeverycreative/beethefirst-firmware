@@ -2141,6 +2141,7 @@ eParseResult process_gcode_command(){
                 {
                   loadFeedrate = next_target.S;
                 }
+#ifndef EXP_Board
               buzzer_wait ();
               buzzer_play (3000);
               Extrude(15,loadFeedrate);
@@ -2153,9 +2154,7 @@ eParseResult process_gcode_command(){
               config.filament_in_spool -= 17;
               write_config();
 
-
-
-              /*
+#else
               buzzer_wait ();
               buzzer_play (3000);
               Extrude(10,200);
@@ -2163,10 +2162,7 @@ eParseResult process_gcode_command(){
               Extrude(10,6000);
               Extrude(-15,6000);
               Extrude(-30,40);
-              synch_queue();
-              buzzer_wait ();
-              buzzer_play (3000);
-              */
+#endif
 
             }
           if(sd_printing){
