@@ -36,6 +36,7 @@
 #define HEATED_BED_0                    1
 
 #define tol    1.2      //Temperatures tolerance
+#define sDownADC_length 11 // sDownADC arrays length
 
 #ifdef EXP_Board
   extern double extruderBlockTemp;
@@ -43,8 +44,9 @@
   extern uint32_t adc_filtered_r2c2;
   int32_t adc_r2c2_raw;
   extern int32_t sDown_filtered;
-  extern int32_t sDownADC_raw[5];
+  extern int32_t sDownADC_raw[sDownADC_length];
 #endif
+
 #ifdef USE_BATT
   extern int32_t batt_filtered;
 #endif

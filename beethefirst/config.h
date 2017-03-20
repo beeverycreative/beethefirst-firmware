@@ -31,6 +31,7 @@
 #define CONFIG_H
 
 #define line_length 30 //Max length to file names and respective lines
+#define GCODE_MAX_line_length 120
 
 #include "stdint.h"
 

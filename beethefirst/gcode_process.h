@@ -69,6 +69,8 @@ extern bool      is_heating_Process;
 extern bool      is_calibrating;
 extern bool      is_heating_MCode;
 
+extern bool	     override_config;
+
 #ifdef EXP_Board
   extern bool      manualBlockFanControl;        //manual control of fan using M132 and M133 M-Codes
   extern int32_t   extruderFanSpeed;

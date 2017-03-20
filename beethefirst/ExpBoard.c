@@ -1,17 +1,17 @@
 #include "ExpBoard.h"
 
-int32_t getMedianValue(int32_t array[5])
+int32_t getMedianValue(int32_t array[sDownADC_length])
 {
-  int32_t sortedArray[5];
+  int32_t sortedArray[sDownADC_length];
 
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < sDownADC_length; i++)
     {
       sortedArray[i] = array[i];
     }
 
-  bubble_sort(sortedArray, 5);
+  bubble_sort(sortedArray, sDownADC_length);
 
-  return sortedArray[2];
+  return sortedArray[sDownADC_midpos];
 }
 
 void bubble_sort(int32_t list[], int32_t n)

@@ -92,6 +92,8 @@ bool      leave_power_saving = false;      // printing from SD file
 bool      sd_active = false;        // SD card active
 bool      sd_writing_file = false;  // writing to SD file
 
+bool	  override_config = false;
+
 double printed_filament = 0;
 
 extern bool     debugMode = false;              //Enable debug functions
@@ -464,7 +466,7 @@ bool write_config_override()
 
   char fName[line_length];
   char currfName[line_length];
-  char line[100];
+  char line[line_length];
 
   memset(currfName, '\0', sizeof(currfName));
   strcpy(currfName, config.filename);
@@ -563,7 +565,7 @@ bool write_config_override()
 
 bool read_config_override()
 {
-  sersendf("Loading Config Override\n");
+  //sersendf("Loading Config Override\n");
   sd_init();
 
   executed_lines = 0;
@@ -1964,7 +1966,7 @@ eParseResult process_gcode_command(){
       case 639:
         {
           if(!next_target.seen_B ){
-              for(int i=0;i<line_length;i++){
+              for(int i=0;i<GCODE_MAX_line_length;i++){
                   if(next_target.filename[i]){
                       serial_writechar(next_target.filename[i]);
                   }else{
@@ -2075,6 +2077,25 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //Resume SD Print from pause
+      case 644:
+      {
+
+    	  queue_flush();
+    	  reset_current_block();
+
+
+    	  is_heating_Process = false;
+    	  memset(statusStr, '\0', sizeof(statusStr));
+
+    	  sd_resume = true;
+    	  print2USB = true;
+    	  if(sd_printing){
+    		  reply_sent = 1;
+    	  }/*No need for else*/
+      }
+      break;
+
         //Load Filament
       case 701:
         {
@@ -2114,6 +2135,7 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
+
               float loadFeedrate = 300;
               if(next_target.seen_S)
                 {
@@ -2130,6 +2152,22 @@ eParseResult process_gcode_command(){
               config.status = 3;
               config.filament_in_spool -= 17;
               write_config();
+
+
+
+              /*
+              buzzer_wait ();
+              buzzer_play (3000);
+              Extrude(10,200);
+              Extrude(-15,6000);
+              Extrude(10,6000);
+              Extrude(-15,6000);
+              Extrude(-30,40);
+              synch_queue();
+              buzzer_wait ();
+              buzzer_play (3000);
+              */
+
             }
           if(sd_printing){
               reply_sent = 1;
@@ -2259,14 +2297,30 @@ eParseResult process_gcode_command(){
         //Read Filament String
       case 1001:
         {
-          sersendf("'%s'\n",config.bcodeStr);
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		sersendf("'%s'\n",config.bcodeStr);
+        	}
+
         }
         break;
 
         //Read Last Print Time
       case 1002:
         {
-          sersendf("Last Print Time: %u\n",config.last_print_time);
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		sersendf("Last Print Time: %u\n",config.last_print_time);
+        	}
+
         }
         break;
         //Print Last file
@@ -2283,25 +2337,46 @@ eParseResult process_gcode_command(){
         //Set ammount of filament in spool (mm)
       case 1024:
         {
-          if(next_target.seen_X)
-            {
-              config.filament_in_spool = next_target.target.x;
-              write_config();
-            }
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		if(next_target.seen_X)
+        		{
+        			config.filament_in_spool = next_target.target.x;
+        			write_config();
+        		}
+        	}
         }
         break;
 
         //Get ammount of filament in spool (mm)
       case 1025:
         {
-          sersendf("Filament in Spool: %g\n",config.filament_in_spool);
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		sersendf("Filament in Spool: %g\n",config.filament_in_spool);
+        	}
         }
         break;
 
         //Send last print filament consumption (mm)
       case 1026:
         {
-          sersendf("Last print filament: %g\n",config.last_print_filament);
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		sersendf("Last print filament: %g\n",config.last_print_filament);
+        	}
         }
         break;
 
@@ -2327,8 +2402,14 @@ eParseResult process_gcode_command(){
         //Report Nozzle Size
       case 1028:
         {
-
-          sersendf("Nozzle Size:%u\n",config.nozzleSize);
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		sersendf("Nozzle Size:%u\n",config.nozzleSize);
+        	}
 
         }
         break;
@@ -2353,16 +2434,50 @@ eParseResult process_gcode_command(){
         //Write Config-Override
       case 1030:
         {
-          write_config_override();
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		write_config_override();
+        	}
         }
         break;
 
         //Read Config-Override
       case 1031:
         {
-          read_config_override();
+        	if(sd_printing)
+        	{
+        		reply_sent = 1;
+        	}
+        	else
+        	{
+        		read_config_override();
+        	}
         }
         break;
+
+        //format sd card
+      case 1032:
+      {
+    	  if(sd_printing)
+    	  {
+    		  reply_sent = 1;
+    	  }
+    	  else
+    	  {
+    		  //sd_init();
+    		  __disable_irq();
+    		  f_mkfs("",0,0);
+    		  __enable_irq();
+    		  buzzer_wait ();
+    		  buzzer_play (1000);
+    	  }
+
+      }
+      	break;
 
 #ifdef USE_BATT
         //Read PS Ext Input
