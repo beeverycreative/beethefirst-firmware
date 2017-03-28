@@ -1448,6 +1448,16 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        //Print endstop status
+      case 119:
+        {
+          sersendf("X: %u Y: %u Z:%u\n",x_min(),y_min(),z_min());
+
+          //sersendf("Door state: %u\n",door());
+
+        }
+        break;
+
         /*M121- report XYZE to host */
       case 121:
         {
@@ -2627,18 +2637,18 @@ eParseResult process_gcode_command(){
         }
         break;
 
-        //M1301 - Open/close Door
+        //M1301 - CHAMBER LEDS
       case 1301:
         {
           if(next_target.seen_S)
             {
               if(next_target.S == 1)
                 {
-                  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 1);
+                  digital_write(CHAMBER_LIGHT_PORT, CHAMBER_LIGHT_PIN, 1);
                 }
               else if(next_target.S == 0)
                 {
-                  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 0);
+                  digital_write(CHAMBER_LIGHT_PORT, CHAMBER_LIGHT_PIN, 0);
                 }
             }
         }
@@ -2746,6 +2756,39 @@ eParseResult process_gcode_command(){
             }
         }
         break;
+
+        //M1307 - SPOOL LEDS
+      case 1307:
+        {
+          if(next_target.seen_S)
+            {
+              if(next_target.S == 1)
+                {
+                  digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 1);
+                }
+              else if(next_target.S == 0)
+                {
+                  digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 0);
+                }
+            }
+        }
+        break;
+
+        // M1308- Control Extruder fan on
+              case 1308:
+                {
+                  //Control extruder fan
+                  if(next_target.seen_S){
+                      extruder_block_fan_on();
+                  } else {
+                      extruder_block_fan_off();
+                  }/*No need for else*/
+
+                  if(sd_printing){
+                      reply_sent = 1;
+                  }/*No need for else*/
+                }
+                break;
 
 
 #endif

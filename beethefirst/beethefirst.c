@@ -115,7 +115,7 @@ void pwm_init(void){
   pwm_set_enable(LOGO_PWM_CHANNEL);
 
   //Turn Extruder Block Fan On at 100%
-  extruder_block_fan_on();
+  //extruder_block_fan_on();
   //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
   //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
 #endif
@@ -247,11 +247,17 @@ void io_init(void)
   pin_mode(EncA_PORT, EncA_PIN, INPUT);
   pin_mode(EncB_PORT, EncB_PIN, INPUT);
 
-  pin_mode(DOOR_LATCH_PORT,DOOR_LATCH_PIN, OUTPUT);
-  digital_write(DOOR_LATCH_PORT, DOOR_LATCH_PIN, 0); /* Disable reset for all stepper motors */
+  pin_mode(CHAMBER_LIGHT_PORT,CHAMBER_LIGHT_PIN, OUTPUT);
+  digital_write(CHAMBER_LIGHT_PORT, CHAMBER_LIGHT_PIN, 1); /* Disable reset for all stepper motors */
+
+  pin_mode(SPOOL_LIGHT_PORT,SPOOL_LIGHT_PIN, OUTPUT);
+  digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 1); /* Disable reset for all stepper motors */
 
   pin_mode(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, OUTPUT);
   digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
+
+  pin_mode(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, OUTPUT);
+  digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, 1);
 #endif
 
 #ifndef EXP_Board
@@ -393,7 +399,7 @@ void blockFanTimerCallBack(tTimer *pTimer) {
           extruderFanSpeed = 0;
         }
 
-      extruder_block_fan_on();
+      //extruder_block_fan_on();
       pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
       pwm_set_enable(FAN_EXT_PWM_CHANNEL);
     }
@@ -654,7 +660,7 @@ int app_main (void){
 
           ilum_off();
 
-          extruder_block_fan_on();
+          //extruder_block_fan_on();
           pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
           pwm_set_enable(FAN_EXT_PWM_CHANNEL);
           manualBlockFanControl = true;

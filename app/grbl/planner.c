@@ -487,11 +487,11 @@ void plan_buffer_line (tActionRequest *pAction)
 
   if (target[Y_AXIS] < position[Y_AXIS])
     {
-      block->direction_bits |= (1<<Y_DIRECTION_BIT);
+      block->direction_bits &= ~(1<<Y_DIRECTION_BIT);
     }
   else if (target[Y_AXIS] > position[Y_AXIS])
     {
-      block->direction_bits &= ~(1<<Y_DIRECTION_BIT);
+      block->direction_bits |= (1<<Y_DIRECTION_BIT);
     }
 
   if (target[Z_AXIS] < position[Z_AXIS])

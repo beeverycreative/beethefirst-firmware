@@ -41,11 +41,13 @@ bool hit_home_stop_y (unsigned dir)
 {
   if (HOME_DIR_Y < 0)
   {
-    return y_min() && (dir != 0);
+    //return y_min() && (dir != 0);
+      return y_min() && (dir == 0);
   }
   else
   {
-    return y_min() && (dir == 0);
+      //return y_min() && (dir == 0);
+    return y_min() && (dir != 0);
   }
 }
 
