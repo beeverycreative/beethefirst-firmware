@@ -2779,9 +2779,9 @@ eParseResult process_gcode_command(){
                 {
                   //Control extruder fan
                   if(next_target.seen_S){
-                      extruder_block_fan_on();
+                      extruder_fan_on();
                   } else {
-                      extruder_block_fan_off();
+                      extruder_fan_off();
                   }/*No need for else*/
 
                   if(sd_printing){

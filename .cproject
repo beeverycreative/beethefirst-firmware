@@ -399,15 +399,15 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1932014296" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.2076205521" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="BTF_PLUS"/>
 									<listOptionValue builtIn="false" value="BTF_SMOOTHIE_V2"/>
+									<listOptionValue builtIn="false" value="BTF_SMOOTHIE"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.2098624980" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1356305220" name="Cross ARM C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.31289852" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="BTF_PLUS"/>
 									<listOptionValue builtIn="false" value="BTF_SMOOTHIE_V2"/>
+									<listOptionValue builtIn="false" value="BTF_SMOOTHIE"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.729142126" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
@@ -471,6 +471,12 @@
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729.1857634974;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.127546648;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.839289920">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.855455291;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.855455291.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1356305220;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.729142126">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.855455291;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.855455291.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1932014296;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.2098624980">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729.1857634974;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1174390483;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1838136489">

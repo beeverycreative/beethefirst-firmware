@@ -103,17 +103,13 @@
 #define EXTRUDER_0_HEATER_PIN           (1 << 23)        /* P1.23 */
 #define EXTRUDER_0_HEATER_PIN_Number    23               /* P1.23 */
 #define EXTRUDER_0_PWM_CHANNEL          4               /* P1.23 */
-#define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
-#define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
-#define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
 
-#define EXTRUDER_0_FAN_PORT             2               /* P2.4 */
-#define EXTRUDER_0_FAN_PIN              (1 << 4)       /* P2.4 */
-#define EXTRUDER_0_FAN_PIN_Number       4              /* P2.4 */
-#define BW_PWM_CHANNEL                  5               /* P2.4 */
-
-#define FAN_EXT_ON_PORT                 2       /* P2.7 */
-#define FAN_EXT_ON_PIN                  (1 << 7)      /* P2.7 */
+#define EXTRUDER_0_FAN_PORT             2               /* P2.7 */
+#define EXTRUDER_0_FAN_PIN              (1 << 7)       /* P2.7 */
+#define EXTRUDER_0_FAN_PIN_Number       7              /* P2.7 */
 
 //#define EXTRUDER_0_HEATER_PORT          2               /* P2.4 */
 //#define EXTRUDER_0_HEATER_PIN           (1 << 4)        /* P2.4 */
@@ -207,12 +203,6 @@
 
 #define extruder_fan_on() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, HIGH);
 #define extruder_fan_off() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, LOW);
-
-#define extruder_block_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
-#define extruder_block_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
-
-#define extruder_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
-#define extruder_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
 
 /*
         Heated Bed

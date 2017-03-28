@@ -39,12 +39,7 @@
 #include "machine.h"
 #include "gcode_parse.h"
 #include "gcode_process.h"
-#ifndef BTF_SMOOTHIE
-#include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
 #include "pinout_smoothie.h"
-#endif
 //#include "debug.h"
 #include "config.h"
 #include "temp.h"
@@ -59,18 +54,6 @@
 #include "pwm.h"
 
 tTimer temperatureTimer;
-#ifdef EXP_Board
-int32_t i_sDownADC_raw;
-int32_t sDownADC_raw[5];
-tTimer sDownTimer;
-int32_t sDown_filtered = 4095;
-
-tTimer blockFanTimer;
-#endif
-#ifdef USE_BATT
-int32_t battADC_raw;
-int32_t batt_filtered = 4095;
-#endif
 
 tLineBuffer serial_line_buf;
 tLineBuffer sd_line_buf;
@@ -78,48 +61,15 @@ tLineBuffer sd_line_buf;
 /* initialize PWM */
 void pwm_init(void){
 
-#ifndef BTF_SMOOTHIE
-  pwm_pins_init(BUZZER_PORT,BUZZER_PIN_Number,PINSEL_FUNC_1);           //Buzzer pwm
-#endif
-
   pwm_pins_init(EXTRUDER_0_HEATER_PORT,EXTRUDER_0_HEATER_PIN_Number,PINSEL_FUNC_2);
-#ifdef BTF_SMOOTHIE
-  pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number,PINSEL_FUNC_1);
-  pwm_pins_init(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN_Number,PINSEL_FUNC_1);
-#endif
 
-#ifdef EXP_Board
-  pwm_pins_init(FAN_EXT_V1_PORT,FAN_EXT_V1_PIN,PINSEL_FUNC_1);
-  pwm_pins_init(BW_V1_PORT,BW_V1_PIN,PINSEL_FUNC_1);
-  pwm_pins_init(LOGO_ON_PORT,LOGO_ON_PIN,PINSEL_FUNC_1);
-#endif
+  pwm_pins_init(HEATED_BED_0_HEATER_PORT,HEATED_BED_0_HEATER_PIN_Number,PINSEL_FUNC_1);
 
   init_pwm_peripheral();
 
-#ifndef BTF_SMOOTHIE
-  init_global_match(BUZZER_PWM_CHANNEL);         //Buzzer
-#endif
   init_global_match(EXTRUDER_0_PWM_CHANNEL);         //Heater
-#ifdef BTF_SMOOTHIE
+
   init_global_match(HEATED_BED_0_PWM_CHANNEL);
-  init_global_match(BW_PWM_CHANNEL);
-#endif
-#ifdef EXP_Board
-  init_global_match(FAN_EXT_PWM_CHANNEL);               //Extruder Block Fan
-  init_global_match(LOGO_PWM_CHANNEL);                  //Logo
-  init_global_match(BW_PWM_CHANNEL);                    //Blower
-  init_global_match(HEATED_BED_0_PWM_CHANNEL);         //Bed
-
-  //Turn Logo On
-  pwm_set_duty_cycle(LOGO_PWM_CHANNEL,100);
-  pwm_set_enable(LOGO_PWM_CHANNEL);
-
-  //Turn Extruder Block Fan On at 100%
-  //extruder_block_fan_on();
-  //pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
-  //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-#endif
-
 }
 
 /* Initialize ADC for reading sensors */
@@ -127,26 +77,15 @@ void adc_init(void)
 {
   PINSEL_CFG_Type PinCfg;
 
-#ifndef BTF_SMOOTHIE
   //Extruder 0 ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
-  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-#endif
+  //PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
+  //PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  //PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
+  //PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
+  //PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
+  //PINSEL_ConfigPin(&PinCfg);
 
-#ifdef BTF_SMOOTHIE
-  //Extruder 0 ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
-  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //Heated Bed 0 ADC Config
+  //Heated Bed ADC Config
   PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
@@ -154,54 +93,13 @@ void adc_init(void)
   PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
 
-  //Heated Bed 0 ADC Config
+  //Chamber ADC Config
   PinCfg.Funcnum = PINSEL_FUNC_1; /* ADC function */
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
   PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
   PinCfg.Portnum = CHAMBER_ADC_PORT;
   PinCfg.Pinnum = CHAMBER_ADC_PIN;
   PINSEL_ConfigPin(&PinCfg);
-#endif
-
-#ifdef EXP_Board
-  //Extruder Block Temperature ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
-  PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //R2C2 TEMPERATURE ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_1; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
-  PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //Shutdown ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = SDOWN_ADC_PORT;
-  PinCfg.Pinnum = SDOWN_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
-#ifdef USE_BATT
-  //Battery ADC CONFIG
-
-  PinCfg.Funcnum = PINSEL_FUNC_1;
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = BATT_ADC_PORT;
-  PinCfg.Pinnum = BATT_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
 
   ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
 }
@@ -209,15 +107,6 @@ void adc_init(void)
 void io_init(void)
 {
   /* setup I/O pins */
-
-#ifndef BTF_SMOOTHIE
-  pin_mode(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, OUTPUT);
-  digital_write(STEPPERS_RESET_PORT, STEPPERS_RESET_PIN, 1); /* Disable reset for all stepper motors */
-
-  /* Heated Bed 0 Heater pin */
-  pin_mode(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, OUTPUT);
-  heated_bed_off();
-#endif
 
   pin_mode(X_STEP_PORT, X_STEP_PIN, OUTPUT);
   pin_mode(X_DIR_PORT, X_DIR_PIN, OUTPUT);
@@ -242,54 +131,21 @@ void io_init(void)
   pin_mode(E_ENABLE_PORT, E_ENABLE_PIN, OUTPUT);
   e_enable();
 
-#ifdef BTF_SMOOTHIE
   pin_mode(DOOR_PORT, DOOR_PIN, INPUT);
   pin_mode(EncA_PORT, EncA_PIN, INPUT);
   pin_mode(EncB_PORT, EncB_PIN, INPUT);
 
   pin_mode(CHAMBER_LIGHT_PORT,CHAMBER_LIGHT_PIN, OUTPUT);
-  digital_write(CHAMBER_LIGHT_PORT, CHAMBER_LIGHT_PIN, 1); /* Disable reset for all stepper motors */
+  digital_write(CHAMBER_LIGHT_PORT, CHAMBER_LIGHT_PIN, 1); /*Turn Chamber Light ON*/
 
   pin_mode(SPOOL_LIGHT_PORT,SPOOL_LIGHT_PIN, OUTPUT);
-  digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 1); /* Disable reset for all stepper motors */
+  digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 1); /*Turn Spool Light ON*/
 
   pin_mode(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, OUTPUT);
   digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
 
-  pin_mode(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, OUTPUT);
-  digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, 1);
-#endif
-
-#ifndef EXP_Board
-#ifndef BTF_SMOOTHIE
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
-  extruder_fan_off();
-#endif
-#endif
-
-#ifdef EXP_Board
-  pin_mode(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, OUTPUT);
-  extruder_block_fan_on();
-
-  pin_mode(ILUM_PORT,ILUM_PIN, OUTPUT);
-  ilum_on();
-
-  pin_mode(BW_ON_PORT,BW_ON_PIN, OUTPUT);
-  blower_off();
-
-  pin_mode(R2C2_FAN_PORT,R2C2_FAN_PIN, OUTPUT);
-  r2c2_fan_on();
-#endif
-
-#ifdef USE_BATT
-  //Battery Digital I/Os
-  pin_mode(PS_EXT_READ_PORT,PS_EXT_READ_PIN,INPUT);
-
-  pin_mode(STEP_uC_ON_PORT, STEP_uC_ON_PIN, OUTPUT);
-  STEP_uC_enable();
-  pin_mode(BATT_uC_ON_PORT, BATT_uC_ON_PIN, OUTPUT);
-  BATT_uC_enable();
-#endif
+  extruder_fan_on();
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -297,122 +153,6 @@ void temperatureTimerCallback (tTimer *pTimer)
   /* Manage the temperatures */
   temp_tick();
 }
-
-#ifdef EXP_Board
-
-#ifndef USE_BATT
-void shutdownTimerCallBack (tTimer *pTimer)
-{
-  int i, j;
-  int32_t a;
-
-  sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  i_sDownADC_raw ++;
-  if(i_sDownADC_raw >= 5)
-    {
-      i_sDownADC_raw = 0;
-    }
-
-  sDown_filtered = getMedianValue(sDownADC_raw);
-
-  if(debugMode == false)
-    {
-      verifySDownConditions();
-    }
-
-}
-#endif
-
-#ifdef USE_BATT
-void shutdownTimerCallBack (tTimer *pTimer)
-{
-  int i, j;
-  int32_t a;
-
-  sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-  //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-  i_sDownADC_raw ++;
-  if(i_sDownADC_raw >= 5)
-    {
-      i_sDownADC_raw = 0;
-    }
-
-  int32_t batt_buf[5];
-  for(int32_t j = 0; j < 5; j++)
-    {
-      batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-    }
-
-  battADC_raw = getMedianValue(batt_buf);
-
-  sDown_filtered = getMedianValue(sDownADC_raw);
-  batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
-
-  ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
-
-  if(debugMode == false)
-    {
-      verifySDownConditions();
-    }
-
-  if(debugMode == false)
-    {
-      verifyBatteryLevels();
-    }
-
-}
-#endif
-
-void blockFanTimerCallBack(tTimer *pTimer) {
-
-  if (manualBlockFanControl == false && debugMode == false)
-    {
-      double fSpeed = config.blockControlM * extruderBlockTemp + config.blockControlB;
-
-      if(extruderFanSpeed == 0 && fSpeed > config.blockFanMinSpeed)
-        {
-          if(fSpeed > 100) fSpeed = 100;
-          extruderFanSpeed = fSpeed;
-        }
-      else if(extruderFanSpeed != 0)
-        {
-          if(extruderBlockTemp < (config.blockTemperatureFanStart - 3))
-            {
-              extruderFanSpeed = 0;
-            }
-          if(fSpeed < 0)
-            {
-              extruderFanSpeed = 0;
-            }
-          else if(fSpeed > 100)
-            {
-              extruderFanSpeed = 100;
-            }
-          else
-            {
-              extruderFanSpeed = fSpeed;
-            }
-        }
-
-      if(target_temp[EXTRUDER_0] == 0 || is_heating_Process || is_heating_MCode)
-        {
-          extruderFanSpeed = 0;
-        }
-
-      //extruder_block_fan_on();
-      pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,extruderFanSpeed);
-      pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-    }
-
-  if(current_temp_r2c2 < 40 && in_power_saving)
-    {
-      r2c2_fan_off();
-    } else {
-        r2c2_fan_on();
-    }
-
-}
-#endif
 
 /*
  * In bigger NXP chips (such as LPC17xx) there are a couple of dedicated interrupt pins (EINTn) which have their own interrupt handler.
@@ -452,7 +192,6 @@ void init(void)
   //temperature read
   adc_init();
 
-#ifdef BTF_SMOOTHIE
   //Setup I2C
   i2c_init();
 
@@ -467,7 +206,6 @@ void init(void)
   GPIO_ClearInt(0,1 << 3);
 
   NVIC_EnableIRQ(EINT3_IRQn);
-#endif
 
 
 #if defined(DEBUG_UART) && !defined(BTF_SMOOTHIE)
@@ -476,34 +214,6 @@ void init(void)
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
-
-#ifdef EXP_Board
-
-  __disable_irq();
-  adc_filtered_r2c2 = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 /= 3;
-  __enable_irq();
-
-#ifdef USE_BATT
-  __disable_irq();
-  batt_filtered = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered /= 3;
-  __enable_irq();
-#endif
-
-  AddSlowTimer(&sDownTimer);
-  StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
-  sDownTimer.AutoReload = 1;
-
-  //extruder block fan timer
-  AddSlowTimer(&blockFanTimer);
-  StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
-  blockFanTimer.AutoReload = 1;
-#endif
 
   //temperature interruption
   AddSlowTimer (&temperatureTimer);
@@ -549,13 +259,6 @@ int app_main (void){
   last_target_e = 0;
   filament_coeff = 1;
   feedrate_coeff = 1;
-
-#ifdef USE_BATT
-  batt_time = 0;
-  charge_time = 0;
-  batteryMode = false;
-  charging = false;
-#endif
 
   // Set initial protection_temperature
   protection_temperature = 0;
@@ -650,22 +353,6 @@ int app_main (void){
           e_disable();
 
           temp_set(0, EXTRUDER_0);
-
-#ifdef EXP_Board
-          blink_time = 0;
-          start_logo_blink = 1;
-          stop_logo_blink = 0;
-          logo_state = 0;
-          blink_interval = 1000;
-
-          ilum_off();
-
-          //extruder_block_fan_on();
-          pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,0);
-          pwm_set_enable(FAN_EXT_PWM_CHANNEL);
-          manualBlockFanControl = true;
-
-#endif
 
           leave_power_saving = 1;
           enter_power_saving = 0;

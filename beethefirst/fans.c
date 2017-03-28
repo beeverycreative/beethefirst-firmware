@@ -10,7 +10,7 @@ void enableBlower(void)
 #if !defined(EXP_Board) && !defined(BTF_SMOOTHIE)
   extruder_fan_on();
 #endif
-#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#if defined(EXP_Board)
 #ifndef BTF_SMOOTHIE
   blower_on();
 #endif
@@ -25,7 +25,7 @@ void disableBlower(void)
 #if !defined(EXP_Board) && !defined(BTF_SMOOTHIE)
   extruder_fan_off();
 #endif
-#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#if defined(EXP_Board)
 #ifndef BTF_SMOOTHIE
   blower_off();
 #endif
@@ -36,7 +36,7 @@ void disableBlower(void)
 
 void setBlowerSpeed(int16_t speed)
 {
-#if defined(EXP_Board) || defined(BTF_SMOOTHIE)
+#if defined(EXP_Board)
 #ifndef BTF_SMOOTHIE
   blower_on();
 #endif

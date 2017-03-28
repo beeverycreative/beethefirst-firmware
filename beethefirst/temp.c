@@ -384,7 +384,8 @@ static double read_temp(uint8_t sensor_number)
   uint8_t i;
 
   if (sensor_number == EXTRUDER_0){
-      raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
+      //raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
+      return 0.0;
 
   }else if (sensor_number == HEATED_BED_0){
 
