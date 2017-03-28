@@ -2297,14 +2297,7 @@ eParseResult process_gcode_command(){
         //Read Filament String
       case 1001:
         {
-        	if(sd_printing)
-        	{
-        		reply_sent = 1;
-        	}
-        	else
-        	{
-        		sersendf("'%s'\n",config.bcodeStr);
-        	}
+        	sersendf("'%s'\n",config.bcodeStr);
 
         }
         break;
@@ -2355,14 +2348,7 @@ eParseResult process_gcode_command(){
         //Get ammount of filament in spool (mm)
       case 1025:
         {
-        	if(sd_printing)
-        	{
-        		reply_sent = 1;
-        	}
-        	else
-        	{
-        		sersendf("Filament in Spool: %g\n",config.filament_in_spool);
-        	}
+        	sersendf("Filament in Spool: %g\n",config.filament_in_spool);
         }
         break;
 
@@ -2402,14 +2388,7 @@ eParseResult process_gcode_command(){
         //Report Nozzle Size
       case 1028:
         {
-        	if(sd_printing)
-        	{
-        		reply_sent = 1;
-        	}
-        	else
-        	{
-        		sersendf("Nozzle Size:%u\n",config.nozzleSize);
-        	}
+        	sersendf("Nozzle Size:%u\n",config.nozzleSize);
 
         }
         break;
