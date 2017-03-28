@@ -211,6 +211,9 @@
 #define extruder_block_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
 #define extruder_block_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
 
+#define extruder_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
+#define extruder_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
+
 /*
         Heated Bed
 */
