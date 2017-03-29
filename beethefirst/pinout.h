@@ -118,8 +118,8 @@
 #define EXTRUDER_0_SENSOR_ADC_CHANNEL   7        /* P0.2 */
 #define EXTRUDER_0_PWM_CHANNEL          5
 
-#define EXTRUDER_0_FAN_PORT             2         /* P2.3 */
-#define EXTRUDER_0_FAN_PIN              (1<<3)
+#define EXTRUDER_0_FAN_PORT             2         /* P2.7 */
+#define EXTRUDER_0_FAN_PIN              (1<<7)
 
 /*
         Heated Bed

@@ -59,6 +59,7 @@ double temptable[NUMTEMPS][3] = {
     {4080, 4085, 0}
 };
 
+
 #ifdef EXP_Board
 double extruderBlockTemp = 0;
 double current_temp_r2c2 = 0;
@@ -150,26 +151,10 @@ void temp_tick(void)
   double pid_error_bed = 0;
 
   /* Read and average temperatures */
-#ifndef BTF_SMOOTHIE
-  current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
-#endif
-#if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V1) && !defined(BTF_SMOOTHIE_V2)
-  current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
-  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
-  current_temp[CHAMBER] = read_temp(CHAMBER);
-#endif
-#if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)
   current_temp[EXTRUDER_0] = read_spi_temp();
   //current_temp[EXTRUDER_0] = read_temp(EXTRUDER_0);
   current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
   current_temp[CHAMBER] = read_temp(CHAMBER);
-#endif
-#ifdef EXP_Board
-  current_temp[HEATED_BED_0] = read_temp(HEATED_BED_0);
-
-  extruderBlockTemp = current_temp[HEATED_BED_0];
-  current_temp_r2c2 = read_R2C2_temp();
-#endif
 
   if(current_temp[EXTRUDER_0] > -50)
     {
@@ -292,61 +277,6 @@ void temp_tick(void)
 
 
 /* Read and average the ADC input signal */
-#ifndef BTF_SMOOTHIE
-static double read_temp(uint8_t sensor_number)
-{
-  int32_t raw = 4095; // initialize raw with value equal to lowest temperature.
-  double celsius = 0;
-  uint8_t i;
-
-  if (sensor_number == EXTRUDER_0){
-      raw = analog_read(EXTRUDER_0_SENSOR_ADC_CHANNEL);
-
-  }else if (sensor_number == HEATED_BED_0)
-    {
-      //raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
-      int32_t bed_temp_buf[5];
-      for(int32_t i = 0; i < 5; i++)
-        {
-          bed_temp_buf[i] = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
-        }
-      raw = getMedianValue(bed_temp_buf);
-    }
-
-  // filter the ADC values with simple IIR
-  adc_filtered[sensor_number] = ((adc_filtered[sensor_number] * 15) + raw) / 16;
-
-  raw = adc_filtered[sensor_number];
-
-  /* Go and use the temperature table to math the temperature value... */
-  if (raw < temptable[0][sensor_number]) /* Limit the smaller value... */
-    {
-      celsius = temptable[0][2];
-    }
-  else if (raw >= temptable[NUMTEMPS-1][sensor_number]) /* Limit the higher value... */
-    {
-      celsius = temptable[NUMTEMPS-1][2];
-    }
-  else
-    {
-      for (i=1; i<NUMTEMPS; i++)
-        {
-          if (raw < temptable[i][sensor_number])
-            {
-              celsius = temptable[i-1][2] +
-                  (raw - temptable[i-1][sensor_number]) *
-                  (temptable[i][2] - temptable[i-1][2]) /
-                  (temptable[i][sensor_number] - temptable[i-1][sensor_number]);
-
-              break;
-            }
-        }
-    }
-
-  return celsius;
-}
-#endif
-#ifdef BTF_SMOOTHIE
 static double read_spi_temp(void)
 {
   uint16_t i = 0;
@@ -401,14 +331,26 @@ static double read_temp(uint8_t sensor_number)
   raw = adc_filtered[sensor_number];
 
   float r = 4700 / (((float)4096 / (float)raw) - (float)1);
-  float k = ((float) 1 / (float) 300.15);
-  float j = ((float) 1 / (float) 4066);
+  float k;
+  float j;
 
-  celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
+  if (sensor_number == HEATED_BED_0)
+    {
+      k = ((float) 1 / (float) 298.15);
+      j = ((float) 1 / (float) 4040);
+      celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
+    }
+  else if (sensor_number == CHAMBER)
+    {
+      k = ((float) 1 / (float) 298.15);
+      j = ((float) 1 / (float) 3988);
+      celsius = (double) ((float)1 / (k + (j * logf(r / (float)10000)))) - (float) 273.15;
+    }
+
+
 
   return celsius;
 }
-#endif
 
 #ifdef EXP_Board
 /* Read and average the R2C2 ADC input signal */
