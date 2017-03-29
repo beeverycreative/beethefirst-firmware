@@ -36,12 +36,9 @@
 #include "sersendf.h"
 #include "temp.h"
 #include "timer.h"
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
+
 #include "config.h"
 #include "ff.h"
 #include "sd.h"
@@ -2775,20 +2772,20 @@ eParseResult process_gcode_command(){
         break;
 
         // M1308- Control Extruder fan on
-              case 1308:
-                {
-                  //Control extruder fan
-                  if(next_target.seen_S){
-                      extruder_fan_on();
-                  } else {
-                      extruder_fan_off();
-                  }/*No need for else*/
+      case 1308:
+        {
+          //Control extruder fan
+          if(next_target.seen_S){
+              extruder_fan_on();
+          } else {
+              extruder_fan_off();
+          }/*No need for else*/
 
-                  if(sd_printing){
-                      reply_sent = 1;
-                  }/*No need for else*/
-                }
-                break;
+          if(sd_printing){
+              reply_sent = 1;
+          }/*No need for else*/
+        }
+        break;
 
 
 #endif

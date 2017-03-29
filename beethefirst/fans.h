@@ -2,12 +2,8 @@
 #define _FANS_H
 
 #include <stdint.h>
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
 
 uint32_t  currenBWSpeed;
 

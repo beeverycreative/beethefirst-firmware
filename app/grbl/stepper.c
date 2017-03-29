@@ -35,12 +35,8 @@
 #include "lpc17xx_pinsel.h"
 
 #include "timer.h"
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
 #include "ios.h"
 #include "temp.h"
 #endif

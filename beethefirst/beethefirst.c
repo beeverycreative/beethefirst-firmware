@@ -39,7 +39,8 @@
 #include "machine.h"
 #include "gcode_parse.h"
 #include "gcode_process.h"
-#include "pinout_smoothie.h"
+
+#include "pinout.h"
 //#include "debug.h"
 #include "config.h"
 #include "temp.h"
@@ -141,11 +142,11 @@ void io_init(void)
   pin_mode(SPOOL_LIGHT_PORT,SPOOL_LIGHT_PIN, OUTPUT);
   digital_write(SPOOL_LIGHT_PORT, SPOOL_LIGHT_PIN, 1); /*Turn Spool Light ON*/
 
-  pin_mode(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, OUTPUT);
-  digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
+  //pin_mode(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, OUTPUT);
+  //digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
 
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
-  extruder_fan_on();
+  digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,1);
 }
 
 void temperatureTimerCallback (tTimer *pTimer)

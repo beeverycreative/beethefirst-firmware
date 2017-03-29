@@ -24,12 +24,7 @@
 //#include <avr/io.h>
 //#include <avr/sleep.h>
 
-#ifndef BTF_SMOOTHIE
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
 
 // from nuts_bolts.h:
 #define square(x) ((x)*(x))

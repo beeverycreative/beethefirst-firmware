@@ -17,12 +17,8 @@
 
 //#include "config.h"
 #include "planner.h"
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
 
 bool hit_home_stop_x (unsigned dir)
 {

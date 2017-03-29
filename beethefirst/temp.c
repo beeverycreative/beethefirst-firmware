@@ -30,12 +30,9 @@
 
 #include "temp.h"
 #include "machine.h"
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
+
 #include "sersendf.h"
 #include "stepper.h"
 #include "config.h"
@@ -228,18 +225,18 @@ void temp_tick(void)
 
   if(target_temp[CHAMBER] == 0)
     {
-      digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
+      //digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
       chamberHeaterState = 0;
     }
 
   if(current_temp[CHAMBER] < target_temp[CHAMBER])
     {
-      digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 1);
+      //digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 1);
       chamberHeaterState = 1;
     }
   else
     {
-      digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
+      //digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PIN, 0);
       chamberHeaterState = 0;
     }
 #if defined(BTF_SMOOTHIE) && !defined(BTF_SMOOTHIE_V1) && defined(BTF_SMOOTHIE_V2)

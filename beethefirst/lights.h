@@ -2,12 +2,9 @@
 #include "gcode_parse.h"
 #include "gcode_process.h"
 #include "config.h"
-#ifndef BTF_SMOOTHIE
+
 #include "pinout.h"
-#endif
-#ifdef BTF_SMOOTHIE
-#include "pinout_smoothie.h"
-#endif
+
 #include "pwm.h"
 
 #ifdef EXP_Board

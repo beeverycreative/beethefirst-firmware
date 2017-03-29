@@ -34,20 +34,6 @@
 #include "ios.h"
 #include "machine.h"
 
-#ifdef BTF_PLUS
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
-#ifdef BTF_ME
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
-#ifdef BTF_SCHOOL
-  #define EXP_Board       //Expansion Board P02V04A
-#endif
-#ifdef BTF_PLUS_BATT
-  #define EXP_Board       //Expansion Board P02V04A
-  #define USE_BATT
-#endif
-
 /*
         Machine Pin Definitions
 */
@@ -59,159 +45,119 @@
 */
 
 //x axis pins
-#define X_STEP_PORT     1         /* P1.20 */
-#define X_STEP_PIN      (1 << 20) /* P1.20 */
+#define X_STEP_PORT             2               /* P2.0 */
+#define X_STEP_PIN              (1 << 0)        /* P2.0 */
+#define X_STEP_PIN_Number       0               /* P2.0 */
+#define X_DIR_PORT              0               /* P0.5 */
+#define X_DIR_PIN               (1 << 5)        /* P0.5 */
+#define X_DIR_PIN_Number        5               /* P0.5 */
+#define X_ENABLE_PORT           0               /* P0.4 */
+#define X_ENABLE_PIN            (1 << 4)        /* P0.4 */
 
-#define X_DIR_PORT      1         /* P1.23 */
-#define X_DIR_PIN       (1 << 23) /* P1.23 */
-
-#define X_ENABLE_PORT   1         /* P1.24 */
-#define X_ENABLE_PIN    (1 << 24) /* P1.24 */
-
-#define X_MIN_PORT      2         /* P2. 6 */
-#define X_MIN_PIN       (1 <<  6) /* P2. 6 */
+#define X_MIN_PORT              1               /* P1.26 */
+#define X_MIN_PIN               (1 <<  26)      /* P1.26 */
+#define X_endstop() ((digital_read(X_MIN_PORT, X_MIN_PIN))?0:1)
 
 //y axis pins
-#define Y_STEP_PORT     1         /* P1.25 */
-#define Y_STEP_PIN      (1 << 25) /* P1.25 */
+#define Y_STEP_PORT             2               /* P2.1 */
+#define Y_STEP_PIN              (1 << 1)        /* P2.1 */
+#define Y_STEP_PIN_Number       1               /* P2.1 */
+#define Y_DIR_PORT              0               /* P0.11 */
+#define Y_DIR_PIN               (1 << 11)       /* P0.11 */
+#define Y_DIR_PIN_Number        11              /* P0.11 */
+#define Y_ENABLE_PORT           0               /* P0.10 */
+#define Y_ENABLE_PIN            (1 << 10)       /* P0.10 */
 
-#define Y_DIR_PORT      1         /* P1.26 */
-#define Y_DIR_PIN       (1 << 26) /* P1.26 */
-
-#define Y_ENABLE_PORT   1         /* P1.28 */
-#define Y_ENABLE_PIN    (1 << 28) /* P1.28 */
-
-#define Y_MIN_PORT      2         /* P2. 7 */
-#define Y_MIN_PIN       (1 <<  7) /* P2. 7 */
+#define Y_MIN_PORT              1               /* P1.28 */
+#define Y_MIN_PIN               (1 <<  28)      /* P1.28 */
+#define Y_endstop() ((digital_read(Y_MIN_PORT, Y_MIN_PIN))?0:1)
 
 //z axis pins
-#define Z_STEP_PORT     1         /* P1.29 */
-#define Z_STEP_PIN      (1 << 29) /* P1.29 */
+#define Z_STEP_PORT             2               /* P2.2 */
+#define Z_STEP_PIN              (1 << 2)        /* P2.2 */
+#define Z_STEP_PIN_Number       2               /* P2.2 */
+#define Z_DIR_PORT              0               /* P0.20 */
+#define Z_DIR_PIN               (1 <<  20)      /* P0.20 */
+#define Z_DIR_PIN_Number        20              /* P0.20 */
+#define Z_ENABLE_PORT           0               /* P0.19 */
+#define Z_ENABLE_PIN            (1 <<  19)      /* P0.19 */
 
-#define Z_DIR_PORT      0         /* P0. 0 */
-#define Z_DIR_PIN       (1 <<  0) /* P0. 0 */
-
-#define Z_ENABLE_PORT   0         /* P0. 1 */
-#define Z_ENABLE_PIN    (1 <<  1) /* P0. 1 */
-
-#define Z_MIN_PORT      2         /* P2. 8 */
-#define Z_MIN_PIN       (1 <<  8) /* P2. 8 */
+#define Z_MIN_PORT              1               /* P1.29 */
+#define Z_MIN_PIN               (1 <<  29)      /* P1.29 */
+#define Z_endstop() ((digital_read(Z_MIN_PORT, Z_MIN_PIN))?0:1)
 
 //e axis pins
-#define E_STEP_PORT     0         /* P0.10 */
-#define E_STEP_PIN      (1 << 10) /* P0.10 */
+#define E_STEP_PORT             2               /* P2.3 */
+#define E_STEP_PIN              (1 << 3)        /* P2.3 */
+#define E_STEP_PIN_Number       3               /* P2.3 */
+#define E_DIR_PORT              0               /* P0.22 */
+#define E_DIR_PIN               (1 << 22)       /* P0.22 */
+#define E_DIR_PIN_Number        22              /* P0.22 */
+#define E_ENABLE_PORT           0               /* P0.21 */
+#define E_ENABLE_PIN            (1 << 21)       /* P0.21 */
 
-#define E_DIR_PORT      0         /* P0.11 */
-#define E_DIR_PIN       (1 << 11) /* P0.11 */
+//#define STEPPERS_RESET_PORT     0     /* P0.22 */
+//#define STEPPERS_RESET_PIN      (1 << 22) /* P0.22 */
 
-#define E_ENABLE_PORT   2         /* P2.10 */
-#define E_ENABLE_PIN    (1 << 10) /* P2.10 */
+#define EXTRUDER_0_HEATER_PORT          1               /* P1.23 */
+#define EXTRUDER_0_HEATER_PIN           (1 << 23)        /* P1.23 */
+#define EXTRUDER_0_HEATER_PIN_Number    23               /* P1.23 */
+#define EXTRUDER_0_PWM_CHANNEL          4               /* P1.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
 
-#define STEPPERS_RESET_PORT     0         /* P0.22 */
-#define STEPPERS_RESET_PIN      (1 << 22) /* P0.22 */
+#define EXTRUDER_0_FAN_PORT             2               /* P2.7 */
+#define EXTRUDER_0_FAN_PIN              (1 << 7)       /* P2.7 */
+#define EXTRUDER_0_FAN_PIN_Number       7              /* P2.7 */
 
-#define EXTRUDER_0_HEATER_PORT          2        /* P2.4 */
-#define EXTRUDER_0_HEATER_PIN           (1 << 4) /* P2.4 */
-#define EXTRUDER_0_HEATER_PIN_Number    4
-#define EXTRUDER_0_SENSOR_ADC_PORT      0        /* P0.2 */
-#define EXTRUDER_0_SENSOR_ADC_PIN       2        /* P0.2 */
-#define EXTRUDER_0_SENSOR_ADC_CHANNEL   7        /* P0.2 */
-#define EXTRUDER_0_PWM_CHANNEL          5
+//#define EXTRUDER_0_HEATER_PORT          2               /* P2.4 */
+//#define EXTRUDER_0_HEATER_PIN           (1 << 4)        /* P2.4 */
+//#define EXTRUDER_0_HEATER_PIN_Number    4               /* P2.4 */
+//#define EXTRUDER_0_PWM_CHANNEL          5               /* P2.4 */
+//#define EXTRUDER_0_SENSOR_ADC_PORT      0               /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_PIN       23              /* P0.23 */
+//#define EXTRUDER_0_SENSOR_ADC_CHANNEL   0               /* P0.23 */
+//
+//#define EXTRUDER_0_FAN_PORT             1               /* P1.23 */
+//#define EXTRUDER_0_FAN_PIN              (1 << 23)       /* P1.23 */
+//#define EXTRUDER_0_FAN_PIN_Number       23              /* P1.23 */
+//#define BW_PWM_CHANNEL                  4               /* P1.23 */
 
-#define EXTRUDER_0_FAN_PORT             2         /* P2.7 */
-#define EXTRUDER_0_FAN_PIN              (1<<7)
+#define HEATED_BED_0_HEATER_PORT        2               /* P2.5 */
+#define HEATED_BED_0_HEATER_PIN         (1 << 5)        /* P2.5 */
+#define HEATED_BED_0_HEATER_PIN_Number  5               /* P2.5 */
+#define HEATED_BED_0_PWM_CHANNEL        6               /* P2.5 */
+#define HEATED_BED_0_ADC_PORT           0               /* P0.23 */
+#define HEATED_BED_0_ADC_PIN            23              /* P0.23 */
+#define HEATED_BED_0_SENSOR_ADC_CHANNEL 0               /* P0.23 */
 
-/*
-        Heated Bed
-*/
-#define HEATED_BED_0_HEATER_PORT        2        /* P2.5 */
-#define HEATED_BED_0_HEATER_PIN         (1 << 5) /* P2.5 */
-#define HEATED_BED_0_HEATER_PIN_Number  5
-#define HEATED_BED_0_ADC_PORT           0        /* P0.3 */
-#define HEATED_BED_0_ADC_PIN            3        /* P0.3 */
-#define HEATED_BED_0_SENSOR_ADC_CHANNEL 6        /* P0.3 */
-#define HEATED_BED_0_PWM_CHANNEL        6
+//#define CHAMBER_HEATER_PORT             2               /* P2.7 */
+//#define CHAMBER_HEATER_PIN              (1 << 7)        /* P2.7 */
+#define CHAMBER_ADC_PORT                0               /* P0.25 */
+#define CHAMBER_ADC_PIN                 25              /* P0.25 */
+#define CHAMBER_ADC_CHANNEL             2               /* P0.25 */
 
-#define heated_bed_on() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, HIGH);
-#define heated_bed_off() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, LOW);
+#define DOOR_PORT                       1               /* P1.25 */
+#define DOOR_PIN                        (1 <<  25)      /* P1.25 */
+#define door() ((digital_read(DOOR_PORT, DOOR_PIN))?0:1)
 
-#define BUZZER_PORT                     2        /* P2.2 */
-#define BUZZER_PIN                      (1 << 2) /* P2.2 */
-#define BUZZER_PIN_Number               2
-#define BUZZER_PWM_CHANNEL              3
+#define CHAMBER_LIGHT_PORT                 1               /* P1.22 */
+#define CHAMBER_LIGHT_PIN                  (1 <<  22)      /* P1.22 */
 
-#ifdef EXP_Board
-/*
-        Expansion Board
-*/
+#define SPOOL_LIGHT_PORT                 2               /* P2.6 */
+#define SPOOL_LIGHT_PIN                  (1 <<  6)      /* P2.6 */
 
-  #define R2C2_TEMP_ADC_PORT              0       /* P0.25 */
-  #define R2C2_TEMP_ADC_PIN               25      /* P0.25 */
-  #define R2C2_TEMP_SENSOR_ADC_CHANNEL    2       /* P0.25 */
+#define EncA_PORT                       0               /* P0.3 */
+#define EncA_PIN                        (1 <<  3)       /* P0.3 */
+#define EncA() ((digital_read(EncA_PORT, EncA_PIN))?1:0)
+#define EncB_PORT                       0               /* P0.2 */
+#define EncB_PIN                        (1 <<  2)       /* P0.2 */
+#define EncB() ((digital_read(EncB_PORT, EncB_PIN))?1:0)
 
-  #define R2C2_FAN_PORT                   1       /* P1.22 */
-  #define R2C2_FAN_PIN                    (1 << 22)      /* P1.22 */
-
-  #define ILUM_PORT                       1       /* P1.4 */
-  #define ILUM_PIN                        (1 << 4)      /* P1.4 */
-
-  #define BW_ON_PORT                      1       /* P1.1 */
-  #define BW_ON_PIN                       (1 << 1)       /* P1.1 */
-  #define BW_V1_PORT                      2       /* P2.3 */
-  #define BW_V1_PIN                       3       /* P2.3 */
-  #define BW_PWM_CHANNEL                  4       /* PWM4 */
-
-  #define SDOWN_ADC_PORT                  1       /* P1.31 */
-  #define SDOWN_ADC_PIN                   31      /* P1.31 */
-  #define SDOWN_ADC_SENSOR_ADC_CHANNEL    5        /* P1.31 */
-
-  #define FAN_EXT_ON_PORT                 1       /* P1.10 */
-  #define FAN_EXT_ON_PIN                  (1 << 10)      /* P1.10 */
-  #define FAN_EXT_V1_PORT                 2       /* P2.1 */
-  #define FAN_EXT_V1_PIN                  1       /* P2.1 */
-  #define FAN_EXT_PWM_CHANNEL             2       /* PWM2 */
-
-  #define LOGO_ON_PORT                    2       /* P2.0 */
-  #define LOGO_ON_PIN                     0       /* P2.0 */
-  #define LOGO_PWM_CHANNEL                1       /* PWM1 */
-
-  #define r2c2_fan_on() digital_write(R2C2_FAN_PORT, R2C2_FAN_PIN, HIGH);
-  #define r2c2_fan_off() digital_write(R2C2_FAN_PORT, R2C2_FAN_PIN, LOW);
-
-  #define blower_on() digital_write(BW_ON_PORT, BW_ON_PIN, HIGH);
-  #define blower_off() digital_write(BW_ON_PORT, BW_ON_PIN, LOW);
-
-  #define extruder_block_fan_on() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, HIGH);
-  #define extruder_block_fan_off() digital_write(FAN_EXT_ON_PORT, FAN_EXT_ON_PIN, LOW);
-
-  //#define logo_on() digital_write(LOGO_ON_PORT, LOGO_ON_PIN, HIGH);
-  //#define logo_off() digital_write(LOGO_ON_PORT, LOGO_ON_PIN, LOW);
-
-  #define ilum_on() digital_write(ILUM_PORT, ILUM_PIN, HIGH);
-  #define ilum_off() digital_write(ILUM_PORT, ILUM_PIN, LOW);
-
-#endif
-
-#ifdef USE_BATT
-  #define BATT_ADC_PORT                  0       /* P0.26 */
-  #define BATT_ADC_PIN                   26      /* P0.26 */
-  #define BATT_ADC_SENSOR_ADC_CHANNEL    3       /* P0.26 */
-
-  #define PS_EXT_READ_PORT                   0       /* P0.7 */
-  #define PS_EXT_READ_PIN                    (1 << 7)      /* P0.7 */
-
-  #define STEP_uC_ON_PORT                   0       /* P0.6 */
-  #define STEP_uC_ON_PIN                    (1 << 6)      /* P0.6 */
-
-  #define BATT_uC_ON_PORT                   1       /* P1.8 */
-  #define BATT_uC_ON_PIN                    (1 << 8)      /* P1.8 */
-
-  #define STEP_uC_enable() digital_write(STEP_uC_ON_PORT, STEP_uC_ON_PIN, 1)
-  #define STEP_uC_disable() digital_write(STEP_uC_ON_PORT, STEP_uC_ON_PIN, 0)
-
-  #define BATT_uC_enable() digital_write(BATT_uC_ON_PORT, BATT_uC_ON_PIN, 0)
-  #define BATT_uC_disable() digital_write(BATT_uC_ON_PORT, BATT_uC_ON_PIN, 1)
-#endif
+//#define BUZZER_PORT     2         /* P2.2 PWM1[3] */
+//#define BUZZER_PIN      (1 << 22) /* P2.2 PWM1[3] */
+//#define buzzer_off() digital_write(BUZZER_PORT, BUZZER_PIN, LOW);
 
 /*
         X Stepper
@@ -221,7 +167,7 @@
 #define x_step() digital_write(X_STEP_PORT, X_STEP_PIN, 1)
 #define x_unstep() digital_write(X_STEP_PORT, X_STEP_PIN, 0)
 #define x_direction(dir) digital_write(X_DIR_PORT, X_DIR_PIN, dir)
-#define x_min() ((digital_read(X_MIN_PORT, X_MIN_PIN))?0:1)
+#define x_min() ((digital_read(X_MIN_PORT, X_MIN_PIN))?1:0)
 
 /*
         Y Stepper
@@ -231,7 +177,7 @@
 #define y_step() digital_write(Y_STEP_PORT, Y_STEP_PIN, 1)
 #define y_unstep() digital_write(Y_STEP_PORT, Y_STEP_PIN, 0)
 #define y_direction(dir) digital_write(Y_DIR_PORT, Y_DIR_PIN, dir)
-#define y_min() ((digital_read(Y_MIN_PORT, Y_MIN_PIN))?0:1)
+#define y_min() ((digital_read(Y_MIN_PORT, Y_MIN_PIN))?1:0)
 
 /*
         Z Stepper
@@ -241,7 +187,7 @@
 #define z_step() digital_write(Z_STEP_PORT, Z_STEP_PIN, 1)
 #define z_unstep() digital_write(Z_STEP_PORT, Z_STEP_PIN, 0)
 #define z_direction(dir) digital_write(Z_DIR_PORT, Z_DIR_PIN, dir)
-#define z_min() ((digital_read(Z_MIN_PORT, Z_MIN_PIN))?0:1)
+#define z_min() ((digital_read(Z_MIN_PORT, Z_MIN_PIN))?1:0)
 
 /*
         Extruder
@@ -255,14 +201,18 @@
 #define extruder_heater_on() digital_write(EXTRUDER_0_HEATER_PORT, EXTRUDER_0_HEATER_PIN, HIGH);
 #define extruder_heater_off() digital_write(EXTRUDER_0_HEATER_PORT, EXTRUDER_0_HEATER_PIN, LOW);
 
-#define extruder_fan_on() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, HIGH);
-#define extruder_fan_off() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, LOW);
+#define extruder_fan_on() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, LOW);
+#define extruder_fan_off() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, HIGH);
 
 /*
         Heated Bed
 */
 #define heated_bed_on() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, HIGH);
 #define heated_bed_off() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, LOW);
+
+#define power_on()      if (0) {}
+#define power_off()     if (0) {}
+
 
 
 /*
