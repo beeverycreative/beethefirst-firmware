@@ -301,6 +301,8 @@ static double read_spi_temp(void)
         }
     }
 
+  temp -= temp*0.163;
+
   return temp;
 }
 
@@ -336,6 +338,8 @@ static double read_temp(uint8_t sensor_number)
       k = ((float) 1 / (float) 298.15);
       j = ((float) 1 / (float) 4040);
       celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
+
+      celsius -= celsius*0.125;
     }
   else if (sensor_number == CHAMBER)
     {
