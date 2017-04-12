@@ -34,6 +34,7 @@ void bubble_sort(int32_t list[], int32_t n)
     }
 }
 
+#ifndef USE_BATT
 #ifdef EXP_Board
 void verifySDownConditions(void)
 {
@@ -66,8 +67,41 @@ void verifySDownConditions(void)
     }
 }
 #endif
+#endif
 
 #ifdef USE_BATT
+
+void verifySDownConditions(void)
+{
+  if(sDown_filtered < SDown_Threshold)
+    {
+      if(sd_printing)
+	{
+
+	  initPause();
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
+
+	  queue_flush();
+	  reset_current_block();
+
+	  home_z();
+	}
+      else if(printerPause)
+	{
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
+
+	  queue_flush();
+	  reset_current_block();
+
+	  home_z();
+	}
+    }
+}
+
 void verifyBatteryLevels(void)
 {
   //Power Supply Disconnected

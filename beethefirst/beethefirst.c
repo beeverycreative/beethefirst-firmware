@@ -236,19 +236,19 @@ void temperatureTimerCallback (tTimer *pTimer)
   void shutdownTimerCallBack (tTimer *pTimer)
   {
 
-    sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
+	  sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-     if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
-	 consecutive_measures++;
+	  if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
+		  consecutive_measures++;
 
-     }else{
-	 consecutive_measures=0;
-     }
-     if(consecutive_measures>=2){
-	 sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
-     	 verifySDownConditions();
-     }
-     	 i_sDownADC_raw ++;
+	  }else{
+		  consecutive_measures=0;
+	  }
+	  if(consecutive_measures>=2){
+		  sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
+		  verifySDownConditions();
+	  }
+	  i_sDownADC_raw ++;
 
   }
 #endif
@@ -256,16 +256,23 @@ void temperatureTimerCallback (tTimer *pTimer)
 #ifdef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int i, j;
-    int32_t a;
+	  sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+	  if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
+		  consecutive_measures++;
+
+	  }else{
+		  consecutive_measures=0;
+	  }
+	  if(consecutive_measures>=2){
+		  sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
+
+		  if(debugMode == false)
+		  {
+			  verifySDownConditions();
+		  }
+	  }
+	  i_sDownADC_raw ++;
 
     int32_t batt_buf[5];
     for(int32_t j = 0; j < 5; j++)
@@ -279,11 +286,6 @@ void temperatureTimerCallback (tTimer *pTimer)
     batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
 
     ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
-
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
 
     if(debugMode == false)
       {
