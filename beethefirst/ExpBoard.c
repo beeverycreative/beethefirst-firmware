@@ -48,10 +48,10 @@ void verifySDownConditions(void)
 	  write_config();
 	  sd_printing = false;
 
-	  queue_flush();
-	  reset_current_block();
+	  //queue_flush();
+	  //reset_current_block();
 
-	  home_z();
+	  //home_z();
 	}
       else if(printerPause)
 	{
@@ -59,10 +59,10 @@ void verifySDownConditions(void)
 	  write_config();
 	  sd_printing = false;
 
-	  queue_flush();
-	  reset_current_block();
+	  //queue_flush();
+	  //reset_current_block();
 
-	  home_z();
+	  //home_z();
 	}
     }
 }

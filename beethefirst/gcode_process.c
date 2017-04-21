@@ -545,11 +545,9 @@ bool write_config_override()
 
   sd_close(&file);
 
-  if(printerPause || sd_printing || sd_resume || sd_pause)
-    {
-      strcpy(config.filename,currfName);
-      write_config();
-    }
+
+  strcpy(config.filename,currfName);
+  write_config();
 
   __enable_irq();
 
@@ -1247,6 +1245,7 @@ eParseResult process_gcode_command(){
               strcpy(fName, "ABCDE");
             }
 
+          memset(config.filename, '\0', sizeof(fName));
           strcpy(config.filename, fName);
 
           if(print_file() == false)
