@@ -140,7 +140,7 @@
 
 #define DOOR_PORT                       1               /* P1.25 */
 #define DOOR_PIN                        (1 <<  25)      /* P1.25 */
-#define door() ((digital_read(DOOR_PORT, DOOR_PIN))?0:1)
+#define door() ((digital_read(DOOR_PORT, DOOR_PIN))?1:0)
 
 #define CHAMBER_LIGHT_PORT                 1               /* P1.22 */
 #define CHAMBER_LIGHT_PIN                  (1 <<  22)      /* P1.22 */

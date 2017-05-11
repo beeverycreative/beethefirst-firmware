@@ -2239,8 +2239,8 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
-              buzzer_wait ();
-              buzzer_play (3000);
+              //buzzer_wait ();
+              //buzzer_play (3000);
               Extrude(100,300);
               SetEPos(0);
               config.filament_in_spool -= 100;
@@ -2262,13 +2262,14 @@ eParseResult process_gcode_command(){
               }else{
                   config.status = 5;
               }
-              buzzer_wait ();
-              buzzer_play (3000);
+              //buzzer_wait ();
+              //buzzer_play (3000);
               Extrude(50,300);
               Extrude(-23,1000);
               Extrude(25,800);
               Extrude(-30,2000);
               Extrude(-50,200);
+              Extrude(-500,2000);
               SetEPos(0);
               config.filament_in_spool = 0;
               write_config();
