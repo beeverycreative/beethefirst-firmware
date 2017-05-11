@@ -482,5 +482,11 @@
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1867047729.1857634974;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1174390483;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1838136489">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.1229586292.1104682205;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.1229586292.1104682205.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1984062443;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1025857627">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.1229586292.1104682205;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1801127113.1229586292.1104682205.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1575019157;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1270488681">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>

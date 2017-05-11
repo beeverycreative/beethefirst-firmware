@@ -285,10 +285,6 @@ int app_main (void){
   WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET );
   WDT_Start (30000000);
 
-  buzzer_init();
-  buzzer_play(1000); /* low beep */
-  buzzer_wait();
-
   temp_set(0.0,EXTRUDER_0);
   temp_set(0.0,HEATED_BED_0);
 
@@ -332,6 +328,7 @@ int app_main (void){
           && !transfer_mode)
         {
           temp_set(0, EXTRUDER_0);
+          temp_set(0, HEATED_BED_0);
           enter_power_saving = 1;
           rest_time = 0;
         }
@@ -354,6 +351,7 @@ int app_main (void){
           e_disable();
 
           temp_set(0, EXTRUDER_0);
+          temp_set(0, HEATED_BED_0);
 
           leave_power_saving = 1;
           enter_power_saving = 0;
