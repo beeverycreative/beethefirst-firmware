@@ -596,6 +596,7 @@ createdirs:
 #Copy bin files to bin directory
 copyBinBTF_OLD:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST0-$(FW_VERSION).BIN
+	cp $(OUTDIR)/$(TARGET).bin ~/git/BEEcom/BTF
 		
 copyBinBTF:
 	cp $(OUTDIR)/$(TARGET).bin $(BINDIR)/BEEVC-BEETHEFIRST-$(FW_VERSION).BIN
