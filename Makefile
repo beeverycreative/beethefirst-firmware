@@ -85,7 +85,7 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.5.26
+FW_VERSION = 10.5.27
 
 #Define Config UID
 CFG_UID = 30
@@ -527,7 +527,7 @@ DEPFILES   = $(addprefix $(OUTDIR)/dep/, $(addsuffix .o.d, $(ALLSRCBASE)))
 
 # Default target.
 #all: begin createdirs gccversion build sizeafter end
-#all: btf msftbtf btfold btfplus btfme btfschool btfplusbatt
+#all: btf msftbtf btfold btfplus btfme btfschool btfplus_a
 all:
 
 #Debug UART BTF+
@@ -550,9 +550,9 @@ btfplus: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST_PLUS-$(FW_VERSION)"' -DCFG_UID=$(C
 btfplus: begin createdirs gccversion build sizeafter copyBinBTF_PLUS end
 
 # BTF_PLUS_BATT
-btfplusbatt: CFLAGS += -DBTF_PLUS_BATT
-btfplusbatt: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST_PLUS_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-btfplusbatt: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_Batt end
+btfplus_a: CFLAGS += -DBTF_PLUS_BATT
+btfplus_a: CFLAGS += -DFW_V='"BEEVC-BEETHEFIRST_PLUS_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfplus_a: begin createdirs gccversion build sizeafter copyBinBTF_PLUS_Batt end
 
 # BTF_ME
 btfme: CFLAGS += -DBTF_ME
@@ -566,9 +566,9 @@ btfschool: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL-$(FW_VERSION)"' -DCFG_UID=$(CFG_
 btfschool: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL end
 
 # BTF_IS_BATT
-btfschoolbatt: CFLAGS += -DBTF_SCHOOL_BATT
-btfschoolbatt: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
-btfschoolbatt: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_BATT end
+btfschool_a: CFLAGS += -DBTF_SCHOOL_BATT
+btfschool_a: CFLAGS += -DFW_V='"BEEVC-BEEINSCHOOL_A-$(FW_VERSION)"' -DCFG_UID=$(CFG_UID)
+btfschool_a: begin createdirs gccversion build sizeafter copyBinBTF_SCHOOL_BATT end
 
 #
 

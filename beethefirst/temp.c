@@ -263,8 +263,8 @@ static double read_R2C2_temp(void)
 {
   double celsius = 0;
 
-  int32_t adc_r2c2_buf[5];
-  for(int32_t i = 0; i < 5; i++)
+  int32_t adc_r2c2_buf[9];
+  for(int32_t i = 0; i < 9; i++)
     {
       adc_r2c2_buf[i] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
     }
