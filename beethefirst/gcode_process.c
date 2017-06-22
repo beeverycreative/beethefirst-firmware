@@ -2142,11 +2142,18 @@ eParseResult process_gcode_command(){
                 }
               buzzer_wait ();
               buzzer_play (3000);
+              /*
               Extrude(15,loadFeedrate);
               Extrude(-23,1000);
               Extrude(25,2*loadFeedrate);
               Extrude(-30,2000);
               Extrude(-50,loadFeedrate);
+              SetEPos(0);
+              */
+              Extrude(15,300);
+              Extrude(-15,800);
+              Extrude(-30,120);
+              Extrude(-30,1000);
               SetEPos(0);
               config.status = 3;
               config.filament_in_spool -= 17;
