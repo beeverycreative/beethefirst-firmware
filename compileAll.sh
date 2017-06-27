@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-export PATH="$PATH:/home/rpina/GCC Tools/gcc-arm-none-eabi-4_9-2015q3/bin/"
+export PATH="$PATH:/Users/mgomes/Toolchains/gcc-arm-none-eabi_4.8/bin/"
 
 make clean btf
 make clean btfold
