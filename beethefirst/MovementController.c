@@ -253,7 +253,7 @@ void home_z(void)
   tTarget next_targetd = startpoint;
   next_targetd.x = startpoint.x;
   next_targetd.y = startpoint.y;
-  next_targetd.z = startpoint.z - dir * 10;
+  next_targetd.z = startpoint.z - dir * 2;
   next_targetd.e = startpoint.e;
   next_targetd.feed_rate =  HOME_FEED_Z;
   enqueue_moved(&next_targetd);
@@ -267,7 +267,7 @@ void home_z(void)
 
   // move back in to endstop slowly
   //SpecialMoveZ(startpoint.z + dir *15 , config.search_feedrate_z);
-  SpecialMoveZ(startpoint.z + dir *15 , SEARCH_FEED_Z);
+  SpecialMoveZ(startpoint.z + dir *7 , SEARCH_FEED_Z);
   synch_queue();
 
   // this is our home point
