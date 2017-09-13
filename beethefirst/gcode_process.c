@@ -776,6 +776,12 @@ eParseResult process_gcode_command(){
             {
               is_heating_Process = false;
               temp_set(0, EXTRUDER_0);
+
+              //reset block fan control parameters
+              config.blockTemperatureFanStart = 30;
+              config.blockTemperatureFanMax = 40;
+              config.blockControlB = -276.25;
+              config.blockControlM = 8.75;
             }
           memset(statusStr, '\0', sizeof(statusStr));
 
@@ -2140,40 +2146,34 @@ eParseResult process_gcode_command(){
                 {
                   loadFeedrate = next_target.S;
                 }
+
               buzzer_wait ();
               buzzer_play (3000);
 #ifdef EXP_Board
+              setBlowerSpeed(255);
               Extrude(15,300);
-              Extrude(-15,800);
-              Extrude(-30,120);
-              Extrude(-30,1000);
+              Extrude(-23,1000);
+              Extrude(25,600);
+              Extrude(-32,2000);
+              Extrude(-42,70);
 #else
               Extrude(15,loadFeedrate);
               Extrude(-23,1000);
               Extrude(25,2*loadFeedrate);
               Extrude(-30,2000);
               Extrude(-50,loadFeedrate);
-              SetEPos(0);
 #endif
+
               SetEPos(0);
               config.status = 3;
               config.filament_in_spool -= 17;
               write_config();
 
+              disableBlower();
 
-
-              /*
               buzzer_wait ();
               buzzer_play (3000);
-              Extrude(10,200);
-              Extrude(-15,6000);
-              Extrude(10,6000);
-              Extrude(-15,6000);
-              Extrude(-30,40);
-              synch_queue();
-              buzzer_wait ();
-              buzzer_play (3000);
-              */
+
 
             }
           if(sd_printing){
@@ -2188,6 +2188,7 @@ eParseResult process_gcode_command(){
 
           if(!sd_printing)
             {
+
               // Wait for all movements to end
               synch_queue();
 
@@ -2225,6 +2226,13 @@ eParseResult process_gcode_command(){
                 {
                   // If no temperature is define, break
                   if(!next_target.seen_S) break;
+
+                  //Change block fan control defaults
+                  config.blockTemperatureFanStart = 25;
+                  config.blockTemperatureFanMax = 35;
+                  //Extruder block fan regression
+                  config.blockControlM = (config.blockFanMaxSpeed - config.blockFanMinSpeed)/(config.blockTemperatureFanMax - config.blockTemperatureFanStart);
+                  config.blockControlB = config.blockFanMaxSpeed - config.blockControlM*config.blockTemperatureFanMax;
 
                   // Start Heating process
                   is_heating_Process = true;
@@ -2276,6 +2284,12 @@ eParseResult process_gcode_command(){
               disableBlower();
               is_heating_Process = false;
               config.status = 3;
+
+              //reset block fan control parameters
+              config.blockTemperatureFanStart = 30;
+              config.blockTemperatureFanMax = 40;
+              config.blockControlB = -276.25;
+              config.blockControlM = 8.75;
             }
           if(sd_printing){
               reply_sent = 1;

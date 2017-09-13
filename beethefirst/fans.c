@@ -44,7 +44,7 @@ void setBlowerSpeed(int16_t speed)
         duty = (uint16_t) s_val*0.4;
     }
 
-  currenBWSpeed = duty;
+  currenBWSpeed = speed;
   pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
   pwm_set_enable(BW_PWM_CHANNEL);
 #endif

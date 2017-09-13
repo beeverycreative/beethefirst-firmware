@@ -117,8 +117,8 @@ tConfigItem config_lookup [] =
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=8.75}},
         { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=-276.25}},
-        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=35}},
-        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=43}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=30}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=40}},
         { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
         { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
 
