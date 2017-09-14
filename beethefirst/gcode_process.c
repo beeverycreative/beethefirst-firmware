@@ -1661,6 +1661,30 @@ eParseResult process_gcode_command(){
         }
         break;
 
+        // M204 - set accel in mm/sec^2
+      case 204:
+      {
+    	  if ((next_target.seen_S ) == 0){
+    		  if(!next_target.seen_B && !sd_printing){
+    			  sersendf (" S%g ",
+    					  config.acceleration);
+    		  }/*No need for else*/
+    	  }else{
+    		  if (next_target.seen_S){
+    			  if(next_target.S > 10000){
+    				  next_target.S = 10000;
+    			  }
+    			  config.acceleration = next_target.S;
+
+    		  }/*No need for else*/
+    	  }
+
+    	  if(sd_printing){
+    		  reply_sent = 1;
+    	  }/*No need for else*/
+      }
+      break;
+
         // M206 - set accel in mm/sec^2
       case 206:
         {
