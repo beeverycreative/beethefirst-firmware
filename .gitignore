@@ -7,8 +7,6 @@ openocd-0.9-scripts/
 *.bak
 .settings/
 *.cproject
-*.project
 .cproject
-.project
 .~*
 .DS_Store

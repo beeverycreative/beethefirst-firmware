@@ -538,6 +538,10 @@ bool write_config_override()
       sd_write_to_file(line,strlen(line));
     }
 
+  //Backup Steps/mm from E
+  memset(line, '\0', sizeof(line));
+  sprintf(&line[0],"M200 E%u\n",config.steps_per_mm_e0);
+
   //Save to config
   memset(line, '\0', sizeof(line));
   sprintf(&line[0],"M601\n");
@@ -1645,6 +1649,7 @@ eParseResult process_gcode_command(){
               }
 
               write_config();
+              write_config_override();
           } else {
               if(!next_target.seen_B && !sd_printing){
                   sersendf ("X%g Y%g Z%g E%g ",
