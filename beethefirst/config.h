@@ -30,7 +30,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define line_length 30 //Max length to file names and respective lines
+#define line_length 50 //Max length to file names and respective lines
 #define GCODE_MAX_line_length 120
 
 #include "stdint.h"
@@ -73,6 +73,7 @@ struct configuration
   int32_t time_elapsed;
   int32_t number_of_lines;
   int32_t executed_lines;
+  char gcode_filename[line_length];
   double  startpoint_x;
   double  startpoint_y;
   double  startpoint_z;
