@@ -133,8 +133,9 @@ tConfigItem config_lookup [] =
         {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}},
 
         //Encoder
-        {"Encoder_steps_mm", &config.encStepsMM, TYPE_DOUBLE, {.val_d=0.1121}},
-        {"Maximum_Encoder_Delta",&config.maxDelta_mm , TYPE_INT, {.val_i=2}}
+        {"Encoder_steps_mm", &config.encStepsMM, TYPE_DOUBLE, {.val_d=0.1489}},
+        {"Maximum_Encoder_Delta",&config.maxDelta_mm , TYPE_INT, {.val_i=2}},
+		{"Max_Encoder_Error", &config.max_encoder_error, TYPE_DOUBLE, {.val_d=0.1}}
 
     };
 

@@ -98,7 +98,7 @@ extern bool     debugMode = false;              //Enable debug functions
 
 double printed_filament = 0;
 double encoderSegment = 0;
-double extrusionError = 0;
+double extrusionError = 0.0;
 bool enableEncoderPause = false;
 bool enableDoorPause = false;
 uint32_t plannedLineNumber = 0;
@@ -401,6 +401,8 @@ bool print_file()
       return false;
   }/*No need for else*/
 
+  extrusionError = 0.0;
+
   time_elapsed = 0;
   estimated_time = 0;
   number_of_lines = 0;
@@ -412,6 +414,7 @@ bool print_file()
   plannedLineNumber = 0;
   lineStop = -1;
   is_cooling_Process = false;
+  filamentErrorPause = false;
 
   config.last_print_time = 0;
   write_config();
@@ -1396,6 +1399,7 @@ eParseResult process_gcode_command(){
           sd_resume = false;
           printerPause = false;
           printerShutdown = false;
+          filamentErrorPause = false;
 
           write_config();
 
@@ -1918,6 +1922,7 @@ eParseResult process_gcode_command(){
         {
           config.status = 3;
           printerShutdown = false;
+          filamentErrorPause = false;
           write_config();
         }
         break;
@@ -2241,7 +2246,8 @@ eParseResult process_gcode_command(){
               }
               //buzzer_wait ();
               //buzzer_play (3000);
-              Extrude(100,300);
+              Extrude(400,1000);
+              Extrude(150,200);
               SetEPos(0);
               config.filament_in_spool -= 100;
               write_config();
@@ -2264,12 +2270,7 @@ eParseResult process_gcode_command(){
               }
               //buzzer_wait ();
               //buzzer_play (3000);
-              Extrude(50,300);
-              Extrude(-23,1000);
-              Extrude(25,800);
-              Extrude(-30,2000);
-              Extrude(-50,200);
-              Extrude(-500,2000);
+              Extrude(-500,1000);
               SetEPos(0);
               config.filament_in_spool = 0;
               write_config();
@@ -2668,13 +2669,6 @@ eParseResult process_gcode_command(){
               axisSelected = 1;
             }
 
-          if(next_target.seen_L)
-            {
-              config.maxDelta_mm = next_target.L;
-              write_config();
-              axisSelected = 1;
-            }
-
           if(!axisSelected)
             {
               GetEncoderPos();
@@ -2684,13 +2678,13 @@ eParseResult process_gcode_command(){
             }
         }
         break;
-        //M1302 - Get Encoder Error
+        //M1303 - Get Encoder Error
       case 1303:
         {
           sersendf("Encoder Error: %g\n",extrusionError);
         }
         break;
-        //M1304 - Enable/Disable Encoder errbool enableEncoderPause;or pause
+        //M1304 - Enable/Disable Encoder error pause
       case 1304:
         {
           if(next_target.seen_S)
@@ -2698,32 +2692,25 @@ eParseResult process_gcode_command(){
               if(next_target.S == 1)
                 {
                   enableEncoderPause = true;
-                  sersendf("Encoder Error Pause Mode Enabled\n");
+                  if(!sd_printing) sersendf("Encoder Error Pause Mode Enabled\n");
                 }
               else if(next_target.S == 0)
                 {
                   enableEncoderPause = false;
-                  sersendf("Encoder Error Pause Mode Disabled\n");
+                  if(!sd_printing) sersendf("Encoder Error Pause Mode Disabled\n");
                 }
             } else {
                 if(enableEncoderPause == false)
                   {
-                    sersendf("Encoder Error Pause Mode Disabled\n");
+                	if(!sd_printing) sersendf("Encoder Error Pause Mode Disabled\n");
                   }
                 else
                   {
-                    sersendf("Encoder Error Pause Mode Enabled\n");
+                	if(!sd_printing) sersendf("Encoder Error Pause Mode Enabled\n");
                   }
             }
 
 
-        }
-        break;
-
-        //M1305 - Get Encoder Error
-      case 1305:
-        {
-          sersendf("executed lines: %u\n",lineNumber);
         }
         break;
 
@@ -2735,21 +2722,21 @@ eParseResult process_gcode_command(){
               if(next_target.S == 1)
                 {
                   enableDoorPause = true;
-                  sersendf("Door Pause Mode Enabled\n");
+                  if(!sd_printing) sersendf("Door Pause Mode Enabled\n");
                 }
               else if(next_target.S == 0)
                 {
                   enableDoorPause = false;
-                  sersendf("Door Pause Mode Disabled\n");
+                  if(!sd_printing) sersendf("Door Pause Mode Disabled\n");
                 }
             } else {
                 if(enableDoorPause == false)
                   {
-                    sersendf("Door Pause Mode Disabled\n");
+                	if(!sd_printing) sersendf("Door Pause Mode Disabled\n");
                   }
                 else
                   {
-                    sersendf("Door Pause Mode Enabled\n");
+                	if(!sd_printing) sersendf("Door Pause Mode Enabled\n");
                   }
             }
         }
@@ -2787,6 +2774,33 @@ eParseResult process_gcode_command(){
           }/*No need for else*/
         }
         break;
+
+        //Set encoder max extrusion slip length and extrusion error
+      case 1309:
+      {
+    	  axisSelected = 0;
+
+    	  if(next_target.seen_L)
+    	  {
+    		  config.maxDelta_mm = next_target.L;
+    		  write_config();
+    		  axisSelected = 1;
+    	  }
+
+    	  if(next_target.seen_T)
+    	  {
+    		  config.max_encoder_error = next_target.T;
+    		  write_config();
+    		  axisSelected = 1;
+    	  }
+
+    	  if(axisSelected == 0)
+    	  {
+    		  sersendf("Maximum Encoder Delta: %u\n",config.maxDelta_mm);
+    		  sersendf("Max Encoder Error: %g\n",config.max_encoder_error);
+    	  }
+      }
+      break;
 
 
 #endif

@@ -146,7 +146,7 @@ void io_init(void)
   //digital_write(CHAMBER_HEATER_PORT, CHAMBER_HEATER_PORT, 0);
 
   pin_mode(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, OUTPUT);
-  digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,1);
+  digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,0);
 }
 
 void temperatureTimerCallback (tTimer *pTimer)
@@ -597,23 +597,26 @@ int app_main (void){
       if(sd_printing && (lineStop > 0) && (lineNumber >= lineStop) && enableEncoderPause)
         {
           if(plannedSegment != 0)
-            {
-              GetEncoderPos();
-              //sersendf("Segment: %g Encoder: %g\n",plannedSegment,encoderMM);
-              extrusionError = (plannedSegment - encoderMM)/plannedSegment;
-              if(extrusionError > 0.1 || extrusionError < -0.1)
-                {
-                  initPause();
-                  write_config();
+          {
+        	  GetEncoderPos();
 
-                  sd_printing = false;
-                  sd_pause = true;
-                  sd_resume = false;
-                  filamentErrorPause = true;
-                }
+        	  extrusionError = (plannedSegment - encoderMM)/plannedSegment;
 
-              config.filament_in_spool -= encoderMM;
-              write_config();
+        	  //sersendf("Segment: %g Encoder: %g error:%g\n",plannedSegment,encoderMM,extrusionError);
+        	  if(extrusionError > config.max_encoder_error)
+        	  {
+        		  initPause();
+        		  write_config();
+
+        		  sd_printing = false;
+        		  sd_pause = true;
+        		  sd_resume = false;
+        		  filamentErrorPause = true;
+        		  temp_set(0,EXTRUDER_0);
+        	  }
+
+        	  config.filament_in_spool -= encoderMM;
+        	  write_config();
 
               plannedSegment = 0;
               encoderPos = 0;
@@ -626,7 +629,7 @@ int app_main (void){
        *                Check Door
        *
        ***********************************************************************/
-      /*
+
       if(sd_printing && enableDoorPause && !door())
         {
           initPause();
@@ -636,8 +639,10 @@ int app_main (void){
           sd_pause = true;
           sd_resume = false;
           doorPause = true;
+
+          temp_set(0,EXTRUDER_0);
         }
-       */
+
 
   }
 }

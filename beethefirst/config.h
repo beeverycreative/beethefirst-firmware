@@ -109,6 +109,7 @@ struct configuration
   //encoder vars
   double encStepsMM;
   uint32_t maxDelta_mm;
+  double max_encoder_error;
 
 };
 

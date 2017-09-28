@@ -180,6 +180,13 @@ void temp_tick(void)
       }else if(output<0 ) {
           output = 0;
       }
+
+      //Turn the extruder fan when extruder is above 100C
+      if (current_temp[EXTRUDER_0] > 100) digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,1);
+      else digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,0);
+    } else {
+    	//In case of reading error, turn extruder fan... just in case.
+    	digital_write(EXTRUDER_0_FAN_PORT,EXTRUDER_0_FAN_PIN,1);
     }
 
   pid_error_bed = target_temp[HEATED_BED_0] - current_temp[HEATED_BED_0];

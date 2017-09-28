@@ -97,10 +97,10 @@
 #endif
 
 #if defined(BTF_SMOOTHIE) && defined(BTF_SMOOTHIE_V2) && !defined(BTF_SMOOTHIE_V1)
-  #define STEPS_MM_X              80
-  #define STEPS_MM_Y              80
-  #define STEPS_MM_Z              2133.33
-  #define STEPS_MM_E0             441.3897
+  #define STEPS_MM_X              159.93
+  #define STEPS_MM_Y              160.21476
+  #define STEPS_MM_Z              4266.404
+  #define STEPS_MM_E0             901.063
 
 
   #define MAX_FEED_X              60000
@@ -124,7 +124,7 @@
 
   #define HOME_POS_X              -45
   #define HOME_POS_Y              -52.5
-  #define HOME_POS_Z              80
+  #define HOME_POS_Z              75.1
 
   #define PRINT_VOL_X             70
   #define PRINT_VOL_Y             120
