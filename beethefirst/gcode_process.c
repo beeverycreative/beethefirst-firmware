@@ -2669,7 +2669,7 @@ eParseResult process_gcode_command(){
               axisSelected = 1;
             }
 
-          if(!axisSelected)
+          if(!axisSelected && !sd_printing)
             {
               GetEncoderPos();
               sersendf("Extruder Segment Position: %g\n",plannedSegment);
@@ -2794,7 +2794,7 @@ eParseResult process_gcode_command(){
     		  axisSelected = 1;
     	  }
 
-    	  if(axisSelected == 0)
+    	  if(axisSelected == 0 && !sd_printing)
     	  {
     		  sersendf("Maximum Encoder Delta: %u\n",config.maxDelta_mm);
     		  sersendf("Max Encoder Error: %g\n",config.max_encoder_error);

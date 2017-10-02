@@ -616,7 +616,7 @@ int app_main (void){
         	  }
 
         	  config.filament_in_spool -= encoderMM;
-        	  write_config();
+        	  //write_config();
 
               plannedSegment = 0;
               encoderPos = 0;
