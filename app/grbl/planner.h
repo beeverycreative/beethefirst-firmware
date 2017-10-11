@@ -53,8 +53,8 @@
   #define HOME_DIR_Y              -1
   #define HOME_DIR_Z              1
 
-  #define HOME_POS_X              -35
-  #define HOME_POS_Y              67
+  #define HOME_POS_X              -28
+  #define HOME_POS_Y              60
 
   #define PRINT_VOL_X             190
   #define PRINT_VOL_Y             135
