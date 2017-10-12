@@ -6,7 +6,7 @@ uint32_t  currenBWSpeed = 0;
 
 void enableBlower(void)
 {
-  currenBWSpeed = 100;
+  currenBWSpeed = 255;
 #ifndef EXP_Board
   extruder_fan_on();
 #endif
@@ -33,6 +33,7 @@ void disableBlower(void)
 void setBlowerSpeed(int16_t speed)
 {
 #ifdef EXP_Board
+  currenBWSpeed = speed;
   blower_on();
 
   uint16_t s_val = speed;
@@ -44,7 +45,6 @@ void setBlowerSpeed(int16_t speed)
         duty = (uint16_t) s_val*0.4;
     }
 
-  currenBWSpeed = speed;
   pwm_set_duty_cycle(BW_PWM_CHANNEL,duty);
   pwm_set_enable(BW_PWM_CHANNEL);
 #endif

@@ -728,6 +728,7 @@ eParseResult process_gcode_command(){
                 {
                   initPause();
                   write_config();
+                  write_config_override();
 
                   sd_printing = false;
                   sd_pause = true;
@@ -1192,6 +1193,10 @@ eParseResult process_gcode_command(){
               }/*No need for else*/
               break;
           }
+
+          if(sd_printing){
+        	  reply_sent = 1;
+          }/*No need for else*/
         }
         break;
 
@@ -2519,10 +2524,14 @@ eParseResult process_gcode_command(){
     		  strcpy(config.gcode_filename,next_target.filename);
     		  memset(next_target.filename, '\0', sizeof(next_target.filename));
     		  write_config();
-    		  write_config_override();
+    		  //write_config_override();
     	  } else {
     		  sersendf("Error, Please Specify Gcode Filename String");
     	  }
+
+    	  if(sd_printing){
+    		  reply_sent = 1;
+    	  }/*No need for else*/
       }
       break;
 

@@ -116,6 +116,7 @@ void resumePrint(void)
       else
         {
           setBlowerSpeed(config.blowerSpeed);
+          enableBlower();
         }
 
       /*
