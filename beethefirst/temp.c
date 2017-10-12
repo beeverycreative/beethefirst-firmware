@@ -225,34 +225,15 @@ static double read_temp(uint8_t sensor_number)
     }
 
   // filter the ADC values with simple IIR
-  adc_filtered[sensor_number] = ((adc_filtered[sensor_number] * 15) + raw) / 16;
+    adc_filtered[sensor_number] = ((adc_filtered[sensor_number] * 15) + raw) / 16;
 
-  raw = adc_filtered[sensor_number];
+    raw = adc_filtered[sensor_number];
 
-  /* Go and use the temperature table to math the temperature value... */
-  if (raw < temptable[0][sensor_number]) /* Limit the smaller value... */
-    {
-      celsius = temptable[0][2];
-    }
-  else if (raw >= temptable[NUMTEMPS-1][sensor_number]) /* Limit the higher value... */
-    {
-      celsius = temptable[NUMTEMPS-1][2];
-    }
-  else
-    {
-      for (i=1; i<NUMTEMPS; i++)
-        {
-          if (raw < temptable[i][sensor_number])
-            {
-              celsius = temptable[i-1][2] +
-                  (raw - temptable[i-1][sensor_number]) *
-                  (temptable[i][2] - temptable[i-1][2]) /
-                  (temptable[i][sensor_number] - temptable[i-1][sensor_number]);
+    float r = 274 / (((float)4096 / (float)raw) - (float)1);
+    float k = ((float) 1 / (float) 300.15);
+    float j = ((float) 1 / (float) 4267);
 
-              break;
-            }
-        }
-    }
+    celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
 
   return celsius;
 }
