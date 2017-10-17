@@ -2459,10 +2459,10 @@ eParseResult process_gcode_command(){
               config.kp,config.ki*1000.0,config.kd,pterm,iterm,dterm,\
               current_temp[1],extruderFanSpeed,currenBWSpeed, startpoint.z);
 #else
-          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g B:%g Bw:%u Z:%g ",\
+          sersendf("T:%g/%g(%g%c) kp:%g ki:%g kd:%g pTerm:%g iTerm:%g dTerm:%g Bw:%u Z:%g ",\
               current_temp[0],target_temp[0],output,'%',\
               config.kp,config.ki*1000.0,config.kd,pterm,iterm,dterm,\
-              current_temp[1],currenBWSpeed, startpoint.z);
+              currenBWSpeed, startpoint.z);
 #endif
         }
         break;
