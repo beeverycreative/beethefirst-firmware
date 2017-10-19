@@ -30,7 +30,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define line_length 100 //Max length to file names and respective lines
+#define line_length 50 //Max length to file names and respective lines
+#define gcodeFilenameLen 100
 #define GCODE_MAX_line_length 120
 
 #include "stdint.h"
@@ -73,7 +74,7 @@ struct configuration
   int32_t time_elapsed;
   int32_t number_of_lines;
   int32_t executed_lines;
-  char gcode_filename[line_length];
+  char gcode_filename[gcodeFilenameLen];
   double  startpoint_x;
   double  startpoint_y;
   double  startpoint_z;
@@ -107,6 +108,10 @@ struct configuration
 
   //Power Saving
   uint32_t powerSavingWaitTime;
+
+  //THERMISTOR
+  uint32_t userThermistorDelta;
+  uint32_t thermistorBeta;
 
 };
 

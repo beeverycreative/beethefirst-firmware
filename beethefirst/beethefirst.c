@@ -336,6 +336,12 @@ void temperatureTimerCallback (tTimer *pTimer)
         pwm_set_enable(FAN_EXT_PWM_CHANNEL);
       }
 
+    if(blockThermistorError) {
+    	extruder_block_fan_on();
+    	pwm_set_duty_cycle(FAN_EXT_PWM_CHANNEL,100);
+    	pwm_set_enable(FAN_EXT_PWM_CHANNEL);
+    }
+
     if(current_temp_r2c2 < 40 && in_power_saving)
       {
         r2c2_fan_off();

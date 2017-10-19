@@ -60,6 +60,7 @@ double current_temp_r2c2 = 0;
 uint32_t adc_filtered_r2c2 = 4095;
 int32_t adc_r2c2_raw;
 static double read_R2C2_temp(void);
+bool blockThermistorError = false;
 #endif
 
 double current_temp [NUMBER_OF_SENSORS] = {0};
@@ -231,8 +232,19 @@ static double read_temp(uint8_t sensor_number)
 
     float r = 274 / (((float)4096 / (float)raw) - (float)1);
     float k = ((float) 1 / (float) 300.15);
-    float j = ((float) 1 / (float) 4267);
-
+    float j = ((float) 1 / (float) config.thermistorBeta);
+#ifdef EXP_Board
+    if (sensor_number == HEATED_BED_0)
+    {
+    	r = 10000 / (((float)4096 / (float)raw) - (float)1);
+    	j = ((float) 1 / (float) 4066);
+    	if(raw > 4050) {
+    		blockThermistorError = true;
+    	} else {
+    		blockThermistorError = false;
+    	}
+    }
+#endif
     celsius = (double) ((float)1 / (k + (j * logf(r / (float)100000)))) - (float) 273.15;
 
   return celsius;

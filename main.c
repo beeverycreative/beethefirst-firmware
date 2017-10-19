@@ -19,7 +19,8 @@ void startup_delay(void)
 int main(void)
 {
   // DeInit NVIC and SCBNVIC
-  NVIC_DeInit();
+
+	NVIC_DeInit();
   NVIC_SCBDeInit();
 
   /* Configure the NVIC Preemption Priority Bits:

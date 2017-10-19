@@ -134,7 +134,11 @@ tConfigItem config_lookup [] =
         {"auto_Resume",&config.autoResume , TYPE_INT, {.val_i=1}},
 
         //Power Saving
-        {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}}
+        {"Power_Saving_Wait_Time",&config.powerSavingWaitTime , TYPE_INT, {.val_i=600}},
+
+        //Thermistor Beta Value
+		{"Use Thermistor Delta",&config.userThermistorDelta,TYPE_INT,{.val_i=0}},
+		{"Thermistor_Beta_Value",&config.thermistorBeta , TYPE_INT, {.val_i=4066}}
 
     };
 

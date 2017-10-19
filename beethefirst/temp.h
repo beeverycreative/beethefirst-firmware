@@ -45,6 +45,7 @@
   int32_t adc_r2c2_raw;
   extern int32_t sDown_filtered;
   extern int32_t sDownADC_raw[sDownADC_length];
+  bool	  blockThermistorError;
 #endif
 
 #ifdef USE_BATT

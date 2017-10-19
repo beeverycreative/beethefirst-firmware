@@ -328,13 +328,13 @@ FRESULT scan_files (char* path)
 FRESULT sd_init()
 {
   DSTATUS ds;
+  FRESULT fsRes;
 
   ds = disk_initialize(0);
   if(ds != RES_OK) {
       sersendf("Error initializing disk - %d\n", ds);
-      return;
+      return ds;
   }
-  FRESULT fsRes;
 
   fsRes = f_mount(&Fatfs[0],"",1);
   //sersendf("FsRes: %d",fsRes);
@@ -528,6 +528,11 @@ bool write_config_override()
   sprintf(&line[0],"M1027 S%u\n",config.nozzleSize);
   sd_write_to_file(line,strlen(line));
 
+  //Backup Thermistor Beta
+  memset(line, '\0', sizeof(line));
+  sprintf(&line[0],"M1035 S%u\n",config.thermistorBeta);
+  sd_write_to_file(line,strlen(line));
+
   //Backup Filament Name
   if(strcmp(config.bcodeStr, "_no_file") != 0)
     {
@@ -543,6 +548,7 @@ bool write_config_override()
   //Backup Steps/mm from E
   memset(line, '\0', sizeof(line));
   sprintf(&line[0],"M200 E%u\n",config.steps_per_mm_e0);
+  sd_write_to_file(line,strlen(line));
 
   //Save to config
   memset(line, '\0', sizeof(line));
@@ -2539,6 +2545,33 @@ eParseResult process_gcode_command(){
       case 1034:
       {
     	  sersendf("'%s'\n",config.gcode_filename);
+      }
+      break;
+
+      //Set thermistor beta value
+      case 1035:
+      {
+    	  if(sd_printing)
+    	  {
+    		  reply_sent = 1;
+    	  }
+    	  else
+    	  {
+    		  if(next_target.seen_S)
+    		  {
+    			  config.thermistorBeta = next_target.S;
+    			  write_config();
+    			  write_config_override();
+    		  }
+    	  }
+      }
+      break;
+
+      //Report Thermistor beta
+      case 1036:
+      {
+    	  sersendf("Thermistor Beta Value:%u\n",config.thermistorBeta);
+
       }
       break;
 
