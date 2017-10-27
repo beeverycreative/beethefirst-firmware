@@ -2518,8 +2518,8 @@ eParseResult process_gcode_command(){
     		  memset(config.gcode_filename, '\0', sizeof(config.gcode_filename));
     		  strcpy(config.gcode_filename,next_target.filename);
     		  memset(next_target.filename, '\0', sizeof(next_target.filename));
-    		  write_config();
-    		  write_config_override();
+    		  //write_config();
+    		  //write_config_override();
     	  } else {
     		  sersendf("Error, Please Specify Gcode Filename String");
     	  }

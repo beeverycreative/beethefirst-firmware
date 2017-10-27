@@ -30,7 +30,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define line_length 100 //Max length to file names and respective lines
+#define line_length 50 //Max length to file names and respective lines
+#define gcodeFilenameLen 100
 #define GCODE_MAX_line_length 120
 
 #include "stdint.h"
@@ -96,7 +97,7 @@ struct configuration
   double blockFanMaxSpeed;
 
   //Filament and Nozzle configs
-  char bcodeStr[line_length];
+  char bcodeStr[gcodeFilenameLen];
   double filament_in_spool;
   uint16_t nozzleSize;
 

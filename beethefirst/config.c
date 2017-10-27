@@ -42,6 +42,10 @@
 #include "sbl_config.h"
 #include "system_LPC17xx.h"
 
+#ifndef CFG_UID
+#define CFG_UID 1
+#endif
+
 /* values reflecting the gearing of your machine
  * numbers are integers or double
  */
@@ -353,7 +357,7 @@ bool read_config (void)
     }*//*No need for else*/
 
     if(read_err){
-        reset_config();
+        //reset_config();
         return false;
     }/*No need for else*/
 
