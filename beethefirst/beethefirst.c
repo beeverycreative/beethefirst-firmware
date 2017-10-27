@@ -448,18 +448,19 @@ int app_main (void){
 
   init();
   bool cfg_res = read_config();
-
+/*
   if(!cfg_res || config.uid != CFG_UID)
     {
 	  reset_config();
       override_config = true;
     }
-/*
+    */
+
   if (config.uid != CFG_UID) {
       reset_config();
       read_config_override();
   }
-*/
+
   if(config.status == 9)
     {
       printerShutdown = true;
@@ -478,7 +479,7 @@ int app_main (void){
 
   if(override_config)
   {
-	  read_config_override();
+	  //read_config_override();
   }
 
   //print_infi();
