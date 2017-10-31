@@ -463,6 +463,10 @@ void reinit_system(){
 
 bool write_config_override()
 {
+	double num;
+	unsigned int intpart;
+	double dec;
+	unsigned int decpart;
 
   __disable_irq();
 
@@ -507,10 +511,10 @@ bool write_config_override()
 
   //Backup Z offset
   memset(line, '\0', sizeof(line));
-  double num = config.home_pos_z;
-  unsigned int intpart = (unsigned int)num;
-  double dec = (num - intpart)*10000.0;
-  unsigned int decpart = (unsigned int)dec;
+  num = config.home_pos_z;
+  intpart = (unsigned int)num;
+  dec = (num - intpart)*10000.0;
+  decpart = (unsigned int)dec;
   if(decpart < 1000.0F && decpart >= 100.0F) {
       sprintf(&line[0],"M604 Z%u.0%u\n",intpart,decpart);
   } else if(decpart < 100.0F && decpart >= 10.0F) {
@@ -542,7 +546,21 @@ bool write_config_override()
 
   //Backup Steps/mm from E
   memset(line, '\0', sizeof(line));
-  sprintf(&line[0],"M200 E%u\n",config.steps_per_mm_e0);
+  num = config.steps_per_mm_e0;
+  intpart = (unsigned int)num;
+  dec = (num - intpart)*10000.0;
+  decpart = (unsigned int)dec;
+  if(decpart < 1000.0F && decpart >= 100.0F) {
+	  sprintf(&line[0],"M200 E%u.0%u\n",intpart,decpart);
+  } else if(decpart < 100.0F && decpart >= 10.0F) {
+	  sprintf(&line[0],"M200 E%u.00%u\n",intpart,decpart);
+  } else if(decpart < 10.0F) {
+	  sprintf(&line[0],"M200 E%u.000%u\n",intpart,decpart);
+  } else {
+	  sprintf(&line[0],"M200 E%u.%u\n",intpart,decpart);
+  }
+
+  sd_write_to_file(line,strlen(line));
 
   //Save to config
   memset(line, '\0', sizeof(line));
@@ -728,7 +746,6 @@ eParseResult process_gcode_command(){
                 {
                   initPause();
                   write_config();
-                  write_config_override();
 
                   sd_printing = false;
                   sd_pause = true;

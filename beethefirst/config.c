@@ -84,8 +84,6 @@ tConfigItem config_lookup [] =
         { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=HOME_POS_Z}},
 
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=500.000}},         /* 100mm / second^2 */
-        { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
-
         //PID
 #ifdef EXP_Board
         { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=10.0}},
@@ -122,10 +120,10 @@ tConfigItem config_lookup [] =
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=8.75}},
         { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=-276.25}},
-        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=30}},
-        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=40}},
-        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
-        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_INT, {.val_i=30}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_INT, {.val_i=40}},
+        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_INT, {.val_i=30}},
+        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_INT, {.val_i=100}},
 
         ////Filament and Nozzle configs
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},

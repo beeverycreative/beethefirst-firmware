@@ -85,10 +85,10 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.5.37
+FW_VERSION = 10.5.38
 
 #Define Config UID
-CFG_UID = 33
+CFG_UID = 36
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-
@@ -272,16 +272,16 @@ EXTRA_LIBDIRS =
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = 2
+#OPT = 0
 #OPT = 1
-#OPT = 2
+OPT = 2
 #OPT = 3
 #OPT = s
 
 # Debugging format.
 #DEBUG = stabs
 #DEBUG = dwarf-2
-#DEBUG = gdb
+DEBUG = gdb
 
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C

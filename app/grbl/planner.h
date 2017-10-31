@@ -61,6 +61,8 @@
 #define PRINT_VOL_Y             135
 #define PRINT_VOL_Z             125
 
+#define JUNCTION_DEVIATION      0.05
+
 /*
 double MAX_FEED_X;
 double MAX_FEED_Y;

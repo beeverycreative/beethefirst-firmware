@@ -30,8 +30,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define line_length 50 //Max length to file names and respective lines
-#define gcodeFilenameLen 100
+#define line_length 30 //Max length to file names and respective lines
+#define bcodeStrLen 50
+#define gcodeFilenameLen 75
 #define GCODE_MAX_line_length 120
 
 #include "stdint.h"
@@ -54,7 +55,7 @@ struct configuration
   double home_pos_z;
 
   double  acceleration;
-  double  junction_deviation;
+  //double  junction_deviation;
   
   //PID
   double kp;
@@ -74,7 +75,7 @@ struct configuration
   int32_t time_elapsed;
   int32_t number_of_lines;
   int32_t executed_lines;
-  char gcode_filename[line_length];
+  char gcode_filename[gcodeFilenameLen];
   double  startpoint_x;
   double  startpoint_y;
   double  startpoint_z;
@@ -91,15 +92,15 @@ struct configuration
   //Block Fan Control
   double blockControlM;
   double blockControlB;
-  double blockTemperatureFanStart;
-  double blockTemperatureFanMax;
-  double blockFanMinSpeed;
-  double blockFanMaxSpeed;
+  uint32_t blockTemperatureFanStart;
+  uint32_t blockTemperatureFanMax;
+  uint32_t blockFanMinSpeed;
+  uint32_t blockFanMaxSpeed;
 
   //Filament and Nozzle configs
-  char bcodeStr[gcodeFilenameLen];
+  char bcodeStr[bcodeStrLen];
   double filament_in_spool;
-  uint16_t nozzleSize;
+  uint32_t nozzleSize;
 
   //Battery Variables
   uint32_t batteryPrintTime;

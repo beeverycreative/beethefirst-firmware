@@ -79,14 +79,13 @@
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.
-#define MINIMUM_PLANNER_SPEED 0.5 // (mm/min)
+#define MINIMUM_PLANNER_SPEED 0.0 // (mm/min)
 
 // Minimum stepper rate. Sets the absolute minimum stepper rate in the stepper program and never run
 // slower than this value, except when sleeping. This parameter overrides the minimum planner speed.
 // This is primarily used to guarantee that the end of a movement is always reached and not stop to
 // never reach its target. This parameter should always be greater than zero.
-//#define MINIMUM_STEPS_PER_MINUTE 1200 // (steps/min) - Integer value only
-#define MINIMUM_STEPS_PER_MINUTE 4000 // (steps/min) - Integer value only
+#define MINIMUM_STEPS_PER_MINUTE 1200 // (steps/min) - Integer value only
 
 // Number of arc generation iterations by small angle approximation before exact arc
 // trajectory correction. Value must be 1-255. This parameter maybe decreased if there are issues
