@@ -479,7 +479,7 @@ int app_main (void){
 
   if(override_config)
   {
-	  //read_config_override();
+	  read_config_override();
   }
 
   //print_infi();

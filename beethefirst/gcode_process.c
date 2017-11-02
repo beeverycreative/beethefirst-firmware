@@ -1659,35 +1659,37 @@ eParseResult process_gcode_command(){
 
         // M200 - set steps per mm
       case 200:
-        {
-          if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
+      {
+    	  if (!sd_printing)
+    	  {
+    		  if ((next_target.seen_X | next_target.seen_Y | next_target.seen_Z | next_target.seen_E)){
 
-              if(next_target.seen_X) {
-                  config.steps_per_mm_x = next_targetd.x;
-              } else if(next_target.seen_Y) {
-                  config.steps_per_mm_y = next_targetd.y;
-              } else if(next_target.seen_Z) {
-                  config.steps_per_mm_z = next_targetd.z;
-              } else if(next_target.seen_E) {
-                  config.steps_per_mm_e0 = next_targetd.e;
-              }
+    			  if(next_target.seen_X) {
+    				  config.steps_per_mm_x = next_targetd.x;
+    			  } else if(next_target.seen_Y) {
+    				  config.steps_per_mm_y = next_targetd.y;
+    			  } else if(next_target.seen_Z) {
+    				  config.steps_per_mm_z = next_targetd.z;
+    			  } else if(next_target.seen_E) {
+    				  config.steps_per_mm_e0 = next_targetd.e;
+    			  }
 
-              write_config();
-              write_config_override();
-          } else {
-              if(!next_target.seen_B && !sd_printing){
-                  sersendf ("X%g Y%g Z%g E%g ",
-                      config.steps_per_mm_x,
-                      config.steps_per_mm_y,
-                      config.steps_per_mm_z,
-                      config.steps_per_mm_e0);
-              }/*No need for else*/
-          }
-
-          if(sd_printing){
-              reply_sent = 1;
-          }/*No need for else*/
-        }
+    			  write_config();
+    			  write_config_override();
+    		  } else {
+    			  if(!next_target.seen_B && !sd_printing){
+    				  sersendf ("X%g Y%g Z%g E%g ",
+    						  config.steps_per_mm_x,
+							  config.steps_per_mm_y,
+							  config.steps_per_mm_z,
+							  config.steps_per_mm_e0);
+    			  }/*No need for else*/
+    		  }
+    	  }
+    	  else {
+    		  reply_sent = 1;
+    	  }/*No need for else*/
+      }
         break;
 
         // M204 - set accel in mm/sec^2
@@ -2248,6 +2250,7 @@ eParseResult process_gcode_command(){
               // Check if heating process is active
               if(is_heating_Process)
                 {
+            	  if(next_target.seen_S) temp_set(next_target.S,EXTRUDER_0);
                   // Check if the setpoint temperature was reached
                   if (current_temp[EXTRUDER_0] >= target_temp[EXTRUDER_0] - 5)
                     {
