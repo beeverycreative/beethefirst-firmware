@@ -31,7 +31,7 @@ void i2c_setup_Pot(void)
   //0xC9 - 1.7A
   i2c_pot_set_current(0x2c,0x00,0xC9);  //X AXIS 1.5A
   i2c_pot_set_current(0x2c,0x10,0xC9);  //Y AXIS 1.5A
-  i2c_pot_set_current(0x2c,0x60,0x72);  //Z AXIS 1A
+  i2c_pot_set_current(0x2c,0x60,0xC9);  //Z AXIS 1.5A
   i2c_pot_set_current(0x2c,0x70,0xAA);  //E AXIS 1.5A
 }
 
