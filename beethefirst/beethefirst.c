@@ -53,15 +53,23 @@
 #include "sbl_config.h"
 #include "pwm.h"
 
+#include "core_cm3.h"
+
 tTimer temperatureTimer;
+
+int32_t hotendADC_raw[temperatureADC_length];
+
 #ifdef EXP_Board
+
+	void blockFanTimer();
+
   uint32_t i_sDownADC_raw;
   uint8_t consecutive_measures;
   int32_t sDownADC_raw[sDownADC_length];
   tTimer sDownTimer;
   int32_t sDown_filtered = 4095;
 
-  tTimer blockFanTimer;
+  //tTimer blockFanTimer;
 #endif
 #ifdef USE_BATT
   int32_t battADC_raw;
@@ -104,61 +112,6 @@ void pwm_init(void){
 
 }
 
-/* Initialize ADC for reading sensors */
-void adc_init(void)
-{
-  PINSEL_CFG_Type PinCfg;
-
-  //Extruder 0 ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
-  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#ifdef EXP_Board
-  //Extruder Block Temperature ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
-  PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //R2C2 TEMPERATURE ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_1; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
-  PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //Shutdown ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = SDOWN_ADC_PORT;
-  PinCfg.Pinnum = SDOWN_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
-#ifdef USE_BATT
-  //Battery ADC CONFIG
-
-  PinCfg.Funcnum = PINSEL_FUNC_1;
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = BATT_ADC_PORT;
-  PinCfg.Pinnum = BATT_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
-
-  ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
-}
 
 void io_init(void)
 {
@@ -228,6 +181,9 @@ void temperatureTimerCallback (tTimer *pTimer)
 {
   /* Manage the temperatures */
   temp_tick();
+#ifdef EXP_Board
+  blockFanTimer();
+#endif
 }
 
 #ifdef EXP_Board
@@ -295,7 +251,7 @@ void temperatureTimerCallback (tTimer *pTimer)
   }
 #endif
 
-  void blockFanTimerCallBack(tTimer *pTimer) {
+  void blockFanTimer() {
 
     if (manualBlockFanControl == false && debugMode == false)
       {
@@ -352,15 +308,16 @@ void init(void)
   io_init();
   //pwm
   pwm_init();
-  //temperature read
-  adc_init();
+
+  const uint32_t sample_rate= 1000; // 1KHz sample rate
+  adc_init(sample_rate, 8);
 #ifdef DEBUG_UART
   uart_init();
 #endif
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
-
+/*
 #ifdef EXP_Board
 
   __disable_irq();
@@ -388,11 +345,12 @@ void init(void)
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
 #endif
-
+*/
   //temperature interruption
   AddSlowTimer (&temperatureTimer);
   StartSlowTimer (&temperatureTimer, 50, temperatureTimerCallback);
   temperatureTimer.AutoReload = 1;
+
 
 #ifdef DEBUG_UART
   uart_writestr("R2C2 Firmware initiated\n");

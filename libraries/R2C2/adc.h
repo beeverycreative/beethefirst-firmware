@@ -17,9 +17,28 @@
 #define _ADC_H
 
 #include <stdint.h>
+#include "LPC17xx.h"
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
+#include "lpc17xx_adc.h"
+
+#include "pinout.h"
+
+#define XTAL_FREQ       10000000
+#define MAX_ADC_CLOCK   13000000
+#define CLKS_PER_SAMPLE 64
 
 /* Initialize ADC for extruder temperature reading */
-void adc_init(void);
+void config_adc_pins(void);
+void adc_init(int sample_rate, int cclk_div);
 uint16_t analog_read(uint8_t adc_channel);
+
+int _adc_clk_freq;
+
+uint32_t _adc_data[8];
+void(*_adc_isr[8])(uint32_t value);
+void(*_adc_g_isr)(int chan, uint32_t value);
+void(*_adc_m_isr)(void);
+
 
 #endif

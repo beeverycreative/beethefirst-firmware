@@ -75,7 +75,7 @@ struct configuration
   int32_t time_elapsed;
   int32_t number_of_lines;
   int32_t executed_lines;
-  char gcode_filename[gcodeFilenameLen];
+  //char gcode_filename[gcodeFilenameLen];
   double  startpoint_x;
   double  startpoint_y;
   double  startpoint_z;

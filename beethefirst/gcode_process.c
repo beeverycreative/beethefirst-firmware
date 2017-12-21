@@ -332,7 +332,7 @@ FRESULT sd_init()
   ds = disk_initialize(0);
   if(ds != RES_OK) {
       sersendf("Error initializing disk - %d\n", ds);
-      return;
+      return ds;
   }
   FRESULT fsRes;
 
@@ -394,7 +394,7 @@ bool print_file()
   executed_lines = 0;
   printed_filament = 0.0;
 
-  memset(config.gcode_filename, '\0', sizeof(config.gcode_filename));
+  //memset(config.gcode_filename, '\0', sizeof(config.gcode_filename));
 
   config.last_print_time = 0;
   write_config();
@@ -2540,9 +2540,11 @@ eParseResult process_gcode_command(){
       {
     	  if(strlen(next_target.filename) > 0)
     	  {
+    		  /*
     		  memset(config.gcode_filename, '\0', sizeof(config.gcode_filename));
     		  strcpy(config.gcode_filename,next_target.filename);
     		  memset(next_target.filename, '\0', sizeof(next_target.filename));
+    		  */
     		  //write_config();
     		  //write_config_override();
     	  } else {
@@ -2558,7 +2560,9 @@ eParseResult process_gcode_command(){
       //Read gcode filename
       case 1034:
       {
+    	  /*
     	  sersendf("'%s'\n",config.gcode_filename);
+    	  */
       }
       break;
 

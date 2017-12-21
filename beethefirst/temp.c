@@ -215,13 +215,15 @@ static double read_temp(uint8_t sensor_number)
 
   }else if (sensor_number == HEATED_BED_0)
     {
-      //raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+      raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+	  /*
       int32_t bed_temp_buf[5];
       for(int32_t i = 0; i < 5; i++)
         {
           bed_temp_buf[i] = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
         }
       raw = getMedianValue(bed_temp_buf);
+      */
     }
 
   // filter the ADC values with simple IIR
