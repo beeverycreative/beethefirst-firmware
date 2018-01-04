@@ -21,6 +21,7 @@
 #include "pinout.h"
 #include "ios.h"
 #include "adc.h"
+#include <stdlib.h>
 
 void config_adc_pins(void)
 {
@@ -76,9 +77,9 @@ void config_adc_pins(void)
 }
 
 /* Initialize ADC for reading sensors */
-void adc_init(int sample_rate, int cclk_div)
+void adc_init()
 {
-	int i, adc_clk_freq, pclk, clock_div, max_div=1;
+	uint8_t i;
 
 	config_adc_pins();
 
@@ -111,6 +112,7 @@ void adc_init(int sample_rate, int cclk_div)
 
 
 	NVIC_EnableIRQ(ADC_IRQn);
+
 
 };
 

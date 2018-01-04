@@ -30,7 +30,8 @@
 
 /* Initialize ADC for extruder temperature reading */
 void config_adc_pins(void);
-void adc_init(int sample_rate, int cclk_div);
+void adc_init();
+
 uint16_t analog_read(uint8_t adc_channel);
 
 int _adc_clk_freq;

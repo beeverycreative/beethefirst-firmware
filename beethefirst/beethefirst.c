@@ -55,9 +55,8 @@
 
 #include "core_cm3.h"
 
-tTimer temperatureTimer;
 
-int32_t hotendADC_raw[temperatureADC_length];
+tTimer mainTimer;
 
 #ifdef EXP_Board
 
@@ -111,7 +110,6 @@ void pwm_init(void){
 #endif
 
 }
-
 
 void io_init(void)
 {
@@ -177,18 +175,23 @@ void io_init(void)
 #endif
 }
 
-void temperatureTimerCallback (tTimer *pTimer)
+void mainTimerCallback (tTimer *pTimer)
 {
   /* Manage the temperatures */
   temp_tick();
+
 #ifdef EXP_Board
   blockFanTimer();
+
+#ifdef USE_BATT
+  /* Mange Battery operations */
+    batteryTimer();
+#endif
 #endif
 }
 
 #ifdef EXP_Board
 
-#ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
 
@@ -207,36 +210,20 @@ void temperatureTimerCallback (tTimer *pTimer)
 	  i_sDownADC_raw ++;
 
   }
-#endif
 
 #ifdef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
+  void batteryTimer ()
   {
-	  sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-	  if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
-		  consecutive_measures++;
-
-	  }else{
-		  consecutive_measures=0;
-	  }
-	  if(consecutive_measures>=2){
-		  sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
-
-		  if(debugMode == false)
-		  {
-			  verifySDownConditions();
-		  }
-	  }
-	  i_sDownADC_raw ++;
-
+	  /*
     int32_t batt_buf[5];
     for(int32_t j = 0; j < 5; j++)
       {
         batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
       }
+      */
 
-    battADC_raw = getMedianValue(batt_buf);
+    battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
 
     sDown_filtered = getMedianValue(sDownADC_raw);
     batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
@@ -335,11 +322,13 @@ void init(void)
   batt_filtered /= 3;
   __enable_irq();
 #endif
+*/
 
   AddSlowTimer(&sDownTimer);
   StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
   sDownTimer.AutoReload = 1;
 
+/*
   //extruder block fan timer
   AddSlowTimer(&blockFanTimer);
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
@@ -347,9 +336,9 @@ void init(void)
 #endif
 */
   //temperature interruption
-  AddSlowTimer (&temperatureTimer);
-  StartSlowTimer (&temperatureTimer, 50, temperatureTimerCallback);
-  temperatureTimer.AutoReload = 1;
+  AddSlowTimer (&mainTimer);
+  StartSlowTimer (&mainTimer, 1000, mainTimerCallback);
+  mainTimer.AutoReload = 1;
 
 
 #ifdef DEBUG_UART
