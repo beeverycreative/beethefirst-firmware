@@ -185,14 +185,14 @@ eParseResult gcode_parse_serial_line (tLineBuffer *pLine)
 
 	bool safe = false;
 
-	if (next_target.seen_M
+	if ((next_target.seen_M
 			&& next_target.M!=20 && next_target.M!=21 && next_target.M!=23 && next_target.M!=26
 			&& next_target.M!=28 && next_target.M!=29 && next_target.M!=30 && next_target.M!=33
 			&& next_target.M!=34 && next_target.M!=117 && next_target.M!=200 && next_target.M!=506
 			&& next_target.M!=601 && next_target.M!=603 && next_target.M!=607 && next_target.M!=609
 			&& next_target.M!=701 && next_target.M!=702 && next_target.M!=703 && next_target.M!=704
 			&& next_target.M!=1003 && next_target.M!=1027 && next_target.M!=1028 && next_target.M!=1030
-			&& next_target.M!=1031 && next_target.M!=1032 && next_target.M!=1108)
+			&& next_target.M!=1031 && next_target.M!=1032 && next_target.M!=1108) || config.status!=5)
 	{
 		safe = true;
 	}
