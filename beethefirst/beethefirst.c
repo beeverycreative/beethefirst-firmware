@@ -304,25 +304,8 @@ void init(void)
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
-/*
+
 #ifdef EXP_Board
-
-  __disable_irq();
-  adc_filtered_r2c2 = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 /= 3;
-  __enable_irq();
-
-#ifdef USE_BATT
-  __disable_irq();
-  batt_filtered = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  batt_filtered /= 3;
-  __enable_irq();
-#endif
-*/
 
   AddSlowTimer(&sDownTimer);
   StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
@@ -333,11 +316,12 @@ void init(void)
   AddSlowTimer(&blockFanTimer);
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
-#endif
 */
+#endif
+
   //temperature interruption
   AddSlowTimer (&mainTimer);
-  StartSlowTimer (&mainTimer, 1000, mainTimerCallback);
+  StartSlowTimer (&mainTimer, 50, mainTimerCallback);
   mainTimer.AutoReload = 1;
 
 
@@ -644,15 +628,29 @@ int app_main (void){
       }/*no need for else*/
 
       /***********************************************************************
-       *
-       *        PARSE LINES FROM USB OR SD
-       *
-       ***********************************************************************/
+		 *
+		 *        PARSE LINES FROM USB OR SD
+		 *
+		 ***********************************************************************/
+      if (!transfer_mode && serial_line_buf.seen_lf){
+    	  // give priority to user commands
+    	            if (serial_line_buf.seen_lf){
+
+    	                parse_result = gcode_parse_serial_line (&serial_line_buf);
+    	                serial_line_buf.len = 0;
+    	                serial_line_buf.seen_lf = 0;
+    	            }
+      }
+
+      /***********************************************************************
+		 *
+		 *        PARSE LINES FROM USB OR SD
+		 *
+		 ***********************************************************************/
       // if queue is full, we wait
       if (!plan_queue_full()
           && !transfer_mode
-          && (serial_line_buf.seen_lf
-              || sd_line_buf.seen_lf) ){
+          && sd_line_buf.seen_lf){
 
           /* At end of each line, put the "GCode" on movebuffer.
            * If there are movement to do, Timer will start and execute code which
@@ -661,14 +659,8 @@ int app_main (void){
            */
 
           // give priority to user commands
-          if (serial_line_buf.seen_lf){
-
-              parse_result = gcode_parse_line (&serial_line_buf);
-              serial_line_buf.len = 0;
-              serial_line_buf.seen_lf = 0;
-
-          }else if (sd_line_buf.seen_lf){
-              parse_result = gcode_parse_line (&sd_line_buf);
+          if (sd_line_buf.seen_lf){
+              parse_result = gcode_parse_sd_line (&sd_line_buf);
               sd_line_buf.len = 0;
               sd_line_buf.seen_lf = 0;
           }

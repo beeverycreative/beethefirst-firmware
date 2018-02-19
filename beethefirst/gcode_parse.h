@@ -179,6 +179,11 @@ double feedrate_coeff;
 void gcode_parse_init(void);
 
 eParseResult gcode_parse_line (tLineBuffer *pLine);
+eParseResult gcode_parse_sd_line (tLineBuffer *pLine);
+eParseResult gcode_parse_serial_line (tLineBuffer *pLine);
+eParseResult gcode_parse_command (void);
 //eParseResult gcode_parse_str(char* buff);
+
+void reset_variables();
 
 #endif	/* GCODE_PARSE_H */

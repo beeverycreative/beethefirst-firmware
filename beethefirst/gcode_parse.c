@@ -146,7 +146,15 @@ double inch_to_mm (double inches)
 	public functions
 */
 
-eParseResult gcode_parse_line (tLineBuffer *pLine) 
+
+/***********************************************************************
+*
+*       gcode_parse_line
+*
+*       fill the gcode structure
+*
+***********************************************************************/
+eParseResult gcode_parse_line (tLineBuffer *pLine)
 {
     int j;
     eParseResult result = PR_OK;
@@ -160,9 +168,99 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     for (j=0; j < pLine->len; j++){
         gcode_parse_char (pLine->data [j]);
     }
+}
+
+/***********************************************************************
+*
+*       gcode_parse_serial_line
+*
+*       process linr from serial buffer
+*
+***********************************************************************/
+eParseResult gcode_parse_serial_line (tLineBuffer *pLine)
+{
+	eParseResult result = PR_OK;
+
+	gcode_parse_line(&pLine);
+
+	bool safe = false;
+
+	if (next_target.seen_M
+			&& next_target.M!=20 && next_target.M!=21 && next_target.M!=23 && next_target.M!=26
+			&& next_target.M!=28 && next_target.M!=29 && next_target.M!=30 && next_target.M!=33
+			&& next_target.M!=34 && next_target.M!=117 && next_target.M!=200 && next_target.M!=506
+			&& next_target.M!=601 && next_target.M!=603 && next_target.M!=607 && next_target.M!=609
+			&& next_target.M!=701 && next_target.M!=702 && next_target.M!=703 && next_target.M!=704
+			&& next_target.M!=1003 && next_target.M!=1027 && next_target.M!=1028 && next_target.M!=1030
+			&& next_target.M!=1031 && next_target.M!=1032 && next_target.M!=1108)
+	{
+		safe = true;
+	}
+
+	if (safe)
+		{
+			result = gcode_parse_command();
+		}
+	else
+		{
+			serial_writestr("ok Q:");
+			serwrite_uint32(plan_queue_size());
+			if(next_target.seen_N){
+				serial_writestr(" N:");
+				serwrite_uint32(next_target.N);
+				//next_target.N = 0;
+			}/*No need for else*/
+			serial_writestr("\r\n");
+
+			reset_variables();
+		}
+
+
+    return gcode_parse_command();
+}
+
+/***********************************************************************
+*
+*       gcode_parse_sd_line
+*
+*       process linr from sd buffer
+*
+***********************************************************************/
+eParseResult gcode_parse_sd_line (tLineBuffer *pLine)
+{
+	gcode_parse_line(&pLine);
+
+    return gcode_parse_command();
+}
+
+/***********************************************************************
+*
+*       gcode_parse_command
+*
+*       process the gcode structure
+*
+***********************************************************************/
+eParseResult gcode_parse_command ()
+{
+	eParseResult result = PR_OK;
 
     // process
     result = process_gcode_command();
+
+    reset_variables();
+
+    return result;
+}
+
+/***********************************************************************
+*
+*       reset_variables
+*
+*       reset gcode structure vars
+*
+***********************************************************************/
+void reset_variables()
+{
 
     // reset variables
     next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
@@ -191,7 +289,6 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
       next_target.target.e = 0.0;
     }
 
-    return result;
 }
 
 /*
