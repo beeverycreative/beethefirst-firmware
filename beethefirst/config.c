@@ -86,12 +86,14 @@ tConfigItem config_lookup [] =
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=500.000}},         /* 100mm / second^2 */
         //PID
 #ifdef EXP_Board
-        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=10.0}},
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=43.0}},
+		{ "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.002128}},
+		{ "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=217.0}},
 #else
-        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=6.0}},
+		{ "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=31.7}},
+		{ "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.001261}},
+		{ "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=199.0}},
 #endif
-        { "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
-        { "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=80.0}},
         { "extruder_kBlower", &config.kBlower, TYPE_DOUBLE, {.val_d=0.0035}},
         { "extruder_kVent", &config.kVent, TYPE_DOUBLE, {.val_d=0.005}},
 

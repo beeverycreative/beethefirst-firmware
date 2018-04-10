@@ -85,7 +85,8 @@
 #                    (see BUILDONCHANGE). (mth)
 
 #Define Firmware Version
-FW_VERSION = 10.5.40
+FW_VERSION = 10.5.46
+
 
 #Define Config UID
 CFG_UID = 36
