@@ -87,9 +87,8 @@
 #Define Firmware Version
 FW_VERSION = 10.5.46
 
-
 #Define Config UID
-CFG_UID = 36
+CFG_UID = 39
 
 # Toolchain prefix (arm-elf- -> arm-elf-gcc.exe)
 TCHAIN_PREFIX = arm-none-eabi-

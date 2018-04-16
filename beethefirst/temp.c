@@ -163,7 +163,7 @@ void temp_tick(void)
   //output += output*config.kBlower*currenBWSpeed;
 
   output = pterm + iterm + dterm;
-
+/*
 #ifdef EXP_Board
   double p00 = -0.02242;
   double p10 = -0.001512*extruderFanSpeed;
@@ -180,7 +180,7 @@ void temp_tick(void)
 
   output = output*(1 + pxy);
 #endif
-
+*/
   last_error = pid_error;
 
   if(output > 100) {
@@ -215,13 +215,15 @@ static double read_temp(uint8_t sensor_number)
 
   }else if (sensor_number == HEATED_BED_0)
     {
-      //raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+      raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+	  /*
       int32_t bed_temp_buf[5];
       for(int32_t i = 0; i < 5; i++)
         {
           bed_temp_buf[i] = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
         }
       raw = getMedianValue(bed_temp_buf);
+      */
     }
 
   // filter the ADC values with simple IIR

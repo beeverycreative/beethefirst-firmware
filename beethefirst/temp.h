@@ -36,7 +36,9 @@
 #define HEATED_BED_0                    1
 
 #define tol    1.2      //Temperatures tolerance
+#define temperatureADC_length 4 // temperatures arrays length
 #define sDownADC_length 11 // sDownADC arrays length
+
 
 #ifdef EXP_Board
   extern double extruderBlockTemp;

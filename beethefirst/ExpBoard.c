@@ -1,17 +1,42 @@
+#include <stdlib.h>
 #include "ExpBoard.h"
 
 int32_t getMedianValue(int32_t array[sDownADC_length])
 {
-  int32_t sortedArray[sDownADC_length];
+  int32_t sortedArray[sDownADC_length] = {4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095};
 
-  for(int i = 0; i < sDownADC_length; i++)
-    {
-      sortedArray[i] = array[i];
-    }
+  __builtin_memcpy(sortedArray,array,sDownADC_length*sizeof(int32_t));
 
-  bubble_sort(sortedArray, sDownADC_length);
+  qsort(sortedArray,sDownADC_length,sizeof(int32_t),compare);
+
+
+  //bubble_sort(sortedArray, sDownADC_length);
 
   return sortedArray[sDownADC_midpos];
+}
+
+uint16_t getMedian5Value(uint16_t array[5])
+{
+	uint16_t sortedArray[5] = {4095,4095,4095,4095,4095};
+
+  __builtin_memcpy(sortedArray,array,5*sizeof(uint16_t));
+
+  qsort(sortedArray,5,sizeof(uint16_t),compare16);
+
+
+  //bubble_sort(sortedArray, sDownADC_length);
+
+  return sortedArray[2];
+}
+
+int compare16(const void *a, const void *b)
+{
+	return( *(uint16_t *)a - *(uint16_t *)b );
+}
+
+int compare(const void *a, const void *b)
+{
+	return( *(int32_t *)a - *(int32_t *)b );
 }
 
 void bubble_sort(int32_t list[], int32_t n)
