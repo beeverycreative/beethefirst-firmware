@@ -617,7 +617,7 @@ int app_main (void){
        ***********************************************************************/
       // process SD file if no serial command pending
       if (!sd_line_buf.seen_lf
-          && sd_printing
+          && (sd_printing || restore_config_override)
           && (plan_queue_size() < 10)){
 
           if (sd_read_file (&sd_line_buf)){
@@ -630,6 +630,7 @@ int app_main (void){
 
               executed_lines++;
           }else{
+        	  	  restore_config_override = false;
               sd_printing = false;
               print2USB = false;
               debugMode = false;
