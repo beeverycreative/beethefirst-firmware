@@ -163,7 +163,7 @@ void temp_tick(void)
   //output += output*config.kBlower*currenBWSpeed;
 
   output = pterm + iterm + dterm;
-
+/*
 #ifdef EXP_Board
   double p00 = -0.02242;
   double p10 = -0.001512*extruderFanSpeed;
@@ -180,7 +180,7 @@ void temp_tick(void)
 
   output = output*(1 + pxy);
 #endif
-
+*/
   last_error = pid_error;
 
   if(output > 100) {

@@ -304,9 +304,9 @@ void init(void)
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
-/*
-#ifdef EXP_Board
 
+#ifdef EXP_Board
+/*
   __disable_irq();
   adc_filtered_r2c2 = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
   adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
@@ -333,8 +333,9 @@ void init(void)
   AddSlowTimer(&blockFanTimer);
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
-#endif
 */
+#endif
+
   //temperature interruption
   AddSlowTimer (&mainTimer);
   StartSlowTimer (&mainTimer, 1000, mainTimerCallback);
