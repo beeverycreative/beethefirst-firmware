@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-export PATH="$PATH:/Users/marcosgomes/Toolchains/gcc-arm-none-eabi_4.8/bin/"
+export PATH="$PATH:/Users/marcosgomes/Toolchains/gcc-arm-none-eabi-4_8/bin"
 
 make clean btf
 make clean btfold
