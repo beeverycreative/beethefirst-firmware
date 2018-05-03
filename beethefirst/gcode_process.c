@@ -489,7 +489,7 @@ bool write_config_override()
 	}
 	else
 	{
-		strcpy(fName, "OVER");
+		strcpy(fName, "CONFIG");
 	}
 	//opens as empty file
 	if (sd_open(&file, fName, FA_CREATE_ALWAYS | FA_WRITE | FA_READ)) {
@@ -596,13 +596,13 @@ bool read_config_override()
 	char fileName[line_length];
 
 	//opens a file
-	if (sd_open(&file, "OVER", FA_READ)) {
+	if (sd_open(&file, "CONFIG", FA_READ)) {
 		if(!next_target.seen_B) {
 			sersendf("File opened: %s\n",next_target.filename);
 		}/*No need for else*/
 		sd_pos = 0;
 		//save current filename to config
-		strcpy(config.filename, "OVER");
+		strcpy(config.filename, "CONFIG");
 	}else{
 		if(!next_target.seen_B){
 			sersendf("error opening file: %s\n",next_target.filename);
