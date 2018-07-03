@@ -35,13 +35,19 @@
 #define EXTRUDER_0                      0
 #define HEATED_BED_0                    1
 
+#define tol    1.2      //Temperatures tolerance
+#define temperatureADC_length 4 // temperatures arrays length
+#define sDownADC_length 11 // sDownADC arrays length
+
+
 #ifdef EXP_Board
+  extern uint16_t i_temp_r2c2;
   extern double extruderBlockTemp;
   extern double current_temp_r2c2;
+  extern uint16_t adc_r2c2_raw[5];
   extern uint32_t adc_filtered_r2c2;
-  int32_t adc_r2c2_raw;
-  extern int32_t sDown_filtered;
-  extern int32_t sDownADC_raw[5];
+  extern uint16_t sDown_filtered;
+  extern uint16_t sDownADC_raw[sDownADC_length];
 #endif
 #ifdef USE_BATT
   extern int32_t batt_filtered;
@@ -52,6 +58,9 @@
 #include "adc.h"
 #include "gcode_parse.h"
 #include "ExpBoard.h"
+
+//Init vars
+void temp_init();
 
 // set target temperature
 void temp_set(double t, uint8_t sensor_number);

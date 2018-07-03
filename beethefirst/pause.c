@@ -115,7 +115,8 @@ void resumePrint(void)
         }
       else
         {
-          setBlowerSpeed(config.blowerSpeed);
+    	  	  enableBlower();
+          setBlowerSpeed((int16_t) config.blowerSpeed);
         }
 
       /*
@@ -141,7 +142,7 @@ void resumePrint(void)
       /*
        * Reduce feedrate to print speed
        */
-      GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,config.startpoint_feed_rate);
+      GoTo5D(startpoint.x,startpoint.y,startpoint.z,startpoint.e,1200);
 
       estimated_time = config.estimated_time;
       time_elapsed = config.time_elapsed;

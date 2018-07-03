@@ -151,6 +151,12 @@ eParseResult gcode_parse_line (tLineBuffer *pLine)
     int j;
     eParseResult result = PR_OK;
 
+    //Only lines started with G and M have to be parsed
+    uint8_t firstChar = pLine->data[0];
+    if(firstChar != 'G' && firstChar != 'M'){
+        return PR_ERROR;
+    }
+
     for (j=0; j < pLine->len; j++){
         gcode_parse_char (pLine->data [j]);
     }
@@ -256,7 +262,7 @@ void gcode_parse_char(uint8_t c)
         // this is a bit hacky since string parameters don't fit in general G code syntax
         // NB: filename MUST start with a letter and MUST NOT contain spaces
         // letters will also be converted to uppercase
-        if ((next_target.M == 23) || (next_target.M == 29) || (next_target.M == 30) || (next_target.M == 33) || (next_target.M == 1000) || (next_target.M == 639))
+        if ((next_target.M == 23) || (next_target.M == 29) || (next_target.M == 30) || (next_target.M == 33) || (next_target.M == 1000) || (next_target.M == 639) || (next_target.M == 1033) )
         {
           next_target.getting_string = 1;
         }

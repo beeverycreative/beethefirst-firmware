@@ -684,7 +684,8 @@ void plan_buffer_line (tActionRequest *pAction)
                   // Compute maximum junction velocity based on maximum acceleration and junction deviation
                   double sin_theta_d2 = sqrt(0.5*(1.0-cos_theta)); // Trig half angle identity. Always positive.
                   vmax_junction = min(vmax_junction,
-                      sqrt(config.acceleration*60*60 * config.junction_deviation * sin_theta_d2/(1.0-sin_theta_d2)) );
+                      //sqrt(config.acceleration*60*60 * config.junction_deviation * sin_theta_d2/(1.0-sin_theta_d2)) );
+                      sqrt(config.acceleration*60*60 * JUNCTION_DEVIATION * sin_theta_d2/(1.0-sin_theta_d2)) );
                 }
             }
         }

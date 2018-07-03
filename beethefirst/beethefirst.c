@@ -53,14 +53,22 @@
 #include "sbl_config.h"
 #include "pwm.h"
 
-tTimer temperatureTimer;
-#ifdef EXP_Board
-  int32_t i_sDownADC_raw;
-  int32_t sDownADC_raw[5];
-  tTimer sDownTimer;
-  int32_t sDown_filtered = 4095;
+#include "core_cm3.h"
 
-  tTimer blockFanTimer;
+
+tTimer mainTimer;
+
+#ifdef EXP_Board
+
+  void blockFanTimer();
+
+  uint16_t i_sDownADC_raw;
+  uint8_t consecutive_measures;
+  uint16_t sDownADC_raw[sDownADC_length];
+  tTimer sDownTimer;
+  uint16_t sDown_filtered = 4095;
+
+  //tTimer blockFanTimer;
 #endif
 #ifdef USE_BATT
   int32_t battADC_raw;
@@ -101,62 +109,6 @@ void pwm_init(void){
   //pwm_set_enable(FAN_EXT_PWM_CHANNEL);
 #endif
 
-}
-
-/* Initialize ADC for reading sensors */
-void adc_init(void)
-{
-  PINSEL_CFG_Type PinCfg;
-
-  //Extruder 0 ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
-  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#ifdef EXP_Board
-  //Extruder Block Temperature ADC Config
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
-  PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //R2C2 TEMPERATURE ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_1; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = R2C2_TEMP_ADC_PORT;
-  PinCfg.Pinnum = R2C2_TEMP_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  //Shutdown ADC CONFIG
-  PinCfg.Funcnum = PINSEL_FUNC_3; /*ADC Function*/
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = SDOWN_ADC_PORT;
-  PinCfg.Pinnum = SDOWN_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
-#ifdef USE_BATT
-  //Battery ADC CONFIG
-
-  PinCfg.Funcnum = PINSEL_FUNC_1;
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = BATT_ADC_PORT;
-  PinCfg.Pinnum = BATT_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-#endif
-
-
-  ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
 }
 
 void io_init(void)
@@ -223,68 +175,60 @@ void io_init(void)
 #endif
 }
 
-void temperatureTimerCallback (tTimer *pTimer)
+void mainTimerCallback (tTimer *pTimer)
 {
   /* Manage the temperatures */
   temp_tick();
+
+#ifdef EXP_Board
+  blockFanTimer();
+
+#ifdef USE_BATT
+  /* Mange Battery operations */
+    batteryTimer();
+#endif
+#endif
 }
 
 #ifdef EXP_Board
 
-#ifndef USE_BATT
   void shutdownTimerCallBack (tTimer *pTimer)
   {
-    int i, j;
-    int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
+	  sDownADC_raw[i_sDownADC_raw % sDownADC_length] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL); //Store new reading into the array
 
-    sDown_filtered = getMedianValue(sDownADC_raw);
+	  if(debugMode == false && sDownADC_raw[i_sDownADC_raw % sDownADC_length] < SDown_Threshold){ //Check if the current measure and the previous are below the threshold
+		  consecutive_measures++;
 
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
+	  }else{
+		  consecutive_measures=0;
+	  }
+	  if(consecutive_measures>=2){
+		  sDown_filtered = getMedianValue(sDownADC_raw); //Calc median
+		  verifySDownConditions();
+	  }
+	  i_sDownADC_raw ++;
 
   }
-#endif
 
 #ifdef USE_BATT
-  void shutdownTimerCallBack (tTimer *pTimer)
+  void batteryTimer ()
   {
-    int i, j;
-    int32_t a;
 
-    sDownADC_raw[i_sDownADC_raw] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-    //battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
-    i_sDownADC_raw ++;
-    if(i_sDownADC_raw >= 5)
-      {
-        i_sDownADC_raw = 0;
-      }
-
+	  /*
     int32_t batt_buf[5];
     for(int32_t j = 0; j < 5; j++)
       {
         batt_buf[j] = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
       }
+      */
 
-    battADC_raw = getMedianValue(batt_buf);
+    battADC_raw = analog_read(BATT_ADC_SENSOR_ADC_CHANNEL);
 
     sDown_filtered = getMedianValue(sDownADC_raw);
     batt_filtered = batt_filtered*0.9 + battADC_raw*0.1;
 
     ps_ext_state = digital_read(PS_EXT_READ_PORT,PS_EXT_READ_PIN);
-
-    if(debugMode == false)
-      {
-        verifySDownConditions();
-      }
 
     if(debugMode == false)
       {
@@ -294,7 +238,7 @@ void temperatureTimerCallback (tTimer *pTimer)
   }
 #endif
 
-  void blockFanTimerCallBack(tTimer *pTimer) {
+  void blockFanTimer() {
 
     if (manualBlockFanControl == false && debugMode == false)
       {
@@ -351,23 +295,22 @@ void init(void)
   io_init();
   //pwm
   pwm_init();
-  //temperature read
-  adc_init();
+
+  const uint32_t sample_rate= 1000; // 1KHz sample rate
+  adc_init(sample_rate, 8);
 #ifdef DEBUG_UART
   uart_init();
 #endif
+
+  //initialize temp vars
+  temp_init();
 
   /* Initialize Gcode parse variables */
   gcode_parse_init();
 
 #ifdef EXP_Board
-
+/*
   __disable_irq();
-  adc_filtered_r2c2 = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 += analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-  adc_filtered_r2c2 /= 3;
-  __enable_irq();
 
 #ifdef USE_BATT
   __disable_irq();
@@ -377,21 +320,25 @@ void init(void)
   batt_filtered /= 3;
   __enable_irq();
 #endif
+*/
 
   AddSlowTimer(&sDownTimer);
   StartSlowTimer(&sDownTimer,25,shutdownTimerCallBack);
   sDownTimer.AutoReload = 1;
 
+/*
   //extruder block fan timer
   AddSlowTimer(&blockFanTimer);
   StartSlowTimer(&blockFanTimer,1000,blockFanTimerCallBack);
   blockFanTimer.AutoReload = 1;
+*/
 #endif
 
   //temperature interruption
-  AddSlowTimer (&temperatureTimer);
-  StartSlowTimer (&temperatureTimer, 50, temperatureTimerCallback);
-  temperatureTimer.AutoReload = 1;
+  AddSlowTimer (&mainTimer);
+  StartSlowTimer (&mainTimer, 1000, mainTimerCallback);
+  mainTimer.AutoReload = 1;
+
 
 #ifdef DEBUG_UART
   uart_writestr("R2C2 Firmware initiated\n");
@@ -447,35 +394,13 @@ int app_main (void){
 
   init();
   bool cfg_res = read_config();
-  /*
-  uint32_t tries = 5;
-  bool cfg_res = false;
-  while(tries > 0)
+/*
+  if(!cfg_res || config.uid != CFG_UID)
     {
-      cfg_res = read_config();
-      if(cfg_res == true)
-        {
-          break;
-        }
-      else
-        {
-          tries --;
-        }
+	  reset_config();
+      override_config = true;
     }
-  if(cfg_res == false)
-    {
-      delay_ms(1000);
-      USBHwConnect(FALSE);
-      go_to_reset(); // reinicia o sistema
-    }
-  */
-
-  //read_config_override();
-
-  if(!cfg_res)
-    {
-      read_config_override();
-    }
+    */
 
   if (config.uid != CFG_UID) {
       reset_config();
@@ -497,6 +422,11 @@ int app_main (void){
   buzzer_init();
   buzzer_play(1000); /* low beep */
   buzzer_wait();
+
+  if(override_config)
+  {
+	  read_config_override();
+  }
 
   //print_infi();
 
@@ -617,14 +547,6 @@ int app_main (void){
           lastCmd_time = 0;
 
       }/*no need for else*/
-/*
-      if ((plan_queue_empty())
-          && (shutdown_pause)) {
-          printerPause = true;
-          shutdown_pause = false;
-          lastCmd_time = 0;
-
-      }*//*no need for else*/
 
       /***********************************************************************
        *
@@ -693,7 +615,7 @@ int app_main (void){
        ***********************************************************************/
       // process SD file if no serial command pending
       if (!sd_line_buf.seen_lf
-          && sd_printing
+          && (sd_printing || restore_config_override)
           && (plan_queue_size() < 10)){
 
           if (sd_read_file (&sd_line_buf)){
@@ -706,6 +628,7 @@ int app_main (void){
 
               executed_lines++;
           }else{
+        	  	  restore_config_override = false;
               sd_printing = false;
               print2USB = false;
               debugMode = false;

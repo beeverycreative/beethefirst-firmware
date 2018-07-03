@@ -602,24 +602,27 @@ void stepCallback (tHwTimer *pTimer, uint32_t int_mask)
 
 static void init_dac (void)
 {
-	PINSEL_CFG_Type PinCfg;
+
+	//PINSEL_CFG_Type PinCfg;
 
 	/*
 	 * Init DAC pin connect
 	 * AOUT on P0.26
 	 */
+	/*
 	PinCfg.Funcnum = 2;
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 	PinCfg.Pinnum = 26;
 	PinCfg.Portnum = 0;
 	PINSEL_ConfigPin(&PinCfg);
-
+*/
 	/* init DAC structure to default
 	 * Maximum	current is 700 uA
 	 * First value to AOUT is 0
 	 */
-	DAC_Init(LPC_DAC);
+	//DAC_Init(LPC_DAC);
+
 }
 
 // Initialize and start the stepper motor subsystem

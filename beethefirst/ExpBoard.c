@@ -1,17 +1,42 @@
+#include <stdlib.h>
 #include "ExpBoard.h"
 
-int32_t getMedianValue(int32_t array[5])
+int32_t getMedianValue(int32_t array[sDownADC_length])
 {
-  int32_t sortedArray[5];
+  int32_t sortedArray[sDownADC_length] = {4095,4095,4095,4095,4095,4095,4095,4095,4095,4095,4095};
 
-  for(int i = 0; i < 5; i++)
-    {
-      sortedArray[i] = array[i];
-    }
+  __builtin_memcpy(sortedArray,array,sDownADC_length*sizeof(int32_t));
 
-  bubble_sort(sortedArray, 5);
+  qsort(sortedArray,sDownADC_length,sizeof(int32_t),compare);
+
+
+  //bubble_sort(sortedArray, sDownADC_length);
+
+  return sortedArray[sDownADC_midpos];
+}
+
+uint16_t getMedian5Value(uint16_t array[5])
+{
+	uint16_t sortedArray[5] = {4095,4095,4095,4095,4095};
+
+  __builtin_memcpy(sortedArray,array,5*sizeof(uint16_t));
+
+  qsort(sortedArray,5,sizeof(uint16_t),compare16);
+
+
+  //bubble_sort(sortedArray, sDownADC_length);
 
   return sortedArray[2];
+}
+
+int compare16(const void *a, const void *b)
+{
+	return( *(uint16_t *)a - *(uint16_t *)b );
+}
+
+int compare(const void *a, const void *b)
+{
+	return( *(int32_t *)a - *(int32_t *)b );
 }
 
 void bubble_sort(int32_t list[], int32_t n)
@@ -34,70 +59,74 @@ void bubble_sort(int32_t list[], int32_t n)
     }
 }
 
+#ifndef USE_BATT
 #ifdef EXP_Board
 void verifySDownConditions(void)
 {
   if(sDown_filtered < SDown_Threshold)
     {
       if(sd_printing)
-        {
+	{
 
-          initPause();
-          config.status = 9;
-          write_config();
-          sd_printing = false;
-          sd_pause = false;
-          sd_resume = false;
-          shutdown_pause = true;
+	  initPause();
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
 
-          return;
+	  //queue_flush();
+	  //reset_current_block();
 
-          //queue_flush();
-          //reset_current_block();
+	  //home_z();
+	}
+      else if(printerPause)
+	{
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
 
-          //home_z();
-        }
-      else if(shutdown_pause)
-        {
-          //config.status = 9;
-          //write_config();
+	  //queue_flush();
+	  //reset_current_block();
 
-          int32_t sDownVal[5];
-          int32_t sDown_filt = 4096;
-          for(int i=0;i<5;i++)
-            {
-              sDownVal[i] = analog_read(SDOWN_ADC_SENSOR_ADC_CHANNEL);
-            }
-          sDown_filt = getMedianValue(sDownVal);
-
-          if(sDown_filt < SDown_Threshold)
-            {
-
-              queue_flush();
-              reset_current_block();
-
-              printerPause = false;
-              shutdown_pause = false;
-
-              home_z();
-            }
-          else {
-              //sd_printing = true;
-              sd_restartPrint = true;
-              shutdown_pause = false;
-          }
-
-          sDown_filtered = sDown_filt;
-          memcpy(sDownADC_raw,sDownVal,sizeof(sDownVal));
-
-          return;
-
-        }
+	  //home_z();
+	}
     }
 }
 #endif
+#endif
 
 #ifdef USE_BATT
+
+void verifySDownConditions(void)
+{
+  if(sDown_filtered < SDown_Threshold)
+    {
+      if(sd_printing)
+	{
+
+	  initPause();
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
+
+	  queue_flush();
+	  reset_current_block();
+
+	  home_z();
+	}
+      else if(printerPause)
+	{
+	  config.status = 9;
+	  write_config();
+	  sd_printing = false;
+
+	  queue_flush();
+	  reset_current_block();
+
+	  home_z();
+	}
+    }
+}
+
 void verifyBatteryLevels(void)
 {
   //Power Supply Disconnected

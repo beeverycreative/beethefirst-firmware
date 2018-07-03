@@ -55,10 +55,11 @@ double temptable[NUMTEMPS][3] = {
 };
 
 #ifdef EXP_Board
+uint16_t i_temp_r2c2 = 0;
 double extruderBlockTemp = 0;
 double current_temp_r2c2 = 0;
+uint16_t adc_r2c2_raw[5] = {0};
 uint32_t adc_filtered_r2c2 = 4095;
-int32_t adc_r2c2_raw;
 static double read_R2C2_temp(void);
 #endif
 
@@ -71,6 +72,16 @@ static uint32_t adc_filtered [NUMBER_OF_SENSORS] = {4095, 4095}; // variable mus
 #endif
 
 static double read_temp(uint8_t sensor_number);
+
+void temp_init()
+{
+  for(i_temp_r2c2=0;i_temp_r2c2<5;i_temp_r2c2++)
+    {
+      adc_r2c2_raw[i_temp_r2c2] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
+    }
+
+  i_temp_r2c2 = 0;
+}
 
 void temp_set(double t, uint8_t sensor_number)
 {
@@ -104,7 +115,7 @@ double temp_get_target(uint8_t sensor_number)
 
 uint8_t	temp_achieved(uint8_t sensor_number)
 {
-  if (current_temp[sensor_number] >= (target_temp[sensor_number] - 2))
+  if (current_temp[sensor_number] >= (target_temp[sensor_number]*((100.0-tol)/100)))
     return 255;
 
   return 0;
@@ -112,7 +123,7 @@ uint8_t	temp_achieved(uint8_t sensor_number)
 
 uint8_t temps_achieved (void)
 {
-  if ((current_temp[EXTRUDER_0] >= (target_temp[EXTRUDER_0] - 2)) && (current_temp[HEATED_BED_0] >= (target_temp[HEATED_BED_0] - 2)))
+  if ((current_temp[EXTRUDER_0]>=target_temp[EXTRUDER_0]*((100.0-tol)/100)) && (current_temp[HEATED_BED_0] >= target_temp[HEATED_BED_0]*((100.0-tol)/100)))
     return 255;
 
   return 0;
@@ -163,7 +174,7 @@ void temp_tick(void)
   //output += output*config.kBlower*currenBWSpeed;
 
   output = pterm + iterm + dterm;
-
+/*
 #ifdef EXP_Board
   double p00 = -0.02242;
   double p10 = -0.001512*extruderFanSpeed;
@@ -180,7 +191,7 @@ void temp_tick(void)
 
   output = output*(1 + pxy);
 #endif
-
+*/
   last_error = pid_error;
 
   if(output > 100) {
@@ -215,13 +226,15 @@ static double read_temp(uint8_t sensor_number)
 
   }else if (sensor_number == HEATED_BED_0)
     {
-      //raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+      raw = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
+	  /*
       int32_t bed_temp_buf[5];
       for(int32_t i = 0; i < 5; i++)
         {
           bed_temp_buf[i] = analog_read(HEATED_BED_0_SENSOR_ADC_CHANNEL);
         }
       raw = getMedianValue(bed_temp_buf);
+      */
     }
 
   // filter the ADC values with simple IIR
@@ -263,15 +276,13 @@ static double read_R2C2_temp(void)
 {
   double celsius = 0;
 
-  int32_t adc_r2c2_buf[5];
-  for(int32_t i = 0; i < 5; i++)
-    {
-      adc_r2c2_buf[i] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
-    }
+  adc_r2c2_raw[i_temp_r2c2] = analog_read(R2C2_TEMP_SENSOR_ADC_CHANNEL);
 
-  adc_r2c2_raw = getMedianValue(adc_r2c2_buf);
+  i_temp_r2c2 = (i_temp_r2c2 + 1) % 5;
 
-  adc_filtered_r2c2 = adc_filtered_r2c2*0.9 + adc_r2c2_raw*0.1;
+  uint16_t adc_r2c2_med = getMedianValue(adc_r2c2_raw);
+
+  //adc_filtered_r2c2 = adc_filtered_r2c2*0.9 + adc_r2c2_med*0.1;
 
   double volts = (double) adc_filtered_r2c2*(3.3/4096);
 

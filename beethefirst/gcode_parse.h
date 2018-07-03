@@ -126,7 +126,7 @@ typedef struct {
 
   // for SD functions
 	uint8_t						chpos;
-	char              filename [120];
+	char              filename [GCODE_MAX_line_length];
 } GCODE_COMMAND;
 
 typedef struct

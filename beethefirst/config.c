@@ -42,9 +42,14 @@
 #include "sbl_config.h"
 #include "system_LPC17xx.h"
 
+#ifndef CFG_UID
+#define CFG_UID 1
+#endif
+
 /* values reflecting the gearing of your machine
  * numbers are integers or double
  */
+
 struct configuration config;
 
 #define TYPE_INT    0
@@ -79,12 +84,16 @@ tConfigItem config_lookup [] =
         { "home_pos_z", &config.home_pos_z, TYPE_DOUBLE, {.val_d=HOME_POS_Z}},
 
         { "acceleration",       &config.acceleration, TYPE_DOUBLE, {.val_d=500.000}},         /* 100mm / second^2 */
-        { "junction_deviation", &config.junction_deviation, TYPE_DOUBLE, {.val_d=0.050}},
-
         //PID
-        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=6.0}},
-        { "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
-        { "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=80.0}},
+#ifdef EXP_Board
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=28.8}},
+		{ "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0012}},
+		{ "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=172.0}},
+#else
+        { "extruder_kp", &config.kp, TYPE_DOUBLE, {.val_d=31.7}},
+		{ "extruder_ki", &config.ki, TYPE_DOUBLE, {.val_d=0.0013}},
+		{ "extruder_kd", &config.kd, TYPE_DOUBLE, {.val_d=199.0}},
+#endif
         { "extruder_kBlower", &config.kBlower, TYPE_DOUBLE, {.val_d=0.0035}},
         { "extruder_kVent", &config.kVent, TYPE_DOUBLE, {.val_d=0.005}},
 
@@ -96,6 +105,7 @@ tConfigItem config_lookup [] =
         {"time_elapsed",&config.time_elapsed , TYPE_INT, {.val_i=0}},
         {"number_of_lines",&config.number_of_lines , TYPE_INT, {.val_i=0}},
         {"executed_lines",&config.executed_lines , TYPE_INT, {.val_i=0}},
+		//{"gcode_filename",config.gcode_filename , TYPE_STRING, {.val_s=0}},
         {"startpoint_x", &config.startpoint_x, TYPE_DOUBLE, {.val_d=0}},
         {"startpoint_y", &config.startpoint_y, TYPE_DOUBLE, {.val_d=0}},
         {"startpoint_z", &config.startpoint_z, TYPE_DOUBLE, {.val_d=0}},
@@ -112,10 +122,10 @@ tConfigItem config_lookup [] =
         //Block Fan Control
         { "block_fan_slope", &config.blockControlM, TYPE_DOUBLE, {.val_d=8.75}},
         { "block_fan_intercept", &config.blockControlB, TYPE_DOUBLE, {.val_d=-276.25}},
-        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_DOUBLE, {.val_d=35}},
-        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_DOUBLE, {.val_d=43}},
-        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_DOUBLE, {.val_d=30}},
-        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_DOUBLE, {.val_d=100}},
+        { "block_fan_T_Start", &config.blockTemperatureFanStart, TYPE_INT, {.val_i=30}},
+        { "block_fan_T_Max", &config.blockTemperatureFanMax, TYPE_INT, {.val_i=40}},
+        { "block_fan_Min_Speed", &config.blockFanMinSpeed, TYPE_INT, {.val_i=30}},
+        { "block_fan_Max_Speed", &config.blockFanMaxSpeed, TYPE_INT, {.val_i=100}},
 
         ////Filament and Nozzle configs
         {"bcodeStr",config.bcodeStr , TYPE_STRING, {.val_s=0}},
@@ -347,7 +357,7 @@ bool read_config (void)
     }*//*No need for else*/
 
     if(read_err){
-        reset_config();
+        //reset_config();
         return false;
     }/*No need for else*/
 
@@ -378,7 +388,8 @@ void reset_config (void)
             case TYPE_STRING:
             {
               char* pVal = config_lookup[j].pValue;
-              strcpy(pVal, "_no_file");
+              //strcpy(pVal, "_no_file");
+              strcpy(pVal, "");
             }
         }
     }
