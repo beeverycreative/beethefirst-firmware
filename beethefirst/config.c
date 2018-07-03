@@ -388,7 +388,8 @@ void reset_config (void)
             case TYPE_STRING:
             {
               char* pVal = config_lookup[j].pValue;
-              strcpy(pVal, "_no_file");
+              //strcpy(pVal, "_no_file");
+              strcpy(pVal, "");
             }
         }
     }

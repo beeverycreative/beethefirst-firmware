@@ -2405,7 +2405,8 @@ buzzer_play (3000);
 				write_config();
 				//write_config_override();
 			} else {
-				sersendf("Error, Please Specify Filament String");
+			    memset(config.bcodeStr, '\0', sizeof(config.bcodeStr));
+			    write_config();
 			}
 
 		}
